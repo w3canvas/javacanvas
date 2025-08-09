@@ -2,7 +2,7 @@ package com.w3canvas.javacanvas.utils;
 
 import java.lang.reflect.Method;
 
-import net.sf.css4j.Value;
+import com.w3canvas.css.Value;
 import com.w3canvas.javacanvas.js.impl.node.ProjectScriptableObject;
 import com.w3canvas.javacanvas.rt.RhinoRuntime;
 
