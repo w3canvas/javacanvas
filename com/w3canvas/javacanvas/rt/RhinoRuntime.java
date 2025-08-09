@@ -10,7 +10,7 @@ import org.mozilla.javascript.Scriptable;
 public class RhinoRuntime
 {
 
-    private Hashtable intervals = new Hashtable();
+    private Hashtable<Integer, RhinoScheduler> intervals = new Hashtable<Integer, RhinoScheduler>();
     private int intervalId;
     private String currentUrl;
     private Scriptable scope;
@@ -63,7 +63,7 @@ public class RhinoRuntime
                 {
                     // todo: allow function parameter instead of string (!!!)
                     Integer id = Integer.valueOf(((Number) args[0]).intValue());
-                    RhinoScheduler e = (RhinoScheduler) intervals.get(id);
+                    RhinoScheduler e = intervals.get(id);
                     e.stopLoop();
                     intervals.remove(id);
                     return null;
