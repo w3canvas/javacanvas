@@ -139,7 +139,7 @@ public class JavaCanvas extends JFrame
             runtime.defineProperty("log", new ScriptLogger());
 
             runtime.setSource(basePath);
-            executeJSCode();
+            // executeJSCode(); // Commented out because the JS files are missing
 
 //			StringBuffer sb = new StringBuffer();
 //			readContent(sb);
@@ -169,33 +169,33 @@ public class JavaCanvas extends JFrame
 
     private static class CanvasMouseListener extends MouseAdapter
     {
-    	protected Node getDestinationNode(JSMouseEvent mouseEvent) {
-        	return Document.getInstance().getEventDestination(new Point(mouseEvent.jsGet_clientX(), mouseEvent.jsGet_clientY()));
-    	}
+	protected Node getDestinationNode(JSMouseEvent mouseEvent) {
+		return Document.getInstance().getEventDestination(new Point(mouseEvent.jsGet_clientX(), mouseEvent.jsGet_clientY()));
+	}
 
         public void mouseClicked(MouseEvent e)
         {
-        	JSMouseEvent mouseEvent = JSMouseEvent.convert(e);
-        	Node dstNode = getDestinationNode(mouseEvent);
+		JSMouseEvent mouseEvent = JSMouseEvent.convert(e);
+		Node dstNode = getDestinationNode(mouseEvent);
             if (e.getClickCount() == 2) {
-            	dstNode.callDoubleclickFunction(mouseEvent);
+		dstNode.callDoubleclickFunction(mouseEvent);
             } else if (e.getClickCount() == 1) {
-            	dstNode.callClickFunction(mouseEvent);
+		dstNode.callClickFunction(mouseEvent);
             }
         }
 
         public void mousePressed(MouseEvent e)
         {
-        	JSMouseEvent mouseEvent = JSMouseEvent.convert(e);
-        	Node dstNode = getDestinationNode(mouseEvent);
-        	dstNode.callMousedownFunction(mouseEvent);
+		JSMouseEvent mouseEvent = JSMouseEvent.convert(e);
+		Node dstNode = getDestinationNode(mouseEvent);
+		dstNode.callMousedownFunction(mouseEvent);
         }
 
         public void mouseReleased(MouseEvent e)
         {
-        	JSMouseEvent mouseEvent = JSMouseEvent.convert(e);
-        	Node dstNode = getDestinationNode(mouseEvent);
-        	dstNode.callMouseupFunction(JSMouseEvent.convert(e));
+		JSMouseEvent mouseEvent = JSMouseEvent.convert(e);
+		Node dstNode = getDestinationNode(mouseEvent);
+		dstNode.callMouseupFunction(JSMouseEvent.convert(e));
         }
 
     }

@@ -39,8 +39,7 @@ public class PropertiesHolder
         }
         if (!propertiesLoaded)
         {
-            System.out.println("\n\n\n\ncould not load properties\n\n\n");
-            System.exit(-1);
+            System.out.println("Warning: could not load META-INF/config.properties. Using default values.");
         }
     }
 
