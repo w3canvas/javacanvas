@@ -4,7 +4,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import com.w3canvas.javacanvas.js.EventTarget;
-import com.w3canvas.javacanvas.js.impl.node.ProjectScriptableObject;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.ProjectScriptableObject;
 
 public class JSEvent extends ProjectScriptableObject
 {

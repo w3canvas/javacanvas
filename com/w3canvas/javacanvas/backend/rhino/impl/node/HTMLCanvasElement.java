@@ -19,10 +19,16 @@ import javax.swing.RootPaneContainer;
 import com.w3canvas.javacanvas.Base64;
 import com.w3canvas.javacanvas.js.ICanvas;
 import com.w3canvas.javacanvas.js.IObserver;
-import com.w3canvas.javacanvas.js.impl.event.CSSAttribute;
+import com.w3canvas.javacanvas.backend.rhino.impl.event.CSSAttribute;
 import com.w3canvas.javacanvas.utils.RhinoCanvasUtils;
 
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
+
+import com.w3canvas.javacanvas.backend.awt.AwtGraphicsBackend;
+import com.w3canvas.javacanvas.core.CoreCanvasRenderingContext2D;
+import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
+import com.w3canvas.javacanvas.interfaces.IGraphicsBackend;
 
 @SuppressWarnings("serial")
 public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
@@ -123,7 +129,20 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 
 	public Scriptable jsFunction_getContext(String param) {
 		if (canvas == null) {
-			canvas = RhinoCanvasUtils.getScriptableInstance(CanvasRenderingContext2D.class, null);
+			// 1. Instantiate the AWT backend
+			IGraphicsBackend backend = new AwtGraphicsBackend();
+
+			// 2. Create the core rendering context, providing the backend and canvas dimensions
+			ICanvasRenderingContext2D coreContext = new CoreCanvasRenderingContext2D(backend, getWidth(), getHeight());
+
+			// 3. Create the Rhino adapter, passing the core context to it
+			canvas = new CanvasRenderingContext2D(coreContext);
+
+			// 4. Initialize the Scriptable parts of the adapter
+			canvas.setParentScope(this.getParentScope());
+			canvas.setPrototype(ScriptableObject.getClassPrototype(this.getParentScope(), "CanvasRenderingContext2D"));
+
+			// 5. Initialize the canvas reference for dirty() calls
 			canvas.initCanvas((ICanvas) this);
 		}
 

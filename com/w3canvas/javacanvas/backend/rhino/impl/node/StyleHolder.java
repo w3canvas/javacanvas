@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.w3canvas.javacanvas.js.IObserver;
-import com.w3canvas.javacanvas.js.impl.event.CSSAttribute;
+import com.w3canvas.javacanvas.backend.rhino.impl.event.CSSAttribute;
 
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;

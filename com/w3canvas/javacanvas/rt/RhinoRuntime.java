@@ -27,7 +27,9 @@ public class RhinoRuntime
             scope = new ImporterTopLevel(context);
 
             exec("importPackage(Packages.com.w3canvas.javacanvas.js)");
-            exec("importPackage(Packages.com.w3canvas.javacanvas.js.impl)");
+            exec("importPackage(Packages.com.w3canvas.javacanvas.backend.rhino.impl.node)");
+            exec("importPackage(Packages.com.w3canvas.javacanvas.backend.rhino.impl.event)");
+            exec("importPackage(Packages.com.w3canvas.javacanvas.backend.rhino.impl.gradient)");
 
             defineProperty("setTimeout", new Callable()
             {
