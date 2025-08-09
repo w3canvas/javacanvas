@@ -1,0 +1,6 @@
+# Compiled output
+bin/
+
+# Build artifacts
+sources.txt
+*.class
