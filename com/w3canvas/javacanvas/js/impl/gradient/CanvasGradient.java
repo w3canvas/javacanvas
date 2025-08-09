@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
-import net.sf.css4j.Value;
+import com.w3canvas.css.Value;
 import com.w3canvas.javacanvas.js.impl.node.ProjectScriptableObject;
 
 @SuppressWarnings("serial")
