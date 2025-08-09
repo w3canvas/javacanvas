@@ -1,6 +1,6 @@
 package com.w3canvas.javacanvas.js;
 
-import com.w3canvas.javacanvas.js.impl.node.Node;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.Node;
 
 public interface NodeList {
 

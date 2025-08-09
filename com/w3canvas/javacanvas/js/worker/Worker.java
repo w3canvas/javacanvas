@@ -12,7 +12,7 @@ import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
-import com.w3canvas.javacanvas.js.impl.node.ProjectScriptableObject;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.ProjectScriptableObject;
 import com.w3canvas.javacanvas.rt.RhinoRuntime;
 
 @SuppressWarnings("serial")
