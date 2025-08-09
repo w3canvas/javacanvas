@@ -56,6 +56,11 @@ import com.w3canvas.javacanvas.utils.ScriptLogger;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptableObject;
+import java.awt.image.BufferedImage;
+import com.w3canvas.javacanvas.js.impl.node.Document;
+import com.w3canvas.javacanvas.js.impl.node.HTMLCanvasElement;
+import com.w3canvas.javacanvas.js.impl.node.Node;
+
 
 @SuppressWarnings("serial")
 public class JavaCanvas extends JFrame
@@ -63,15 +68,53 @@ public class JavaCanvas extends JFrame
 
     private RhinoRuntime runtime;
     private String basePath;
+    private static JavaCanvas instance;
 //    private boolean isInitialized = false;
 
-    private JavaCanvas(String title, String resourcePath)
+    public JavaCanvas(String title, String resourcePath)
     {
         super(title);
+        instance = this;
         basePath = resourcePath;
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setSize(screenSize.width, screenSize.height - 100);
+    }
+
+    public static JavaCanvas getInstance() {
+        return instance;
+    }
+
+    public void saveScreenshot(String path) {
+        try {
+            Node canvasNode = Document.getInstance().jsFunction_getElementById("canvas");
+            if (canvasNode instanceof HTMLCanvasElement) {
+                HTMLCanvasElement canvasElement = (HTMLCanvasElement) canvasNode;
+                BufferedImage image = canvasElement.getImage();
+                javax.imageio.ImageIO.write(image, "png", new java.io.File(path));
+                System.out.println("Screenshot saved to " + path);
+            } else {
+                System.err.println("Could not find canvas element with id 'canvas'");
+            }
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void executeScript(String scriptPath) {
+        try {
+            java.io.File scriptFile = new java.io.File(basePath, scriptPath);
+            java.io.Reader reader = new java.io.FileReader(scriptFile);
+            runtime.getScope().put("documentBase", runtime.getScope(), scriptFile.getParentFile().toURI().toString());
+            Context context = Context.enter();
+            try {
+                runtime.exec(reader, scriptPath);
+            } finally {
+                Context.exit();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static class DemoWindowAdapter extends WindowAdapter
@@ -102,7 +145,7 @@ public class JavaCanvas extends JFrame
     }
 
 
-    private void init()
+    public void init()
     {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setSize(screenSize.width - 200, screenSize.height - 100);
@@ -135,6 +178,11 @@ public class JavaCanvas extends JFrame
             ScriptableObject.defineClass(runtime.getScope(), ImageData.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), StyleHolder.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), JSMouseEvent.class, false, true);
+
+            // For testing
+            ScriptableObject.defineClass(runtime.getScope(), com.w3canvas.javacanvas.test.TestUtils.class);
+            runtime.defineProperty("test", new com.w3canvas.javacanvas.test.TestUtils());
+
 
             runtime.defineProperty("log", new ScriptLogger());
 

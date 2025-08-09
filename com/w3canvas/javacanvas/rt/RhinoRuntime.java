@@ -92,6 +92,15 @@ public class RhinoRuntime
         return new RhinoScriptRunner(this, expression).run(Context.getCurrentContext());
     }
 
+    public Object exec(java.io.Reader reader, String sourceName)
+    {
+        try {
+            return Context.getCurrentContext().evaluateReader(scope, reader, sourceName, 1, null);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public Scriptable getScope()
     {
         return scope;
