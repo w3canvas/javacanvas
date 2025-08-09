@@ -17,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.RootPaneContainer;
 
 import com.w3canvas.javacanvas.Base64;
+import com.w3canvas.javacanvas.js.ICanvas;
 import com.w3canvas.javacanvas.js.IObserver;
 import com.w3canvas.javacanvas.js.impl.event.CSSAttribute;
 import com.w3canvas.javacanvas.utils.RhinoCanvasUtils;
@@ -24,7 +25,7 @@ import com.w3canvas.javacanvas.utils.RhinoCanvasUtils;
 import org.mozilla.javascript.Scriptable;
 
 @SuppressWarnings("serial")
-public class HTMLCanvasElement extends Image implements IObserver {
+public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 
 	private static final Map<String, String> FORMATS = new HashMap<String, String>();
 
@@ -123,7 +124,7 @@ public class HTMLCanvasElement extends Image implements IObserver {
 	public Scriptable jsFunction_getContext(String param) {
 		if (canvas == null) {
 			canvas = RhinoCanvasUtils.getScriptableInstance(CanvasRenderingContext2D.class, null);
-			canvas.initCanvas(this);
+			canvas.initCanvas((ICanvas) this);
 		}
 
 		return canvas;
@@ -214,5 +215,13 @@ public class HTMLCanvasElement extends Image implements IObserver {
 
 	public CanvasRenderingContext2D getCanvas() {
 		return canvas;
+	}
+
+	public Integer getWidth() {
+		return getRealWidth();
+	}
+
+	public Integer getHeight() {
+		return getRealHeight();
 	}
 }
