@@ -38,3 +38,11 @@ ctx.ellipse(120, 165, 50, 25, Math.PI / 4, 0, 2 * Math.PI);
 ctx.stroke();
 
 console.log("Canvas 2D tests completed.");
+
+// Test globalCompositeOperation
+ctx.globalCompositeOperation = 'copy';
+ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
+ctx.fillRect(10, 10, 50, 50);
+ctx.globalCompositeOperation = 'source-over'; // reset to default
+
+console.log("Additional canvas tests completed.");

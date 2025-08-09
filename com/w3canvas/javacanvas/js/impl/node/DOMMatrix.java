@@ -43,4 +43,8 @@ public class DOMMatrix extends ProjectScriptableObject {
     public double jsGet_f() {
         return transform.getTranslateY();
     }
+
+    public AffineTransform getTransform() {
+        return transform;
+    }
 }
