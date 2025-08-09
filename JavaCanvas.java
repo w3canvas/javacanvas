@@ -152,14 +152,14 @@ public class JavaCanvas extends JFrame
         }
     }
 
-    private void executeJSCode() throws InstantiationException, IllegalAccessException, ClassNotFoundException
+    private void executeJSCode() throws ReflectiveOperationException
     {
         Properties properties = PropertiesHolder.getInstance().getProperties();
         List<String> jsClasses = PropertiesHolder.getJSClasses(properties);
 
         for (String className : jsClasses)
         {
-            Object instance = Class.forName(className).newInstance();
+            Object instance = Class.forName(className).getDeclaredConstructor().newInstance();
             if (instance instanceof Script)
             {
                 ((Script) instance).exec(Context.getCurrentContext(), runtime.getScope());
