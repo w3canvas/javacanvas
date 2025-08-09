@@ -16,9 +16,9 @@ import javax.swing.JRootPane;
 import com.w3canvas.javacanvas.js.EventTarget;
 import com.w3canvas.javacanvas.js.INodeUtils;
 import com.w3canvas.javacanvas.js.NodeList;
-import com.w3canvas.javacanvas.js.impl.event.CSSAttribute;
-import com.w3canvas.javacanvas.js.impl.event.JSEvent;
-import com.w3canvas.javacanvas.js.impl.event.JSMouseEvent;
+import com.w3canvas.javacanvas.backend.rhino.impl.event.CSSAttribute;
+import com.w3canvas.javacanvas.backend.rhino.impl.event.JSEvent;
+import com.w3canvas.javacanvas.backend.rhino.impl.event.JSMouseEvent;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;

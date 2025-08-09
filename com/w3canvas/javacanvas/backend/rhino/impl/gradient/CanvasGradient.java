@@ -8,7 +8,7 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import com.w3canvas.css.Value;
-import com.w3canvas.javacanvas.js.impl.node.ProjectScriptableObject;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.ProjectScriptableObject;
 
 @SuppressWarnings("serial")
 public abstract class CanvasGradient extends ProjectScriptableObject

@@ -1,6 +1,6 @@
 package com.w3canvas.javacanvas.backend.rhino.impl.node;
 
-import com.w3canvas.javacanvas.js.impl.event.CSSAttribute;
+import com.w3canvas.javacanvas.backend.rhino.impl.event.CSSAttribute;
 
 public class CustomEvent
 {
