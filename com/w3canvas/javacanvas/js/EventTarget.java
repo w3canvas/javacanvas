@@ -3,7 +3,7 @@ package com.w3canvas.javacanvas.js;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.events.EventException;
-import com.w3canvas.javacanvas.js.impl.event.JSEvent;
+import com.w3canvas.javacanvas.backend.rhino.impl.event.JSEvent;
 
 // the JavaScript spec has functions that require EventTarget objects that implement these methods.
 // At the same time, these objects are treated a lot like a Node.  And the spec specifically mentions

@@ -1,6 +1,6 @@
 package com.w3canvas.javacanvas.js;
 
-import com.w3canvas.javacanvas.js.impl.node.TextMetrics;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.TextMetrics;
 
 
 public interface CanvasText {

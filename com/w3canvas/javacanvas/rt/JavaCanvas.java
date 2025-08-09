@@ -35,20 +35,20 @@ import java.util.Properties;
 
 import javax.swing.JFrame;
 
-import com.w3canvas.javacanvas.js.impl.event.JSMouseEvent;
-import com.w3canvas.javacanvas.js.impl.gradient.LinearCanvasGradient;
-import com.w3canvas.javacanvas.js.impl.gradient.RadialCanvasGradient;
-import com.w3canvas.javacanvas.js.impl.node.CanvasPattern;
-import com.w3canvas.javacanvas.js.impl.node.CanvasPixelArray;
-import com.w3canvas.javacanvas.js.impl.node.CanvasRenderingContext2D;
-import com.w3canvas.javacanvas.js.impl.node.Document;
-import com.w3canvas.javacanvas.js.impl.node.HTMLCanvasElement;
-import com.w3canvas.javacanvas.js.impl.node.Image;
-import com.w3canvas.javacanvas.js.impl.node.ImageData;
-import com.w3canvas.javacanvas.js.impl.node.Node;
-import com.w3canvas.javacanvas.js.impl.node.StyleHolder;
-import com.w3canvas.javacanvas.js.impl.node.TextMetrics;
-import com.w3canvas.javacanvas.js.impl.node.Window;
+import com.w3canvas.javacanvas.backend.rhino.impl.event.JSMouseEvent;
+import com.w3canvas.javacanvas.backend.rhino.impl.gradient.LinearCanvasGradient;
+import com.w3canvas.javacanvas.backend.rhino.impl.gradient.RadialCanvasGradient;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPattern;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPixelArray;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasRenderingContext2D;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.Document;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.Image;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.Node;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.StyleHolder;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.TextMetrics;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.Window;
 import com.w3canvas.javacanvas.utils.PropertiesHolder;
 import com.w3canvas.javacanvas.utils.RhinoCanvasUtils;
 import com.w3canvas.javacanvas.utils.ScriptLogger;
@@ -57,9 +57,9 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptableObject;
 import java.awt.image.BufferedImage;
-import com.w3canvas.javacanvas.js.impl.node.Document;
-import com.w3canvas.javacanvas.js.impl.node.HTMLCanvasElement;
-import com.w3canvas.javacanvas.js.impl.node.Node;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.Document;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.Node;
 
 
 @SuppressWarnings("serial")
