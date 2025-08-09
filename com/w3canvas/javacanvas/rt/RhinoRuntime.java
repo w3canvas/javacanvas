@@ -49,7 +49,7 @@ public class RhinoRuntime
                     // todo: allow function parameter instead of string (!!!)
                     RhinoScheduler e = new RhinoScheduler(RhinoRuntime.this, args[0], ((Number) args[1]).intValue(),
                         true);
-                    Integer id = new Integer(intervalId++);
+                    Integer id = Integer.valueOf(intervalId++);
                     intervals.put(id, e);
                     new Thread(e).start();
                     return id;
@@ -62,7 +62,7 @@ public class RhinoRuntime
                 public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args)
                 {
                     // todo: allow function parameter instead of string (!!!)
-                    Integer id = new Integer(((Number) args[0]).intValue());
+                    Integer id = Integer.valueOf(((Number) args[0]).intValue());
                     RhinoScheduler e = (RhinoScheduler) intervals.get(id);
                     e.stopLoop();
                     intervals.remove(id);
@@ -87,8 +87,7 @@ public class RhinoRuntime
         defineProperty("documentBase", url);
     }
 
-    // FIXME restore accessor type to "private"
-    protected Object exec(String expression)
+    public Object exec(String expression)
     {
         return new RhinoScriptRunner(this, expression).run(Context.getCurrentContext());
     }

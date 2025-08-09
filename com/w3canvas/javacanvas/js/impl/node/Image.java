@@ -61,7 +61,7 @@ public class Image extends Node {
 				g.dispose();
 
 				if (this instanceof HTMLCanvasElement && ((HTMLCanvasElement) this).getCanvas() != null) {
-					((HTMLCanvasElement) this).getCanvas().initCanvas((HTMLCanvasElement) this);
+					((HTMLCanvasElement) this).getCanvas().initCanvas((com.w3canvas.javacanvas.js.ICanvas) this);
 				}
 			} else {
 				image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
@@ -173,7 +173,7 @@ public class Image extends Node {
 		return this.owner;
 	}
 
-	void dirty() {
+	public void dirty() {
 		if (owner != null) {
 			owner.getNodePanel().repaint();
 		}
