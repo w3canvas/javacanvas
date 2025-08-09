@@ -3,7 +3,7 @@ set -e
 
 echo "Running smoke test..."
 # Run the test in the background
-xvfb-run --auto-servernum java -cp bin:lib/rhino.jar com.w3canvas.javacanvas.test.TestCanvas &
+xvfb-run --auto-servernum java -cp bin:/app/rhino.jar com.w3canvas.javacanvas.test.TestCanvas &
 TEST_PID=$!
 
 # Wait for a few seconds
@@ -20,11 +20,11 @@ else
 fi
 
 echo "Running CSS parser test..."
-java -cp bin:lib/rhino.jar com.w3canvas.javacanvas.test.TestCSSParser
+java -cp bin:/app/rhino.jar com.w3canvas.javacanvas.test.TestCSSParser
 echo "CSS parser test successful."
 
 echo "Running Canvas2D test..."
-xvfb-run --auto-servernum java -cp bin:lib/rhino.jar com.w3canvas.javacanvas.test.TestCanvas2D &
+xvfb-run --auto-servernum java -cp bin:/app/rhino.jar com.w3canvas.javacanvas.test.TestCanvas2D &
 TEST_PID=$!
 sleep 5
 if kill -0 $TEST_PID 2>/dev/null; then
@@ -37,7 +37,7 @@ else
 fi
 
 echo "Running Worker test..."
-xvfb-run --auto-servernum java -cp bin:lib/rhino.jar com.w3canvas.javacanvas.test.TestWorker &
+xvfb-run --auto-servernum java -cp bin:/app/rhino.jar com.w3canvas.javacanvas.test.TestWorker &
 TEST_PID=$!
 sleep 5
 if kill -0 $TEST_PID 2>/dev/null; then
