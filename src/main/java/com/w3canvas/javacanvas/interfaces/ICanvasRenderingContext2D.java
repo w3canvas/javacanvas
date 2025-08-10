@@ -3,6 +3,8 @@ package com.w3canvas.javacanvas.interfaces;
 import org.mozilla.javascript.Scriptable;
 
 public interface ICanvasRenderingContext2D {
+    ICanvasSurface getSurface();
+
     void save();
     void restore();
 

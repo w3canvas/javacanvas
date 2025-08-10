@@ -31,6 +31,11 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     }
 
     @Override
+    public ICanvasSurface getSurface() {
+        return surface;
+    }
+
+    @Override
     public void reset() {
         stack = new Stack<>();
         fillStyle = "#000000";
@@ -288,7 +293,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public void fill() {
         if (fillStyle instanceof String) {
-            gc.setPaint(ColorParser.parse((String) fillStyle));
+            gc.setPaint(ColorParser.parse((String) fillStyle, backend));
         } else if (fillStyle instanceof ICanvasGradient) {
             // The backend needs to handle this.
         } else if (fillStyle instanceof ICanvasPattern) {
@@ -300,7 +305,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public void stroke() {
         if (strokeStyle instanceof String) {
-            gc.setPaint(ColorParser.parse((String) strokeStyle));
+            gc.setPaint(ColorParser.parse((String) strokeStyle, backend));
         } else if (strokeStyle instanceof ICanvasGradient) {
             // The backend needs to handle this.
         } else if (strokeStyle instanceof ICanvasPattern) {
