@@ -4,3 +4,7 @@ bin/
 # Build artifacts
 sources.txt
 *.class
+
+# Dependencies
+lib/
+*.jar

@@ -180,8 +180,8 @@ public class JavaCanvas extends JFrame
             ScriptableObject.defineClass(runtime.getScope(), JSMouseEvent.class, false, true);
 
             // For testing
-            ScriptableObject.defineClass(runtime.getScope(), com.w3canvas.javacanvas.test.TestUtils.class);
-            runtime.defineProperty("test", new com.w3canvas.javacanvas.test.TestUtils());
+            // ScriptableObject.defineClass(runtime.getScope(), com.w3canvas.javacanvas.test.TestUtils.class);
+            // runtime.defineProperty("test", new com.w3canvas.javacanvas.test.TestUtils());
 
 
             runtime.defineProperty("log", new ScriptLogger());
