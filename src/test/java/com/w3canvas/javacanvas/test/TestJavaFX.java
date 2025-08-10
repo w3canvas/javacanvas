@@ -1,33 +1,51 @@
 package com.w3canvas.javacanvas.test;
 
-import javafx.scene.Scene;
-import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Rectangle;
-import javafx.stage.Stage;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement;
+import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.testfx.api.FxRobot;
-import org.testfx.framework.junit5.ApplicationExtension;
-import org.testfx.framework.junit5.Start;
+import javax.swing.SwingUtilities;
+import java.util.concurrent.CountDownLatch;
+import javafx.embed.swing.JFXPanel;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@ExtendWith(ApplicationExtension.class)
 public class TestJavaFX {
 
-    private Scene scene;
-
-    @Start
-    private void start(Stage stage) {
-        Rectangle rect = new Rectangle(100, 100);
-        StackPane root = new StackPane(rect);
-        scene = new Scene(root, 200, 200);
-        stage.setScene(scene);
-        stage.show();
+    @BeforeAll
+    public static void initJFX() throws InterruptedException {
+        System.out.println("Initializing JavaFX...");
+        final CountDownLatch latch = new CountDownLatch(1);
+        SwingUtilities.invokeLater(() -> {
+            new JFXPanel(); // initializes JavaFX environment
+            latch.countDown();
+        });
+        System.out.println("Waiting for JavaFX to initialize...");
+        latch.await();
+        System.out.println("JavaFX initialized.");
     }
 
     @Test
-    void should_create_scene() {
-        assertNotNull(scene);
+    public void testFillRect() {
+        System.out.println("Starting testFillRect...");
+        System.setProperty("w3canvas.backend", "javafx");
+        System.out.println("Creating HTMLCanvasElement...");
+        HTMLCanvasElement canvas = new HTMLCanvasElement();
+        System.out.println("Getting 2D context...");
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        System.out.println("Setting fill style to red...");
+        ctx.setFillStyle("red");
+        System.out.println("Filling rect...");
+        ctx.fillRect(10, 10, 100, 100);
+
+        System.out.println("Getting pixel data...");
+        int[] pixelData = ctx.getSurface().getPixelData(15, 15, 1, 1);
+
+        System.out.println("Asserting pixel color...");
+        // Check if the pixel is red
+        // The format is ARGB, so red is 0xFFFF0000
+        assertEquals(0xFFFF0000, pixelData[0]);
+        System.out.println("testFillRect finished.");
     }
 }

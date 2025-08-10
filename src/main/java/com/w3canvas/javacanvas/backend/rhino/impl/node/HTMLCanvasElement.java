@@ -26,6 +26,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 import com.w3canvas.javacanvas.backend.awt.AwtGraphicsBackend;
+import com.w3canvas.javacanvas.backend.javafx.JavaFXGraphicsBackend;
 import com.w3canvas.javacanvas.core.CoreCanvasRenderingContext2D;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
 import com.w3canvas.javacanvas.interfaces.IGraphicsBackend;
@@ -129,8 +130,13 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 
 	public Scriptable jsFunction_getContext(String param) {
 		if (canvas == null) {
-			// 1. Instantiate the AWT backend
-			IGraphicsBackend backend = new AwtGraphicsBackend();
+			String backendName = System.getProperty("w3canvas.backend", "awt");
+			IGraphicsBackend backend;
+			if ("javafx".equalsIgnoreCase(backendName)) {
+				backend = new JavaFXGraphicsBackend();
+			} else {
+				backend = new AwtGraphicsBackend();
+			}
 
 			// 2. Create the core rendering context, providing the backend and canvas dimensions
 			ICanvasRenderingContext2D coreContext = new CoreCanvasRenderingContext2D(backend, getWidth(), getHeight());
