@@ -67,6 +67,10 @@ public class Document extends Node {
 		return instance;
 	}
 
+	public static void resetForTesting() {
+		instance = null;
+	}
+
 	public RootPaneContainer getContentPane() {
 		return frame;
 	}

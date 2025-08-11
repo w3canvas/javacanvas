@@ -119,10 +119,12 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 
 		setOwner(this);
 
+        if (container != null) {
 		container.getRootPane().add(helper); // define layers here
 		helper.setBounds(0, 0, width, height);
-		container.getRootPane().validate();
+		    container.getRootPane().validate();
 		container.getRootPane().repaint();
+        }
 
 		jsGet_style().registerObserver(this, CSSAttribute.Z_ORDER);
 		jsGet_style().registerObserver(this, CSSAttribute.DISPLAY);

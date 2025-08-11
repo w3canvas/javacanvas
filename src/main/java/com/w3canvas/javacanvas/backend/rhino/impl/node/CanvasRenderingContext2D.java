@@ -10,6 +10,7 @@ import com.w3canvas.javacanvas.backend.rhino.impl.gradient.CanvasGradient;
 import com.w3canvas.javacanvas.interfaces.ICanvasGradient;
 import com.w3canvas.javacanvas.interfaces.ICanvasPattern;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
+import com.w3canvas.javacanvas.interfaces.ICanvasSurface;
 import com.w3canvas.javacanvas.interfaces.IImageData;
 import com.w3canvas.javacanvas.interfaces.ITextMetrics;
 import com.w3canvas.javacanvas.js.CanvasText;
@@ -17,7 +18,7 @@ import com.w3canvas.javacanvas.js.ICanvas;
 import com.w3canvas.javacanvas.utils.RhinoCanvasUtils;
 
 @SuppressWarnings("serial")
-public class CanvasRenderingContext2D extends ProjectScriptableObject implements CanvasText {
+public class CanvasRenderingContext2D extends ProjectScriptableObject implements CanvasText, ICanvasRenderingContext2D {
 
     private ICanvasRenderingContext2D core;
     private ICanvas canvas;
@@ -34,99 +35,452 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         this.canvas = canvas;
     }
 
-    public void reset() {
-	core.reset();
+    @Override
+    public ICanvasSurface getSurface() {
+        return core.getSurface();
     }
 
-    public void jsFunction_save() {
+    @Override
+    public void save() {
         core.save();
     }
 
-    public void jsFunction_restore() {
+    @Override
+    public void restore() {
         core.restore();
     }
 
-    public void jsFunction_scale(Double x, Double y) {
+    @Override
+    public void scale(double x, double y) {
         core.scale(x, y);
     }
 
-    public void jsFunction_rotate(Double angle) {
+    @Override
+    public void rotate(double angle) {
         core.rotate(angle);
     }
 
-    public void jsFunction_translate(Double x, Double y) {
+    @Override
+    public void translate(double x, double y) {
         core.translate(x, y);
     }
 
-    public void jsFunction_transform(Double m11, Double m12, Double m21, Double m22, Double dx, Double dy) {
+    @Override
+    public void transform(double m11, double m12, double m21, double m22, double dx, double dy) {
         core.transform(m11, m12, m21, m22, dx, dy);
     }
 
-    public void jsFunction_setTransform(Double m11, Double m12, Double m21, Double m22, Double dx, Double dy) {
+    @Override
+    public void setTransform(double m11, double m12, double m21, double m22, double dx, double dy) {
         core.setTransform(m11, m12, m21, m22, dx, dy);
     }
 
-    public void jsFunction_resetTransform() {
+    @Override
+    public void resetTransform() {
         core.resetTransform();
     }
 
-    public DOMMatrix jsFunction_getTransform() {
-        return new DOMMatrix((AffineTransform) core.getTransform());
+    @Override
+    public Object getTransform() {
+        return core.getTransform();
     }
 
-    public Double jsGet_globalAlpha() {
+    @Override
+    public double getGlobalAlpha() {
         return core.getGlobalAlpha();
     }
 
-    public void jsSet_globalAlpha(Double globalAlpha) {
+    @Override
+    public void setGlobalAlpha(double globalAlpha) {
         core.setGlobalAlpha(globalAlpha);
     }
 
-    public String jsGet_globalCompositeOperation() {
+    @Override
+    public String getGlobalCompositeOperation() {
         return core.getGlobalCompositeOperation();
     }
 
-    public void jsSet_globalCompositeOperation(String op) {
+    @Override
+    public void setGlobalCompositeOperation(String op) {
         core.setGlobalCompositeOperation(op);
     }
 
-    public Object jsGet_fillStyle() {
+    @Override
+    public Object getFillStyle() {
         return core.getFillStyle();
     }
 
-    public void jsSet_fillStyle(Object fillStyle) {
+    @Override
+    public void setFillStyle(Object fillStyle) {
         core.setFillStyle(fillStyle);
     }
 
-    public Object jsGet_strokeStyle() {
+    @Override
+    public Object getStrokeStyle() {
         return core.getStrokeStyle();
     }
 
-    public void jsSet_strokeStyle(Object strokeStyle) {
+    @Override
+    public void setStrokeStyle(Object strokeStyle) {
         core.setStrokeStyle(strokeStyle);
     }
 
-    public CanvasGradient jsFunction_createLinearGradient(Double x0, Double y0, Double x1, Double y1) {
-        ICanvasGradient gradient = core.createLinearGradient(x0, y0, x1, y1);
-        return (CanvasGradient) gradient;
+    @Override
+    public ICanvasGradient createLinearGradient(double x0, double y0, double x1, double y1) {
+        return core.createLinearGradient(x0, y0, x1, y1);
     }
 
-    public CanvasGradient jsFunction_createRadialGradient(Double x0, Double y0, Double r0, Double x1, Double y1, Double r1) {
-        ICanvasGradient gradient = core.createRadialGradient(x0, y0, r0, x1, y1, r1);
-        return (CanvasGradient) gradient;
+    @Override
+    public ICanvasGradient createRadialGradient(double x0, double y0, double r0, double x1, double y1, double r1) {
+        return core.createRadialGradient(x0, y0, r0, x1, y1, r1);
     }
 
-    public CanvasPattern jsFunction_createPattern(Image image, String repetition) {
-        ICanvasPattern pattern = core.createPattern(image.getImage(), repetition);
-        return (CanvasPattern) pattern;
+    @Override
+    public ICanvasPattern createPattern(Object image, String repetition) {
+        if (image instanceof Image) {
+            return core.createPattern(((Image) image).getImage(), repetition);
+        }
+        return null;
     }
 
-    public void jsSet_lineDashOffset(Double offset) {
+    @Override
+    public double getLineWidth() {
+        return core.getLineWidth();
+    }
+
+    @Override
+    public void setLineWidth(double lw) {
+        core.setLineWidth(lw);
+    }
+
+    @Override
+    public String getLineCap() {
+        return core.getLineCap();
+    }
+
+    @Override
+    public void setLineCap(String cap) {
+        core.setLineCap(cap);
+    }
+
+    @Override
+    public String getLineJoin() {
+        return core.getLineJoin();
+    }
+
+    @Override
+    public void setLineJoin(String join) {
+        core.setLineJoin(join);
+    }
+
+    @Override
+    public double getMiterLimit() {
+        return core.getMiterLimit();
+    }
+
+    @Override
+    public void setMiterLimit(double miterLimit) {
+        core.setMiterLimit(miterLimit);
+    }
+
+    @Override
+    public void setLineDash(Object dash) {
+        core.setLineDash(dash);
+    }
+
+    @Override
+    public Object getLineDash() {
+        return core.getLineDash();
+    }
+
+    @Override
+    public double getLineDashOffset() {
+        return core.getLineDashOffset();
+    }
+
+    @Override
+    public void setLineDashOffset(double offset) {
         core.setLineDashOffset(offset);
     }
 
+    @Override
+    public void clearRect(double x, double y, double w, double h) {
+        core.clearRect(x, y, w, h);
+        canvas.dirty();
+    }
+
+    @Override
+    public void fillRect(double x, double y, double w, double h) {
+        core.fillRect(x, y, w, h);
+        canvas.dirty();
+    }
+
+    @Override
+    public void strokeRect(double x, double y, double w, double h) {
+        core.strokeRect(x, y, w, h);
+        canvas.dirty();
+    }
+
+    @Override
+    public void beginPath() {
+        core.beginPath();
+    }
+
+    @Override
+    public void closePath() {
+        core.closePath();
+    }
+
+    @Override
+    public void moveTo(double x, double y) {
+        core.moveTo(x, y);
+    }
+
+    @Override
+    public void lineTo(double x, double y) {
+        core.lineTo(x, y);
+    }
+
+    @Override
+    public void quadraticCurveTo(double cpx, double cpy, double x, double y) {
+        core.quadraticCurveTo(cpx, cpy, x, y);
+    }
+
+    @Override
+    public void bezierCurveTo(double cp1x, double cp1y, double cp2x, double cp2y, double x, double y) {
+        core.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+    }
+
+    @Override
+    public void arcTo(double x1, double y1, double x2, double y2, double radius) {
+        core.arcTo(x1, y1, x2, y2, radius);
+    }
+
+    @Override
+    public void rect(double x, double y, double w, double h) {
+        core.rect(x, y, w, h);
+    }
+
+    @Override
+    public void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise) {
+        core.arc(x, y, radius, startAngle, endAngle, counterclockwise);
+    }
+
+    @Override
+    public void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise) {
+        core.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
+    }
+
+    @Override
+    public void fill() {
+        core.fill();
+        canvas.dirty();
+    }
+
+    @Override
+    public void stroke() {
+        core.stroke();
+        canvas.dirty();
+    }
+
+    @Override
+    public void clip() {
+        core.clip();
+    }
+
+    @Override
+    public boolean isPointInPath(double x, double y) {
+        return core.isPointInPath(x, y);
+    }
+
+    @Override
+    public boolean isPointInStroke(double x, double y) {
+        return core.isPointInStroke(x, y);
+    }
+
+    @Override
+    public void drawImage(Object image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh) {
+        if (image instanceof Image) {
+            core.drawImage(((Image) image).getImage(), sx, sy, sw, sh, dx, dy, dw, dh);
+            canvas.dirty();
+        }
+    }
+
+    @Override
+    public ITextMetrics measureText(String text) {
+        return core.measureText(text);
+    }
+
+    @Override
+    public String getFont() {
+        return core.getFont();
+    }
+
+    @Override
+    public void setFont(String font) {
+        core.setFont(font);
+    }
+
+    @Override
+    public String getTextAlign() {
+        return core.getTextAlign();
+    }
+
+    @Override
+    public void setTextAlign(String textAlign) {
+        core.setTextAlign(textAlign);
+    }
+
+    @Override
+    public String getTextBaseline() {
+        return core.getTextBaseline();
+    }
+
+    @Override
+    public void setTextBaseline(String textBaseline) {
+        core.setTextBaseline(textBaseline);
+    }
+
+    @Override
+    public void fillText(String text, double x, double y, double maxWidth) {
+        core.fillText(text, x, y, maxWidth);
+        canvas.dirty();
+    }
+
+    @Override
+    public void strokeText(String text, double x, double y, double maxWidth) {
+        core.strokeText(text, x, y, maxWidth);
+        canvas.dirty();
+    }
+
+    @Override
+    public IImageData createImageData(int width, int height) {
+        return core.createImageData(width, height);
+    }
+
+    @Override
+    public IImageData getImageData(int x, int y, int width, int height) {
+        return core.getImageData(x, y, width, height);
+    }
+
+    @Override
+    public void putImageData(IImageData imagedata, int dx, int dy, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
+        core.putImageData(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    }
+
+    @Override
+    public boolean isContextLost() {
+        return core.isContextLost();
+    }
+
+    @Override
+    public Scriptable getContextAttributes() {
+        return core.getContextAttributes();
+    }
+
+    @Override
+    public String getFilter() {
+        return core.getFilter();
+    }
+
+    @Override
+    public void setFilter(String filter) {
+        core.setFilter(filter);
+    }
+
+    @Override
+    public void reset() {
+	    core.reset();
+    }
+
+    // Rhino-specific methods below
+
+    public void jsFunction_save() {
+        save();
+    }
+
+    public void jsFunction_restore() {
+        restore();
+    }
+
+    public void jsFunction_scale(Double x, Double y) {
+        scale(x, y);
+    }
+
+    public void jsFunction_rotate(Double angle) {
+        rotate(angle);
+    }
+
+    public void jsFunction_translate(Double x, Double y) {
+        translate(x, y);
+    }
+
+    public void jsFunction_transform(Double m11, Double m12, Double m21, Double m22, Double dx, Double dy) {
+        transform(m11, m12, m21, m22, dx, dy);
+    }
+
+    public void jsFunction_setTransform(Double m11, Double m12, Double m21, Double m22, Double dx, Double dy) {
+        setTransform(m11, m12, m21, m22, dx, dy);
+    }
+
+    public void jsFunction_resetTransform() {
+        resetTransform();
+    }
+
+    public DOMMatrix jsFunction_getTransform() {
+        return new DOMMatrix((AffineTransform) getTransform());
+    }
+
+    public Double jsGet_globalAlpha() {
+        return getGlobalAlpha();
+    }
+
+    public void jsSet_globalAlpha(Double globalAlpha) {
+        setGlobalAlpha(globalAlpha);
+    }
+
+    public String jsGet_globalCompositeOperation() {
+        return getGlobalCompositeOperation();
+    }
+
+    public void jsSet_globalCompositeOperation(String op) {
+        setGlobalCompositeOperation(op);
+    }
+
+    public Object jsGet_fillStyle() {
+        return getFillStyle();
+    }
+
+    public void jsSet_fillStyle(Object fillStyle) {
+        setFillStyle(fillStyle);
+    }
+
+    public Object jsGet_strokeStyle() {
+        return getStrokeStyle();
+    }
+
+    public void jsSet_strokeStyle(Object strokeStyle) {
+        setStrokeStyle(strokeStyle);
+    }
+
+    public CanvasGradient jsFunction_createLinearGradient(Double x0, Double y0, Double x1, Double y1) {
+        return (CanvasGradient) createLinearGradient(x0, y0, x1, y1);
+    }
+
+    public CanvasGradient jsFunction_createRadialGradient(Double x0, Double y0, Double r0, Double x1, Double y1, Double r1) {
+        return (CanvasGradient) createRadialGradient(x0, y0, r0, x1, y1, r1);
+    }
+
+    public CanvasPattern jsFunction_createPattern(Image image, String repetition) {
+        return (CanvasPattern) createPattern(image, repetition);
+    }
+
+    public void jsSet_lineDashOffset(Double offset) {
+        setLineDashOffset(offset);
+    }
+
     public double jsGet_lineDashOffset() {
-        return core.getLineDashOffset();
+        return getLineDashOffset();
     }
 
     public void jsFunction_setLineDash(NativeArray dash) {
@@ -134,11 +488,11 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         for (int i = 0; i < lineDash.length; i++) {
             lineDash[i] = ((Number) dash.get(i, dash)).doubleValue();
         }
-        core.setLineDash(lineDash);
+        setLineDash(lineDash);
     }
 
     public Scriptable jsFunction_getLineDash() {
-        Object lineDashObj = core.getLineDash();
+        Object lineDashObj = getLineDash();
         if (lineDashObj instanceof double[]) {
             double[] lineDash = (double[]) lineDashObj;
             Object[] arr = new Object[lineDash.length];
@@ -151,122 +505,116 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     public void jsSet_lineWidth(Double lw) {
-        core.setLineWidth(lw);
+        setLineWidth(lw);
     }
 
     public Double jsGet_lineWidth() {
-        return core.getLineWidth();
+        return getLineWidth();
     }
 
     public void jsSet_lineCap(String cap) {
-        core.setLineCap(cap);
+        setLineCap(cap);
     }
 
     public String jsGet_lineCap() {
-        return core.getLineCap();
+        return getLineCap();
     }
 
     public void jsSet_lineJoin(String join) {
-        core.setLineJoin(join);
+        setLineJoin(join);
     }
 
     public String jsGet_lineJoin() {
-        return core.getLineJoin();
+        return getLineJoin();
     }
 
     public void jsSet_miterLimit(Double miterLimit) {
-        core.setMiterLimit(miterLimit);
+        setMiterLimit(miterLimit);
     }
 
     public Double jsGet_miterLimit() {
-        return core.getMiterLimit();
+        return getMiterLimit();
     }
 
     public void jsFunction_clearRect(Double x, Double y, Double w, Double h) {
-        core.clearRect(x, y, w, h);
-        canvas.dirty();
+        clearRect(x, y, w, h);
     }
 
     public void jsFunction_fillRect(Double x, Double y, Double w, Double h) {
-        core.fillRect(x, y, w, h);
-        canvas.dirty();
+        fillRect(x, y, w, h);
     }
 
     public void jsFunction_strokeRect(Double x, Double y, Double w, Double h) {
-        core.strokeRect(x, y, w, h);
-        canvas.dirty();
+        strokeRect(x, y, w, h);
     }
 
     public void jsFunction_beginPath() {
-        core.beginPath();
+        beginPath();
     }
 
     public void jsFunction_closePath() {
-        core.closePath();
+        closePath();
     }
 
     public void jsFunction_moveTo(Double x, Double y) {
-        core.moveTo(x, y);
+        moveTo(x, y);
     }
 
     public void jsFunction_lineTo(Double x, Double y) {
-        core.lineTo(x, y);
+        lineTo(x, y);
     }
 
     public void jsFunction_quadraticCurveTo(Double cpx, Double cpy, Double x, Double y) {
-        core.quadraticCurveTo(cpx, cpy, x, y);
+        quadraticCurveTo(cpx, cpy, x, y);
     }
 
     public void jsFunction_bezierCurveTo(Double cp1x, Double cp1y, Double cp2x, Double cp2y, Double x, Double y) {
-        core.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+        bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
     }
 
     public void jsFunction_arcTo(Double x1, Double y1, Double x2, Double y2, Double radius) {
-        core.arcTo(x1, y1, x2, y2, radius);
+        arcTo(x1, y1, x2, y2, radius);
     }
 
     public void jsFunction_rect(Double x, Double y, Double w, Double h) {
-        core.rect(x, y, w, h);
+        rect(x, y, w, h);
     }
 
     public void jsFunction_arc(Double x, Double y, Double radius, Double startAngle, Double endAngle, boolean counterclockwise) {
-        core.arc(x, y, radius, startAngle, endAngle, counterclockwise);
+        arc(x, y, radius, startAngle, endAngle, counterclockwise);
     }
 
     public void jsFunction_ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise) {
-        core.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
+        ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
     }
 
     public void jsFunction_fill() {
-        core.fill();
-        canvas.dirty();
+        fill();
     }
 
     public void jsFunction_stroke() {
-        core.stroke();
-        canvas.dirty();
+        stroke();
     }
 
     public void jsFunction_clip() {
-        core.clip();
+        clip();
     }
 
     public boolean jsFunction_isPointInPath(Double x, Double y) {
-        return core.isPointInPath(x, y);
+        return isPointInPath(x, y);
     }
 
     public boolean jsFunction_isPointInStroke(Double x, Double y) {
-        return core.isPointInStroke(x, y);
+        return isPointInStroke(x, y);
     }
 
     public void jsFunction_drawImage(Image image, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh) {
-        core.drawImage(image.getImage(), sx, sy, sw, sh, dx, dy, dw, dh);
-        canvas.dirty();
+        drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
     }
 
     @Override
     public TextMetrics jsFunction_measureText(String text) {
-        ITextMetrics metrics = core.measureText(text);
+        ITextMetrics metrics = measureText(text);
         if (metrics != null) {
             return RhinoCanvasUtils.getScriptableInstance(TextMetrics.class, new Double[] { metrics.getWidth() });
         }
@@ -275,76 +623,73 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
 
     @Override
     public String jsGet_font() {
-        return core.getFont();
+        return getFont();
     }
 
     @Override
     public void jsSet_font(String font) {
-        core.setFont(font);
+        setFont(font);
     }
 
     @Override
     public void jsFunction_fillText(String text, Double x, Double y, int maxWidth) {
-        core.fillText(text, x, y, maxWidth);
-        canvas.dirty();
+        fillText(text, x, y, maxWidth);
     }
 
     @Override
     public void jsFunction_strokeText(String text, Double x, Double y, int maxWidth) {
-        core.strokeText(text, x, y, maxWidth);
-        canvas.dirty();
+        strokeText(text, x, y, maxWidth);
     }
 
     @Override
     public String jsGet_textAlign() {
-        return core.getTextAlign();
+        return getTextAlign();
     }
 
     @Override
     public String jsGet_textBaseline() {
-        return core.getTextBaseline();
+        return getTextBaseline();
     }
 
     @Override
     public void jsSet_textAlign(String textAlign) {
-        core.setTextAlign(textAlign);
+        setTextAlign(textAlign);
     }
 
     @Override
     public void jsSet_textBaseline(String textBaseline) {
-        core.setTextBaseline(textBaseline);
+        setTextBaseline(textBaseline);
     }
 
     public ImageData jsFunction_createImageData(int width, int height) {
-        IImageData data = core.createImageData(width, height);
-        return (ImageData) data;
+        return (ImageData) createImageData(width, height);
     }
 
     public ImageData jsFunction_getImageData(int x, int y, int width, int height) {
-        IImageData data = core.getImageData(x, y, width, height);
-        return (ImageData) data;
+        return (ImageData) getImageData(x, y, width, height);
     }
 
     public void jsFunction_putImageData(ImageData imagedata, int dx, int dy, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
+        putImageData(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
     }
 
     public void jsFunction_reset() {
-        core.reset();
+        reset();
     }
 
     public boolean jsFunction_isContextLost() {
-        return core.isContextLost();
+        return isContextLost();
     }
 
     public Scriptable jsFunction_getContextAttributes() {
-        return core.getContextAttributes();
+        return getContextAttributes();
     }
 
     public String jsGet_filter() {
-        return core.getFilter();
+        return getFilter();
     }
 
     public void jsSet_filter(String filter) {
-        core.setFilter(filter);
+        setFilter(filter);
     }
 }

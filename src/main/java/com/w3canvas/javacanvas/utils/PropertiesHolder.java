@@ -58,6 +58,10 @@ public class PropertiesHolder
         return props;
     }
 
+    public static void resetForTesting() {
+        instance = null;
+    }
+
     private static String getJSClassName(String className)
     {
         String[] strArr = className.split("\\.");

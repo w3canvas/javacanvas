@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.w3canvas.javacanvas.test.TestCSSParser
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.007 s - in com.w3canvas.javacanvas.test.TestCSSParser
