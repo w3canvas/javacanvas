@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.w3canvas.javacanvas.test.TestWorker" time="2.673" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.w3canvas.javacanvas.test.TestWorker" time="3.526" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="javafx.runtime.version" value="21.0.8+2"/>
@@ -16,7 +16,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="w3canvas.backend" value="awt"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/java-21-openjdk-amd64/lib"/>
-    <property name="sun.java.command" value="/app/target/surefire/surefirebooter8376670602233400977.jar /app/target/surefire 2025-08-11T18-52-25_965-jvmRun1 surefire12726270556349618637tmp surefire_04833518589749644509tmp"/>
+    <property name="sun.java.command" value="/app/target/surefire/surefirebooter7060275302543050146.jar /app/target/surefire 2025-08-11T21-43-22_989-jvmRun1 surefire10609728485381073333tmp surefire_010494524460926486957tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/app/target/test-classes:/app/target/classes:/home/jules/.m2/repository/org/openjfx/javafx-controls/21.0.8/javafx-controls-21.0.8-linux.jar:/home/jules/.m2/repository/org/openjfx/javafx-graphics/21.0.8/javafx-graphics-21.0.8.jar:/home/jules/.m2/repository/org/openjfx/javafx-graphics/21.0.8/javafx-graphics-21.0.8-linux.jar:/home/jules/.m2/repository/org/openjfx/javafx-base/21.0.8/javafx-base-21.0.8.jar:/home/jules/.m2/repository/org/openjfx/javafx-base/21.0.8/javafx-base-21.0.8-linux.jar:/home/jules/.m2/repository/org/openjfx/javafx-media/21.0.8/javafx-media-21.0.8-linux.jar:/home/jules/.m2/repository/org/openjfx/javafx-swing/21.0.8/javafx-swing-21.0.8-linux.jar:/home/jules/.m2/repository/org/mozilla/rhino/1.7.14/rhino-1.7.14.jar:/home/jules/.m2/repository/org/testfx/openjfx-monocle/21.0.2/openjfx-monocle-21.0.2.jar:/home/jules/.m2/repository/org/testfx/testfx-core/4.0.18/testfx-core-4.0.18.jar:/home/jules/.m2/repository/org/hamcrest/hamcrest/2.1/hamcrest-2.1.jar:/home/jules/.m2/repository/org/assertj/assertj-core/3.13.2/assertj-core-3.13.2.jar:/home/jules/.m2/repository/org/osgi/org.osgi.core/6.0.0/org.osgi.core-6.0.0.jar:/home/jules/.m2/repository/org/testfx/testfx-junit5/4.0.18/testfx-junit5-4.0.18.jar:/home/jules/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.8.2/junit-jupiter-api-5.8.2.jar:/home/jules/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar:/home/jules/.m2/repository/org/junit/platform/junit-platform-commons/1.8.2/junit-platform-commons-1.8.2.jar:/home/jules/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/jules/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.8.2/junit-jupiter-engine-5.8.2.jar:/home/jules/.m2/repository/org/junit/platform/junit-platform-engine/1.8.2/junit-platform-engine-1.8.2.jar:/home/jules/.m2/repository/org/mockito/mockito-core/5.18.0/mockito-core-5.18.0.jar:/home/jules/.m2/repository/net/bytebuddy/byte-buddy/1.17.5/byte-buddy-1.17.5.jar:/home/jules/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.5/byte-buddy-agent-1.17.5.jar:/home/jules/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/jules/.m2/repository/org/mockito/mockito-junit-jupiter/5.18.0/mockito-junit-jupiter-5.18.0.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -34,7 +34,7 @@
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="testfx.robot" value="glass"/>
     <property name="java.awt.headless" value="true"/>
-    <property name="surefire.real.class.path" value="/app/target/surefire/surefirebooter8376670602233400977.jar"/>
+    <property name="surefire.real.class.path" value="/app/target/surefire/surefirebooter7060275302543050146.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="21.0.8+9-Ubuntu-0ubuntu124.04.1"/>
     <property name="user.name" value="jules"/>
@@ -61,10 +61,13 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="testWorkerDrawing" classname="com.w3canvas.javacanvas.test.TestWorker" time="2.671">
+  <testcase name="testWorkerDrawing" classname="com.w3canvas.javacanvas.test.TestWorker" time="3.483">
     <system-out><![CDATA[Warning: could not load META-INF/config.properties. Using default values.
 Filling with paint: java.awt.Color[r=0,g=128,b=0]
 LOG ->> Image data received from worker and drawn on canvas.
 ]]></system-out>
+    <system-err><![CDATA[Aug 11, 2025 9:43:24 PM com.sun.javafx.application.PlatformImpl startup
+WARNING: Unsupported JavaFX configuration: classes were loaded from 'unnamed module @45820e51'
+]]></system-err>
   </testcase>
 </testsuite>

@@ -124,11 +124,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void clearRect(double x, double y, double w, double h) {
-        gc.save();
-        gc.setFill(Color.TRANSPARENT);
-        gc.setGlobalBlendMode(null); // Use default SRC_OVER
-        gc.fillRect(x, y, w, h);
-        gc.restore();
+        gc.clearRect(x, y, w, h);
     }
 
     @Override
