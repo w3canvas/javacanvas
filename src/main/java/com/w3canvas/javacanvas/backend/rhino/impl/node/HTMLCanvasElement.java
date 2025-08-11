@@ -113,17 +113,14 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 		super(width, height);
 
 		container = Document.getInstance().getContentPane();
-		helper = new Helper();
-
-		helper.setDoubleBuffered(true);
-
-		setOwner(this);
-
         if (container != null) {
-		container.getRootPane().add(helper); // define layers here
-		helper.setBounds(0, 0, width, height);
+		    helper = new Helper();
+		    helper.setDoubleBuffered(true);
+            setOwner(this);
+		    container.getRootPane().add(helper); // define layers here
+		    helper.setBounds(0, 0, width, height);
 		    container.getRootPane().validate();
-		container.getRootPane().repaint();
+		    container.getRootPane().repaint();
         }
 
 		jsGet_style().registerObserver(this, CSSAttribute.Z_ORDER);
@@ -144,7 +141,8 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 			ICanvasRenderingContext2D coreContext = new CoreCanvasRenderingContext2D(backend, getWidth(), getHeight());
 
 			// 3. Create the Rhino adapter, passing the core context to it
-			canvas = new CanvasRenderingContext2D(coreContext);
+			canvas = new CanvasRenderingContext2D();
+			canvas.init(coreContext);
 
 			// 4. Initialize the Scriptable parts of the adapter
 			canvas.setParentScope(this.getParentScope());

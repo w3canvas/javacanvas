@@ -166,6 +166,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public void fill(IShape shape) {
         if (shape instanceof AwtShape) {
+            System.out.println("Filling with paint: " + g2d.getPaint());
             g2d.fill(((AwtShape) shape).getShape());
         }
     }
@@ -175,6 +176,13 @@ public class AwtGraphicsContext implements IGraphicsContext {
         if (img instanceof BufferedImage) {
             g2d.drawImage((BufferedImage) img, x, y, null);
         }
+    }
+
+    @Override
+    public void drawImage(int[] pixels, int x, int y, int width, int height) {
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        image.setRGB(0, 0, width, height, pixels, 0, width);
+        g2d.drawImage(image, x, y, null);
     }
 
     @Override
@@ -246,7 +254,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void rect(double x, double y, double w, double h) {
-        path.append(new java.awt.geom.Rectangle2D.Double(x, y, w, h), true);
+        path.append(g2d.getTransform().createTransformedShape(new java.awt.geom.Rectangle2D.Double(x, y, w, h)), true);
     }
 
     @Override

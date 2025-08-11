@@ -23,12 +23,12 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     private ICanvasRenderingContext2D core;
     private ICanvas canvas;
 
-    CanvasRenderingContext2D(ICanvasRenderingContext2D core) {
-        this.core = core;
-    }
-
     // Default constructor for Rhino
     public CanvasRenderingContext2D() {
+    }
+
+    public void init(ICanvasRenderingContext2D core) {
+        this.core = core;
     }
 
     public void initCanvas(ICanvas canvas) {
@@ -428,7 +428,9 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     public DOMMatrix jsFunction_getTransform() {
-        return new DOMMatrix((AffineTransform) getTransform());
+        DOMMatrix matrix = new DOMMatrix();
+        matrix.init((AffineTransform) getTransform());
+        return matrix;
     }
 
     public Double jsGet_globalAlpha() {
@@ -669,8 +671,12 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         return (ImageData) getImageData(x, y, width, height);
     }
 
-    public void jsFunction_putImageData(ImageData imagedata, int dx, int dy, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
-        putImageData(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    public void jsFunction_putImageData(ImageData imagedata, int dx, int dy, Object dirtyX, Object dirtyY, Object dirtyWidth, Object dirtyHeight) {
+        int dX = (dirtyX instanceof Number) ? ((Number) dirtyX).intValue() : 0;
+        int dY = (dirtyY instanceof Number) ? ((Number) dirtyY).intValue() : 0;
+        int dWidth = (dirtyWidth instanceof Number) ? ((Number) dirtyWidth).intValue() : imagedata.getWidth();
+        int dHeight = (dirtyHeight instanceof Number) ? ((Number) dirtyHeight).intValue() : imagedata.getHeight();
+        putImageData(imagedata, dx, dy, dX, dY, dWidth, dHeight);
     }
 
     public void jsFunction_reset() {

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.w3canvas.javacanvas.test.TestCanvas" time="0.037" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.w3canvas.javacanvas.test.TestCanvas" time="0.054" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="javafx.runtime.version" value="21.0.8+2"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
-    <property name="sun.awt.enableExtraMouseButtons" value="true"/>
     <property name="java.class.path" value="/app/target/test-classes:/app/target/classes:/home/jules/.m2/repository/org/openjfx/javafx-controls/21.0.8/javafx-controls-21.0.8-linux.jar:/home/jules/.m2/repository/org/openjfx/javafx-graphics/21.0.8/javafx-graphics-21.0.8.jar:/home/jules/.m2/repository/org/openjfx/javafx-graphics/21.0.8/javafx-graphics-21.0.8-linux.jar:/home/jules/.m2/repository/org/openjfx/javafx-base/21.0.8/javafx-base-21.0.8.jar:/home/jules/.m2/repository/org/openjfx/javafx-base/21.0.8/javafx-base-21.0.8-linux.jar:/home/jules/.m2/repository/org/openjfx/javafx-media/21.0.8/javafx-media-21.0.8-linux.jar:/home/jules/.m2/repository/org/openjfx/javafx-swing/21.0.8/javafx-swing-21.0.8-linux.jar:/home/jules/.m2/repository/org/mozilla/rhino/1.7.14/rhino-1.7.14.jar:/home/jules/.m2/repository/org/testfx/openjfx-monocle/21.0.2/openjfx-monocle-21.0.2.jar:/home/jules/.m2/repository/org/testfx/testfx-core/4.0.18/testfx-core-4.0.18.jar:/home/jules/.m2/repository/org/hamcrest/hamcrest/2.1/hamcrest-2.1.jar:/home/jules/.m2/repository/org/assertj/assertj-core/3.13.2/assertj-core-3.13.2.jar:/home/jules/.m2/repository/org/osgi/org.osgi.core/6.0.0/org.osgi.core-6.0.0.jar:/home/jules/.m2/repository/org/testfx/testfx-junit5/4.0.18/testfx-junit5-4.0.18.jar:/home/jules/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.8.2/junit-jupiter-api-5.8.2.jar:/home/jules/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar:/home/jules/.m2/repository/org/junit/platform/junit-platform-commons/1.8.2/junit-platform-commons-1.8.2.jar:/home/jules/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/jules/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.8.2/junit-jupiter-engine-5.8.2.jar:/home/jules/.m2/repository/org/junit/platform/junit-platform-engine/1.8.2/junit-platform-engine-1.8.2.jar:/home/jules/.m2/repository/org/mockito/mockito-core/5.18.0/mockito-core-5.18.0.jar:/home/jules/.m2/repository/net/bytebuddy/byte-buddy/1.17.5/byte-buddy-1.17.5.jar:/home/jules/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.5/byte-buddy-agent-1.17.5.jar:/home/jules/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/jules/.m2/repository/org/mockito/mockito-junit-jupiter/5.18.0/mockito-junit-jupiter-5.18.0.jar:"/>
     <property name="java.vm.vendor" value="Ubuntu"/>
     <property name="sun.arch.data.model" value="64"/>
@@ -13,10 +12,11 @@
     <property name="javafx.version" value="21.0.8"/>
     <property name="os.name" value="Linux"/>
     <property name="java.vm.specification.version" value="21"/>
+    <property name="prism.text" value="t2k"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
-    <property name="w3canvas.backend" value="javafx"/>
+    <property name="w3canvas.backend" value="awt"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/java-21-openjdk-amd64/lib"/>
-    <property name="sun.java.command" value="/app/target/surefire/surefirebooter6063329343443932917.jar /app/target/surefire 2025-08-11T06-39-43_619-jvmRun1 surefire2687716400979695158tmp surefire_014818508078770360512tmp"/>
+    <property name="sun.java.command" value="/app/target/surefire/surefirebooter17823832687443995119.jar /app/target/surefire 2025-08-11T08-11-37_262-jvmRun1 surefire16640939824270464182tmp surefire_02770020321972503451tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/app/target/test-classes:/app/target/classes:/home/jules/.m2/repository/org/openjfx/javafx-controls/21.0.8/javafx-controls-21.0.8-linux.jar:/home/jules/.m2/repository/org/openjfx/javafx-graphics/21.0.8/javafx-graphics-21.0.8.jar:/home/jules/.m2/repository/org/openjfx/javafx-graphics/21.0.8/javafx-graphics-21.0.8-linux.jar:/home/jules/.m2/repository/org/openjfx/javafx-base/21.0.8/javafx-base-21.0.8.jar:/home/jules/.m2/repository/org/openjfx/javafx-base/21.0.8/javafx-base-21.0.8-linux.jar:/home/jules/.m2/repository/org/openjfx/javafx-media/21.0.8/javafx-media-21.0.8-linux.jar:/home/jules/.m2/repository/org/openjfx/javafx-swing/21.0.8/javafx-swing-21.0.8-linux.jar:/home/jules/.m2/repository/org/mozilla/rhino/1.7.14/rhino-1.7.14.jar:/home/jules/.m2/repository/org/testfx/openjfx-monocle/21.0.2/openjfx-monocle-21.0.2.jar:/home/jules/.m2/repository/org/testfx/testfx-core/4.0.18/testfx-core-4.0.18.jar:/home/jules/.m2/repository/org/hamcrest/hamcrest/2.1/hamcrest-2.1.jar:/home/jules/.m2/repository/org/assertj/assertj-core/3.13.2/assertj-core-3.13.2.jar:/home/jules/.m2/repository/org/osgi/org.osgi.core/6.0.0/org.osgi.core-6.0.0.jar:/home/jules/.m2/repository/org/testfx/testfx-junit5/4.0.18/testfx-junit5-4.0.18.jar:/home/jules/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.8.2/junit-jupiter-api-5.8.2.jar:/home/jules/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar:/home/jules/.m2/repository/org/junit/platform/junit-platform-commons/1.8.2/junit-platform-commons-1.8.2.jar:/home/jules/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/jules/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.8.2/junit-jupiter-engine-5.8.2.jar:/home/jules/.m2/repository/org/junit/platform/junit-platform-engine/1.8.2/junit-platform-engine-1.8.2.jar:/home/jules/.m2/repository/org/mockito/mockito-core/5.18.0/mockito-core-5.18.0.jar:/home/jules/.m2/repository/net/bytebuddy/byte-buddy/1.17.5/byte-buddy-1.17.5.jar:/home/jules/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.5/byte-buddy-agent-1.17.5.jar:/home/jules/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/jules/.m2/repository/org/mockito/mockito-junit-jupiter/5.18.0/mockito-junit-jupiter-5.18.0.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -29,9 +29,12 @@
     <property name="basedir" value="/app"/>
     <property name="java.vm.compressedOopsMode" value="32-bit"/>
     <property name="line.separator" value="&#10;"/>
+    <property name="prism.order" value="sw"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
-    <property name="surefire.real.class.path" value="/app/target/surefire/surefirebooter6063329343443932917.jar"/>
+    <property name="testfx.robot" value="glass"/>
+    <property name="java.awt.headless" value="true"/>
+    <property name="surefire.real.class.path" value="/app/target/surefire/surefirebooter17823832687443995119.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="21.0.8+9-Ubuntu-0ubuntu124.04.1"/>
     <property name="user.name" value="jules"/>
@@ -48,6 +51,7 @@
     <property name="user.dir" value="/app"/>
     <property name="os.arch" value="amd64"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="testfx.headless" value="true"/>
     <property name="native.encoding" value="UTF-8"/>
     <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib/x86_64-linux-gnu/jni:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/jni:/lib:/usr/lib"/>
     <property name="stderr.encoding" value="UTF-8"/>
@@ -57,5 +61,5 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="testCanvasInitialization" classname="com.w3canvas.javacanvas.test.TestCanvas" time="0.036"/>
+  <testcase name="testCanvasInitialization" classname="com.w3canvas.javacanvas.test.TestCanvas" time="0.052"/>
 </testsuite>

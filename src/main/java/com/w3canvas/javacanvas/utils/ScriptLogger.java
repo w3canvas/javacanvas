@@ -3,7 +3,7 @@ package com.w3canvas.javacanvas.utils;
 
 public class ScriptLogger {
 
-	public void print(String msg) {
+	public void log(String msg) {
 		System.out.println("LOG ->> " + msg);
 	}
 

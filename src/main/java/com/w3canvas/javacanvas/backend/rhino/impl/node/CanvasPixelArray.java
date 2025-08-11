@@ -6,7 +6,9 @@ import com.w3canvas.javacanvas.utils.RhinoCanvasUtils;
 
 import org.mozilla.javascript.Scriptable;
 
-public class CanvasPixelArray extends ProjectScriptableObject {
+import com.w3canvas.javacanvas.interfaces.ICanvasPixelArray;
+
+public class CanvasPixelArray extends ProjectScriptableObject implements ICanvasPixelArray {
 
 	private Integer width;
 	private Integer height;

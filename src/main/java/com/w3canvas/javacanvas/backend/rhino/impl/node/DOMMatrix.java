@@ -11,7 +11,7 @@ public class DOMMatrix extends ProjectScriptableObject {
         this.transform = new AffineTransform();
     }
 
-    public DOMMatrix(AffineTransform transform) {
+    public void init(AffineTransform transform) {
         this.transform = transform;
     }
 
