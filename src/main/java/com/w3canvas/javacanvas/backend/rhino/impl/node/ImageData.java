@@ -5,9 +5,10 @@ import java.awt.Toolkit;
 import java.awt.image.ColorModel;
 import java.awt.image.MemoryImageSource;
 
+import com.w3canvas.javacanvas.interfaces.IImageData;
 import com.w3canvas.javacanvas.utils.RhinoCanvasUtils;
 
-public class ImageData extends ProjectScriptableObject
+public class ImageData extends ProjectScriptableObject implements IImageData
 {
 
     private CanvasPixelArray data;
@@ -55,5 +56,20 @@ public class ImageData extends ProjectScriptableObject
                 height), 0, width));
 
         return image;
+    }
+
+    @Override
+    public int getWidth() {
+        return jsGet_width();
+    }
+
+    @Override
+    public int getHeight() {
+        return jsGet_height();
+    }
+
+    @Override
+    public com.w3canvas.javacanvas.interfaces.ICanvasPixelArray getData() {
+        return (com.w3canvas.javacanvas.interfaces.ICanvasPixelArray) data;
     }
 }

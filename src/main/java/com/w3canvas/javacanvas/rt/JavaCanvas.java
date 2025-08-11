@@ -69,20 +69,39 @@ public class JavaCanvas extends JFrame
     private RhinoRuntime runtime;
     private String basePath;
     private static JavaCanvas instance;
-//    private boolean isInitialized = false;
+    private boolean headless;
 
-    public JavaCanvas(String title, String resourcePath)
+    public JavaCanvas(String title, String resourcePath) {
+        this(title, resourcePath, false);
+    }
+
+    public JavaCanvas(String resourcePath, boolean headless) {
+        this("JavaCanvas", resourcePath, headless);
+    }
+
+    private JavaCanvas(String title, String resourcePath, boolean headless)
     {
         super(title);
+        this.headless = headless;
         instance = this;
         basePath = resourcePath;
 
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setSize(screenSize.width, screenSize.height - 100);
+        if (!headless) {
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            setSize(screenSize.width, screenSize.height - 100);
+        }
+    }
+
+    public RhinoRuntime getRhinoRuntime() {
+        return runtime;
     }
 
     public static JavaCanvas getInstance() {
         return instance;
+    }
+
+    public static void resetForTesting() {
+        instance = null;
     }
 
     public void saveScreenshot(String path) {
@@ -147,10 +166,16 @@ public class JavaCanvas extends JFrame
 
     public void init()
     {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setSize(screenSize.width - 200, screenSize.height - 100);
-        setLocation(200,0);
+        if (!headless) {
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            setSize(screenSize.width - 200, screenSize.height - 100);
+            setLocation(200,0);
+        }
 
+        initializeBackend();
+    }
+
+    public void initializeBackend() {
         runtime = new RhinoRuntime();
 
         try
@@ -162,7 +187,11 @@ public class JavaCanvas extends JFrame
 
             ScriptableObject.defineClass(runtime.getScope(), Window.class, false, true);
             Window window = RhinoCanvasUtils.getScriptableInstance(Window.class, null);
-            window.initInstance(getWidth(), getHeight());
+            if (headless) {
+                window.initInstance(800, 600); // Default size for headless mode
+            } else {
+                window.initInstance(getWidth(), getHeight());
+            }
             window.setDocument(document);
             runtime.defineProperty("window", window);
 
@@ -178,6 +207,7 @@ public class JavaCanvas extends JFrame
             ScriptableObject.defineClass(runtime.getScope(), ImageData.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), StyleHolder.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), JSMouseEvent.class, false, true);
+            ScriptableObject.defineClass(runtime.getScope(), com.w3canvas.javacanvas.js.worker.Worker.class, false, true);
 
             // For testing
             // ScriptableObject.defineClass(runtime.getScope(), com.w3canvas.javacanvas.test.TestUtils.class);

@@ -74,4 +74,8 @@ public class Window extends Node {
 		return instance;
 	}
 
+	public static void resetForTesting() {
+		instance = null;
+	}
+
 }

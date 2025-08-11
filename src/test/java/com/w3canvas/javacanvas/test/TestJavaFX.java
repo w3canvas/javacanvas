@@ -1,41 +1,87 @@
 package com.w3canvas.javacanvas.test;
 
+import com.w3canvas.javacanvas.backend.rhino.impl.node.Document;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.Window;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
-import com.w3canvas.javacanvas.rt.RhinoRuntime;
-import org.junit.jupiter.api.BeforeAll;
+import com.w3canvas.javacanvas.rt.JavaCanvas;
+import com.w3canvas.javacanvas.utils.PropertiesHolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
+import org.testfx.framework.junit5.ApplicationTest;
+
+
+import javafx.stage.Stage;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
-import javax.swing.*;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TestJavaFX {
+@ExtendWith(ApplicationExtension.class)
+public class TestJavaFX extends ApplicationTest {
 
-    private static RhinoRuntime runtime;
+    private JavaCanvas javaCanvas;
 
-    @BeforeAll
-    public static void init() {
+    @Start
+    public void start(Stage stage) {
+        // The TestFX Application thread starts here.
+        // This is required for JavaFX to initialize properly.
+    }
+
+    @BeforeEach
+    public void setUp() {
+        // Reset singletons to ensure a clean state for each test
+        JavaCanvas.resetForTesting();
+        Document.resetForTesting();
+        Window.resetForTesting();
+        PropertiesHolder.resetForTesting();
+
         System.setProperty("w3canvas.backend", "javafx");
-        runtime = new RhinoRuntime();
+
+        // Initialize the canvas in headless mode.
+        // This sets up the necessary backend and Rhino environment
+        // without creating a visible GUI.
+        javaCanvas = new JavaCanvas(null, true);
+        javaCanvas.initializeBackend();
+
         Context.enter();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        Context.exit();
     }
 
     @Test
     public void testFillRect() throws Exception {
-        Scriptable scope = runtime.getScope();
-        HTMLCanvasElement canvas = (HTMLCanvasElement) Context.javaToJS(new HTMLCanvasElement(), scope);
+        Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
+
+        HTMLCanvasElement canvas = com.w3canvas.javacanvas.utils.RhinoCanvasUtils.getScriptableInstance(HTMLCanvasElement.class, null);
         ScriptableObject.putProperty(scope, "canvas", canvas);
 
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
-        ctx.setFillStyle("red");
-        ctx.fillRect(10, 10, 100, 100);
+        // Run drawing operations on the FX Application thread
+        interact(() -> {
+            ctx.setFillStyle("red");
+            ctx.fillRect(10, 10, 100, 100);
+        });
 
-        int[] pixelData = ctx.getSurface().getPixelData(15, 15, 1, 1);
-        assertEquals(0xFFFF0000, pixelData[0]);
+        // Get the pixel data from the FX Application thread using a CompletableFuture
+        CompletableFuture<int[]> future = new CompletableFuture<>();
+        interact(() -> {
+            future.complete(ctx.getSurface().getPixelData(15, 15, 1, 1));
+        });
+
+        int[] pixelData = future.get();
+
+        assertEquals(0xFFFF0000, pixelData[0], "The pixel at (15,15) should be red.");
     }
 }
