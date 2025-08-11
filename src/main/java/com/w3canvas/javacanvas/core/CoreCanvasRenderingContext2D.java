@@ -38,6 +38,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void reset() {
+        surface.reset();
         stack = new Stack<>();
         fillStyle = "#000000";
         strokeStyle = "#000000";
@@ -108,8 +109,6 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public void setGlobalAlpha(double globalAlpha) {
         this.globalAlpha = globalAlpha;
-        // The composite needs to be updated.
-        setGlobalCompositeOperation(this.globalCompositeOperation);
     }
 
     @Override
@@ -120,8 +119,6 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public void setGlobalCompositeOperation(String op) {
         this.globalCompositeOperation = op;
-        // This will be handled by the backend, which will create the appropriate composite object.
-        // For now, we just store the string.
     }
 
     @Override
@@ -224,7 +221,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void clearRect(double x, double y, double w, double h) {
-        // This needs to be implemented by setting a clear composite and filling a rect.
+        gc.clearRect(x, y, w, h);
     }
 
     @Override
@@ -291,10 +288,18 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         gc.ellipse(x,y,radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
     }
 
+    private void applyCurrentState() {
+        IComposite composite = CompositeFactory.createComposite(this.globalCompositeOperation, this.globalAlpha, this.backend);
+        if (composite != null) {
+            gc.setComposite(composite);
+        }
+    }
+
     @Override
     public void fill() {
+        applyCurrentState();
         if (fillStyle instanceof String) {
-            gc.setPaint(ColorParser.parse((String) fillStyle, backend));
+            gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
         } else if (fillStyle instanceof ICanvasGradient) {
             // The backend needs to handle this.
         } else if (fillStyle instanceof ICanvasPattern) {
@@ -305,8 +310,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void stroke() {
+        applyCurrentState();
         if (strokeStyle instanceof String) {
-            gc.setPaint(ColorParser.parse((String) strokeStyle, backend));
+            gc.setStrokePaint(ColorParser.parse((String) strokeStyle, backend));
         } else if (strokeStyle instanceof ICanvasGradient) {
             // The backend needs to handle this.
         } else if (strokeStyle instanceof ICanvasPattern) {

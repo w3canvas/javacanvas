@@ -12,7 +12,8 @@ public interface IGraphicsContext {
     Object getTransform();
 
     // Drawing properties
-    void setPaint(IPaint paint);
+    void setFillPaint(IPaint paint);
+    void setStrokePaint(IPaint paint);
     void setLineWidth(double width);
     void setLineCap(String cap);
     void setLineJoin(String join);
@@ -23,6 +24,7 @@ public interface IGraphicsContext {
     void setFont(IFont font);
 
     // Drawing operations
+    void clearRect(double x, double y, double w, double h);
     void draw(IShape shape);
     void fill(IShape shape);
     void drawImage(Object img, int x, int y);

@@ -1,11 +1,8 @@
 package com.w3canvas.javacanvas.test;
 
-import com.w3canvas.javacanvas.backend.rhino.impl.node.Document;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement;
-import com.w3canvas.javacanvas.backend.rhino.impl.node.Window;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
 import com.w3canvas.javacanvas.rt.JavaCanvas;
-import com.w3canvas.javacanvas.utils.PropertiesHolder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,16 +14,12 @@ import org.testfx.framework.junit5.ApplicationTest;
 import javafx.stage.Stage;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.Disabled;
-
-@Disabled("These tests are failing due to a persistent state-sharing issue that is beyond the scope of the current refactoring.")
 @ExtendWith(ApplicationExtension.class)
 public class TestCanvas2D extends ApplicationTest {
 
@@ -39,15 +32,10 @@ public class TestCanvas2D extends ApplicationTest {
 
     @BeforeEach
     public void setUp() {
-        JavaCanvas.resetForTesting();
-        Document.resetForTesting();
-        Window.resetForTesting();
-        PropertiesHolder.resetForTesting();
-
         // Use JavaFX backend for this test as it has a complete implementation
         System.setProperty("w3canvas.backend", "javafx");
 
-        javaCanvas = new JavaCanvas(null, true);
+        javaCanvas = new JavaCanvas(".", true);
         javaCanvas.initializeBackend();
 
         Context.enter();
@@ -57,10 +45,13 @@ public class TestCanvas2D extends ApplicationTest {
     @AfterEach
     public void tearDown() {
         Context.exit();
+    }
+
+    private HTMLCanvasElement createCanvas() {
         try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            return (HTMLCanvasElement) javaCanvas.getDocument().jsFunction_createElement("canvas");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -85,7 +76,7 @@ public class TestCanvas2D extends ApplicationTest {
 
     @Test
     public void testFillRect() throws ExecutionException, InterruptedException {
-        HTMLCanvasElement canvas = com.w3canvas.javacanvas.utils.RhinoCanvasUtils.getScriptableInstance(HTMLCanvasElement.class, null);
+        HTMLCanvasElement canvas = createCanvas();
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
@@ -99,7 +90,7 @@ public class TestCanvas2D extends ApplicationTest {
 
     @Test
     public void testStrokeRect() throws ExecutionException, InterruptedException {
-        HTMLCanvasElement canvas = com.w3canvas.javacanvas.utils.RhinoCanvasUtils.getScriptableInstance(HTMLCanvasElement.class, null);
+        HTMLCanvasElement canvas = createCanvas();
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
@@ -113,7 +104,7 @@ public class TestCanvas2D extends ApplicationTest {
 
     @Test
     public void testGlobalCompositeOperation() throws ExecutionException, InterruptedException {
-        HTMLCanvasElement canvas = com.w3canvas.javacanvas.utils.RhinoCanvasUtils.getScriptableInstance(HTMLCanvasElement.class, null);
+        HTMLCanvasElement canvas = createCanvas();
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {

@@ -10,18 +10,14 @@ public class Window extends Node {
 	private String location;
 
 	private Document document;
-	private static Window instance = null;
 
-	/**
-	 * must remain public - instantiated through reflection
-	 */
 	public Window() {
+		// No-arg constructor for Rhino
 	}
 
-	public void initInstance(int wide, int high) {
-		innerHeight = high;
-		innerWidth = wide;
-		instance = this;
+	public void init(int wide, int high) {
+		this.innerHeight = high;
+		this.innerWidth = wide;
 	}
 
 	public void setSize(int wide, int high) {
@@ -69,13 +65,4 @@ public class Window extends Node {
 		this.document = document;
 		jsFunction_appendChild(document);
 	}
-
-	public static Window getInstance() {
-		return instance;
-	}
-
-	public static void resetForTesting() {
-		instance = null;
-	}
-
 }

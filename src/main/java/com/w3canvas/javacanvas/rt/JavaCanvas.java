@@ -53,25 +53,31 @@ public class JavaCanvas {
 
     private RhinoRuntime runtime;
     private String basePath;
-    private static JavaCanvas instance;
     private boolean headless;
+    private PropertiesHolder propertiesHolder;
+    private Document document;
+    private Window window;
 
     public JavaCanvas(String resourcePath, boolean headless) {
         this.headless = headless;
-        instance = this;
         basePath = resourcePath;
+        this.propertiesHolder = new PropertiesHolder();
     }
 
     public RhinoRuntime getRhinoRuntime() {
         return runtime;
     }
 
-    public static JavaCanvas getInstance() {
-        return instance;
+    public Document getDocument() {
+        return document;
+    }
+
+    public Window getWindow() {
+        return window;
     }
 
     public static void resetForTesting() {
-        instance = null;
+        // This is no longer needed and can be removed once all tests are updated.
     }
 
     public Container getContentPane() {
@@ -84,7 +90,7 @@ public class JavaCanvas {
 
     public void saveScreenshot(String path) {
         try {
-            Node canvasNode = Document.getInstance().jsFunction_getElementById("canvas");
+            Node canvasNode = this.document.jsFunction_getElementById("canvas");
             if (canvasNode instanceof HTMLCanvasElement) {
                 HTMLCanvasElement canvasElement = (HTMLCanvasElement) canvasNode;
                 BufferedImage image = canvasElement.getImage();
@@ -128,22 +134,24 @@ public class JavaCanvas {
 
     public void initializeBackend(Container contentPane) {
         runtime = new RhinoRuntime();
-
+        Context context = Context.enter();
         try {
+            context.putThreadLocal("runtime", runtime);
+
             ScriptableObject.defineClass(runtime.getScope(), Document.class, false, true);
-            Document document = RhinoCanvasUtils.getScriptableInstance(Document.class, null);
-            document.initInstance((RootPaneContainer) contentPane);
-            runtime.defineProperty("document", document);
+            this.document = (Document) context.newObject(runtime.getScope(), "Document");
+            this.document.init((RootPaneContainer) contentPane);
+            runtime.defineProperty("document", this.document);
 
             ScriptableObject.defineClass(runtime.getScope(), Window.class, false, true);
-            Window window = RhinoCanvasUtils.getScriptableInstance(Window.class, null);
+            this.window = (Window) context.newObject(runtime.getScope(), "Window");
             if (headless || contentPane == null) {
-                window.initInstance(800, 600); // Default size for headless mode
+                this.window.init(800, 600); // Default size for headless mode
             } else {
-                window.initInstance(contentPane.getWidth(), contentPane.getHeight());
+                this.window.init(contentPane.getWidth(), contentPane.getHeight());
             }
-            window.setDocument(document);
-            runtime.defineProperty("window", window);
+            this.window.setDocument(document);
+            runtime.defineProperty("window", this.window);
 
             ScriptableObject.defineClass(runtime.getScope(), Image.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), HTMLCanvasElement.class, false, true);
@@ -164,11 +172,13 @@ public class JavaCanvas {
             runtime.setSource(basePath);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            Context.exit();
         }
     }
 
     private void executeJSCode() throws ReflectiveOperationException {
-        Properties properties = PropertiesHolder.getInstance().getProperties();
+        Properties properties = propertiesHolder.getProperties();
         List<String> jsClasses = PropertiesHolder.getJSClasses(properties);
 
         for (String className : jsClasses) {

@@ -1,11 +1,8 @@
 package com.w3canvas.javacanvas.test;
 
-import com.w3canvas.javacanvas.backend.rhino.impl.node.Document;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement;
-import com.w3canvas.javacanvas.backend.rhino.impl.node.Window;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
 import com.w3canvas.javacanvas.rt.JavaCanvas;
-import com.w3canvas.javacanvas.utils.PropertiesHolder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,16 +16,12 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
-import java.io.File;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import org.junit.jupiter.api.Disabled;
 
 @ExtendWith(ApplicationExtension.class)
 public class TestWorker extends ApplicationTest {
@@ -43,11 +36,6 @@ public class TestWorker extends ApplicationTest {
 
     @BeforeEach
     public void setUp() {
-        JavaCanvas.resetForTesting();
-        Document.resetForTesting();
-        Window.resetForTesting();
-        PropertiesHolder.resetForTesting();
-
         System.setProperty("w3canvas.backend", "awt");
 
         String basePath = ".";
@@ -57,9 +45,14 @@ public class TestWorker extends ApplicationTest {
         Context.enter();
 
         Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
-        canvas = com.w3canvas.javacanvas.utils.RhinoCanvasUtils.getScriptableInstance(HTMLCanvasElement.class, null);
+        try {
+            canvas = (HTMLCanvasElement) javaCanvas.getDocument().jsFunction_createElement("canvas");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         canvas.jsSet_id("canvas");
-        Document.getInstance().addElement("canvas", canvas);
+        // addElement is called by jsSet_id, so this is redundant, but safe.
+        javaCanvas.getDocument().addElement("canvas", canvas);
         ScriptableObject.putProperty(scope, "canvas", canvas);
         ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
     }

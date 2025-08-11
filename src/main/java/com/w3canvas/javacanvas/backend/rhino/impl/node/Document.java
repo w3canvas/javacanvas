@@ -13,17 +13,17 @@ import com.w3canvas.javacanvas.js.AbstractView;
 @SuppressWarnings("serial")
 public class Document extends Node {
 
-	private static Document instance;
-
 	private RootPaneContainer frame;
-
 	private Map<String, Node> documentsNode = new HashMap<String, Node>();
-
 	private final static String NODE_NAME = "body";
 
-	public void initInstance(RootPaneContainer frame) {
-		instance = this;
+	public Document() {
+		// No-arg constructor for Rhino
+	}
+
+	public void init(RootPaneContainer frame) {
 		this.frame = frame;
+		this.setDocument(this);
 	}
 
 	public Node jsFunction_getElementById(String id) {
@@ -49,17 +49,10 @@ public class Document extends Node {
 		}
 
 		Node node = itemNodeType.getNode();
+		node.setDocument(this);
 		node.init();
 
 		return node;
-	}
-
-	public static Document getInstance() {
-		return instance;
-	}
-
-	public static void resetForTesting() {
-		instance = null;
 	}
 
 	public RootPaneContainer getContentPane() {

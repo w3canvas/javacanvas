@@ -26,7 +26,8 @@ public class TestUtils extends ScriptableObject {
                 @Override
                 public void run() {
                     try {
-                        Node canvasNode = Document.getInstance().jsFunction_getElementById("canvas");
+                        Node canvasNode = null;
+                        // Node canvasNode = Document.getInstance().jsFunction_getElementById("canvas");
                         if (canvasNode instanceof HTMLCanvasElement) {
                             HTMLCanvasElement canvas = (HTMLCanvasElement) canvasNode;
                             CanvasRenderingContext2D ctx = canvas.getCanvas();

@@ -11,14 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class TestCanvas {
 
-    @BeforeEach
-    public void setUp() {
-        JavaCanvas.resetForTesting();
-        Document.resetForTesting();
-        Window.resetForTesting();
-        PropertiesHolder.resetForTesting();
-    }
-
     @Test
     public void testCanvasInitialization() {
         // Test that the JavaCanvas can be initialized in headless mode without crashing.

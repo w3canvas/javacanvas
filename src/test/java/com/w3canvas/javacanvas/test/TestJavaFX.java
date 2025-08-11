@@ -1,11 +1,8 @@
 package com.w3canvas.javacanvas.test;
 
-import com.w3canvas.javacanvas.backend.rhino.impl.node.Document;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement;
-import com.w3canvas.javacanvas.backend.rhino.impl.node.Window;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
 import com.w3canvas.javacanvas.rt.JavaCanvas;
-import com.w3canvas.javacanvas.utils.PropertiesHolder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,18 +34,12 @@ public class TestJavaFX extends ApplicationTest {
 
     @BeforeEach
     public void setUp() {
-        // Reset singletons to ensure a clean state for each test
-        JavaCanvas.resetForTesting();
-        Document.resetForTesting();
-        Window.resetForTesting();
-        PropertiesHolder.resetForTesting();
-
         System.setProperty("w3canvas.backend", "javafx");
 
         // Initialize the canvas in headless mode.
         // This sets up the necessary backend and Rhino environment
         // without creating a visible GUI.
-        javaCanvas = new JavaCanvas(null, true);
+        javaCanvas = new JavaCanvas(".", true);
         javaCanvas.initializeBackend();
 
         Context.enter();
@@ -63,7 +54,7 @@ public class TestJavaFX extends ApplicationTest {
     public void testFillRect() throws Exception {
         Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
 
-        HTMLCanvasElement canvas = com.w3canvas.javacanvas.utils.RhinoCanvasUtils.getScriptableInstance(HTMLCanvasElement.class, null);
+        HTMLCanvasElement canvas = (HTMLCanvasElement) javaCanvas.getDocument().jsFunction_createElement("canvas");
         ScriptableObject.putProperty(scope, "canvas", canvas);
 
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");

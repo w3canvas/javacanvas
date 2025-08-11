@@ -32,6 +32,12 @@ public class JavaFXCanvasSurface implements ICanvasSurface {
     }
 
     @Override
+    public void reset() {
+        // This is not ideal, but it will ensure a clean state.
+        graphicsContext = new JavaFXGraphicsContext(canvas.getGraphicsContext2D());
+    }
+
+    @Override
     public IGraphicsContext getGraphicsContext() {
         if (graphicsContext == null) {
             graphicsContext = new JavaFXGraphicsContext(gc);

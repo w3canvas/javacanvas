@@ -27,6 +27,12 @@ public class AwtCanvasSurface implements ICanvasSurface {
     }
 
     @Override
+    public void reset() {
+        // This is not ideal, but it will ensure a clean state.
+        graphicsContext = new AwtGraphicsContext(image.createGraphics());
+    }
+
+    @Override
     public IGraphicsContext getGraphicsContext() {
         if (graphicsContext == null) {
             graphicsContext = new AwtGraphicsContext(image.createGraphics());
