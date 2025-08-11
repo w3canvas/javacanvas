@@ -2,5 +2,5 @@
 set -e
 
 echo "Running JavaFX test..."
-./mvnw test -Dtest=TestJavaFX -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw
+./mvnw test -Dtest=TestJavaFX
 echo "JavaFX test successful."
