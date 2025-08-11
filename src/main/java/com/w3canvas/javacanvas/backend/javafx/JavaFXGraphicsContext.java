@@ -2,6 +2,7 @@ package com.w3canvas.javacanvas.backend.javafx;
 
 import com.w3canvas.javacanvas.interfaces.*;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
@@ -60,9 +61,15 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
-    public void setPaint(IPaint paint) {
+    public void setFillPaint(IPaint paint) {
         if (paint instanceof JavaFXPaint) {
             gc.setFill(((JavaFXPaint) paint).getPaint());
+        }
+    }
+
+    @Override
+    public void setStrokePaint(IPaint paint) {
+        if (paint instanceof JavaFXPaint) {
             gc.setStroke(((JavaFXPaint) paint).getPaint());
         }
     }
@@ -113,6 +120,15 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         if (font instanceof JavaFXFont) {
             gc.setFont(((JavaFXFont) font).getFont());
         }
+    }
+
+    @Override
+    public void clearRect(double x, double y, double w, double h) {
+        gc.save();
+        gc.setFill(Color.TRANSPARENT);
+        gc.setGlobalBlendMode(null); // Use default SRC_OVER
+        gc.fillRect(x, y, w, h);
+        gc.restore();
     }
 
     @Override

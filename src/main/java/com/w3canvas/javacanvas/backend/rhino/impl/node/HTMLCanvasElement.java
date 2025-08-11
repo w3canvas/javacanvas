@@ -77,12 +77,16 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 
 		@Override
 		public void repaint(long tm, int x, int y, int width, int height) {
-			container.getRootPane().repaint(tm, x, y, width, height);
+			if (container != null) {
+				container.getRootPane().repaint(tm, x, y, width, height);
+			}
 		}
 
 		@Override
 		public void repaint(Rectangle r) {
-			container.getRootPane().repaint(r);
+			if (container != null) {
+				container.getRootPane().repaint(r);
+			}
 		}
 
 		@Override
@@ -102,26 +106,23 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 
 	}
 
-	/**
-	 * accessed! do not make private! 300x150 by spec.
-	 */
 	public HTMLCanvasElement() {
-		this(CANVAS_WIDTH, CANVAS_HEIGHT);
+		super(CANVAS_WIDTH, CANVAS_HEIGHT);
 	}
 
-	private HTMLCanvasElement(int width, int height) {
-		super(width, height);
-
-		container = Document.getInstance().getContentPane();
-        if (container != null) {
-		    helper = new Helper();
-		    helper.setDoubleBuffered(true);
-            setOwner(this);
-		    container.getRootPane().add(helper); // define layers here
-		    helper.setBounds(0, 0, width, height);
-		    container.getRootPane().validate();
-		    container.getRootPane().repaint();
-        }
+	@Override
+	protected void init() {
+		super.init();
+		container = this.document.getContentPane();
+		if (container != null) {
+			helper = new Helper();
+			helper.setDoubleBuffered(true);
+			setOwner(this);
+			container.getRootPane().add(helper); // define layers here
+			helper.setBounds(0, 0, getWidth(), getHeight());
+			container.getRootPane().validate();
+			container.getRootPane().repaint();
+		}
 
 		jsGet_style().registerObserver(this, CSSAttribute.Z_ORDER);
 		jsGet_style().registerObserver(this, CSSAttribute.DISPLAY);
@@ -143,6 +144,7 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 			// 3. Create the Rhino adapter, passing the core context to it
 			canvas = new CanvasRenderingContext2D();
 			canvas.init(coreContext);
+            canvas.reset();
 
 			// 4. Initialize the Scriptable parts of the adapter
 			canvas.setParentScope(this.getParentScope());
@@ -158,6 +160,8 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 	@Override
 	protected void onResize() {
 		super.onResize();
+
+		if (helper == null) return;
 
 		int width = RhinoCanvasUtils.getIntValue(this, "jsGet_width");
 		int height = RhinoCanvasUtils.getIntValue(this, "jsGet_height");
@@ -211,7 +215,9 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 			visible = true;
 		}
 
-		helper.setVisible(visible);
+		if (helper != null) {
+			helper.setVisible(visible);
+		}
 	}
 
 	@Override

@@ -31,9 +31,9 @@ public class JavaCanvasApp {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.addWindowListener(new DemoWindowAdapter(canvas, frame));
         Container contentPane = frame.getContentPane();
-        contentPane.addMouseListener(new CanvasMouseListener());
-        contentPane.addMouseMotionListener(new CanvasMouseMotionListener());
-        contentPane.addComponentListener(new CanvasComponentListener(contentPane));
+        contentPane.addMouseListener(new CanvasMouseListener(canvas));
+        contentPane.addMouseMotionListener(new CanvasMouseMotionListener(canvas));
+        contentPane.addComponentListener(new CanvasComponentListener(contentPane, canvas));
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         frame.setSize(screenSize.width - 200, screenSize.height - 100);
@@ -58,7 +58,7 @@ public class JavaCanvasApp {
         }
 
         public void windowClosing(WindowEvent e) {
-            Window.getInstance().callCloseFunction();
+            canvas.getWindow().callCloseFunction();
             Context context = Context.getCurrentContext();
             if (context != null) {
                 Context.exit();
@@ -68,13 +68,19 @@ public class JavaCanvasApp {
 
         public void windowOpened(WindowEvent e) {
             canvas.init(frame.getContentPane());
-            Window.getInstance().callLoadFunction();
+            canvas.getWindow().callLoadFunction();
         }
     }
 
     private static class CanvasMouseListener extends MouseAdapter {
+        private final JavaCanvas canvas;
+
+        public CanvasMouseListener(JavaCanvas canvas) {
+            this.canvas = canvas;
+        }
+
         protected Node getDestinationNode(JSMouseEvent mouseEvent) {
-            return Document.getInstance().getEventDestination(new Point(mouseEvent.jsGet_clientX(), mouseEvent.jsGet_clientY()));
+            return canvas.getDocument().getEventDestination(new Point(mouseEvent.jsGet_clientX(), mouseEvent.jsGet_clientY()));
         }
 
         public void mouseClicked(MouseEvent e) {
@@ -101,21 +107,29 @@ public class JavaCanvasApp {
     }
 
     private static class CanvasMouseMotionListener extends MouseAdapter {
+        private final JavaCanvas canvas;
+
+        public CanvasMouseMotionListener(JavaCanvas canvas) {
+            this.canvas = canvas;
+        }
+
         public void mouseMoved(MouseEvent e) {
-            Document.getInstance().callMousemoveFunction(JSMouseEvent.convert(e));
+            canvas.getDocument().callMousemoveFunction(JSMouseEvent.convert(e));
         }
     }
 
     private static class CanvasComponentListener extends ComponentAdapter {
         private Container contentPane;
+        private JavaCanvas canvas;
 
-        private CanvasComponentListener(Container contentPane) {
+        private CanvasComponentListener(Container contentPane, JavaCanvas canvas) {
             this.contentPane = contentPane;
+            this.canvas = canvas;
         }
 
         public void componentResized(ComponentEvent e) {
             super.componentResized(e);
-            Window w = Window.getInstance();
+            Window w = canvas.getWindow();
             if (w != null) {
                 w.setSize(contentPane.getWidth(), contentPane.getHeight());
                 w.callResizeFunction();
@@ -124,7 +138,7 @@ public class JavaCanvasApp {
     }
 
     public static void main(String[] args) {
-        PropertiesHolder pHolder = PropertiesHolder.getInstance();
+        PropertiesHolder pHolder = new PropertiesHolder();
         pHolder.processCommandLineParams(args);
         JavaCanvas canvas = new JavaCanvas(pHolder.getBaseDir(), false);
         JavaCanvasApp app = new JavaCanvasApp(pHolder.getAppTitle(), canvas);

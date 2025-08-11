@@ -21,6 +21,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     private final Graphics2D g2d;
     private GeneralPath path;
+    private IPaint fillPaint;
+    private IPaint strokePaint;
 
     public AwtGraphicsContext(Graphics2D g2d) {
         this.g2d = g2d;
@@ -73,10 +75,13 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     // Drawing properties
     @Override
-    public void setPaint(IPaint paint) {
-        if (paint instanceof AwtPaint) {
-            g2d.setPaint(((AwtPaint) paint).getPaint());
-        }
+    public void setFillPaint(IPaint paint) {
+        this.fillPaint = paint;
+    }
+
+    @Override
+    public void setStrokePaint(IPaint paint) {
+        this.strokePaint = paint;
     }
 
     private float lineWidth = 1.0f;
@@ -157,8 +162,19 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     // Drawing operations
     @Override
+    public void clearRect(double x, double y, double w, double h) {
+        Composite old = g2d.getComposite();
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
+        g2d.fillRect((int) x, (int) y, (int) w, (int) h);
+        g2d.setComposite(old);
+    }
+
+    @Override
     public void draw(IShape shape) {
         if (shape instanceof AwtShape) {
+            if (this.strokePaint instanceof AwtPaint) {
+                g2d.setPaint(((AwtPaint)this.strokePaint).getPaint());
+            }
             g2d.draw(((AwtShape) shape).getShape());
         }
     }
@@ -166,6 +182,9 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public void fill(IShape shape) {
         if (shape instanceof AwtShape) {
+            if (this.fillPaint instanceof AwtPaint) {
+                g2d.setPaint(((AwtPaint)this.fillPaint).getPaint());
+            }
             System.out.println("Filling with paint: " + g2d.getPaint());
             g2d.fill(((AwtShape) shape).getShape());
         }
@@ -187,6 +206,9 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void drawString(String str, int x, int y) {
+        if (this.fillPaint instanceof AwtPaint) {
+            g2d.setPaint(((AwtPaint)this.fillPaint).getPaint());
+        }
         g2d.drawString(str, x, y);
     }
 

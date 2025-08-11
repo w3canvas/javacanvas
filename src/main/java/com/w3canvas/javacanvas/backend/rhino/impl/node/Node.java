@@ -33,6 +33,7 @@ public class Node extends ProjectScriptableObject implements EventTarget, INodeU
 	private StyleHolder styles = new StyleHolder();
 	private AttributeHolder attributes = new AttributeHolder();
 	private Node parentNode = null;
+	protected Document document;
 	private static final TreeMap<String, Node> zOrderNodes = new TreeMap<String, Node>();
 	private String lastZOrder = null;
 
@@ -69,6 +70,14 @@ public class Node extends ProjectScriptableObject implements EventTarget, INodeU
 		jsFunction_setAttribute(STYLE_ATTRIBUTE, "z-index: 0");
 		jsFunction_setAttribute(STYLE_ATTRIBUTE, "position: static");
 	}
+
+    public void setDocument(Document document) {
+        this.document = document;
+    }
+
+    public Document getDocument() {
+        return this.document;
+    }
 
 	private static class EventActionWrapper {
 
@@ -251,7 +260,7 @@ public class Node extends ProjectScriptableObject implements EventTarget, INodeU
 	}
 
 	public void jsFunction_removeChild(Node child) {
-		Document.getInstance().removeElementById(child.jsGet_id());
+		this.document.removeElementById(child.jsGet_id());
 		childNodes.remove(childNodes);
 	}
 
@@ -302,7 +311,7 @@ public class Node extends ProjectScriptableObject implements EventTarget, INodeU
 	public void jsSet_id(String id) {
 		this.id = id;
 
-		Document.getInstance().addElement(id, this);
+		this.document.addElement(id, this);
 	}
 
 	public void jsSet_style(StyleHolder style) {
@@ -713,7 +722,7 @@ public class Node extends ProjectScriptableObject implements EventTarget, INodeU
 	protected void redrawNodes() {
 		Collection<Node> nodes = zOrderNodes.values();
 
-		JRootPane root = Document.getInstance().getContentPane().getRootPane();
+		JRootPane root = this.document.getContentPane().getRootPane();
 		int i = nodes.size();
 
 		for (Node node : nodes) {

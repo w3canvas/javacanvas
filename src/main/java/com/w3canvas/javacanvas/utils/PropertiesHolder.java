@@ -8,9 +8,6 @@ import java.util.Properties;
 
 public class PropertiesHolder
 {
-
-    private static PropertiesHolder instance;
-
     private Properties props;
 
     private static final String JS_PACKAGE_KEY = "jsPackage";
@@ -18,7 +15,7 @@ public class PropertiesHolder
     private static final String[] COMMAND_LINE_PARAMS = new String[]{CLP_DEFAULT_PHOTO};
     private static final String APP_TITLE_KEY = "appTitle";
 
-    private PropertiesHolder()
+    public PropertiesHolder()
     {
         props = new Properties();
         InputStream in = this.getClass().getClassLoader().getResourceAsStream("META-INF/config.properties");
@@ -43,23 +40,9 @@ public class PropertiesHolder
         }
     }
 
-    public static PropertiesHolder getInstance()
-    {
-        if (instance == null)
-        {
-            instance = new PropertiesHolder();
-        }
-
-        return instance;
-    }
-
     public Properties getProperties()
     {
         return props;
-    }
-
-    public static void resetForTesting() {
-        instance = null;
     }
 
     private static String getJSClassName(String className)
