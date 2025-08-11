@@ -3,9 +3,9 @@ com/w3canvas/javacanvas/backend/rhino/impl/node/Image.class
 com/w3canvas/javacanvas/js/EventTarget.class
 com/w3canvas/javacanvas/js/INodeUtils.class
 com/w3canvas/javacanvas/backend/rhino/impl/event/CSSAttribute.class
+com/w3canvas/css/CSSParser.class
 com/w3canvas/javacanvas/Base64$InputStream.class
 com/w3canvas/javacanvas/core/ColorParser.class
-com/w3canvas/css/CSSParser.class
 com/w3canvas/javacanvas/rt/JavaCanvas.class
 com/w3canvas/javacanvas/backend/rhino/impl/node/Node$1.class
 com/w3canvas/javacanvas/backend/rhino/impl/event/JSEvent.class
@@ -29,14 +29,14 @@ com/w3canvas/javacanvas/backend/rhino/impl/node/ImageData.class
 com/w3canvas/javacanvas/rt/RhinoScriptRunner.class
 com/w3canvas/javacanvas/utils/RhinoCanvasUtils.class
 com/w3canvas/javacanvas/backend/rhino/impl/node/NodeType$1.class
-com/w3canvas/javacanvas/backend/rhino/impl/node/StyleHolder.class
 com/w3canvas/javacanvas/backend/rhino/impl/gradient/LinearCanvasGradient.class
+com/w3canvas/javacanvas/backend/rhino/impl/node/StyleHolder.class
 com/w3canvas/javacanvas/core/CoreCanvasRenderingContext2D.class
 com/w3canvas/javacanvas/backend/rhino/impl/node/AttributeHolder.class
 com/w3canvas/javacanvas/backend/rhino/impl/node/HTMLCanvasElement$1.class
 com/w3canvas/javacanvas/backend/rhino/impl/node/CanvasPattern.class
-com/w3canvas/javacanvas/backend/awt/AwtGraphicsBackend.class
 com/w3canvas/css/Value.class
+com/w3canvas/javacanvas/backend/awt/AwtGraphicsBackend.class
 com/w3canvas/javacanvas/js/CanvasText.class
 com/w3canvas/javacanvas/backend/javafx/JavaFXPaint.class
 com/w3canvas/javacanvas/utils/ScriptLogger.class
@@ -69,8 +69,8 @@ com/w3canvas/javacanvas/backend/javafx/JavaFXComposite.class
 com/w3canvas/javacanvas/js/worker/Worker$WorkerThread.class
 com/w3canvas/javacanvas/js/AbstractView.class
 com/w3canvas/javacanvas/backend/awt/AwtComposite.class
-com/w3canvas/javacanvas/backend/rhino/impl/node/CustomEvent.class
 com/w3canvas/javacanvas/backend/awt/AwtGraphicsContext.class
+com/w3canvas/javacanvas/backend/rhino/impl/node/CustomEvent.class
 com/w3canvas/javacanvas/rt/JavaCanvas$CanvasMouseListener.class
 com/w3canvas/javacanvas/interfaces/ICanvasGradient.class
 com/w3canvas/javacanvas/backend/rhino/impl/node/Node$EventActionWrapper.class
@@ -89,5 +89,5 @@ com/w3canvas/javacanvas/backend/rhino/impl/node/CanvasPattern$RepetitionType.cla
 com/w3canvas/javacanvas/backend/rhino/impl/node/DOMMatrix.class
 com/w3canvas/javacanvas/interfaces/IPaint.class
 com/w3canvas/javacanvas/rt/RhinoRuntime$1.class
-com/w3canvas/javacanvas/backend/javafx/JavaFXGraphicsBackend.class
 com/w3canvas/javacanvas/backend/awt/AwtCanvasSurface.class
+com/w3canvas/javacanvas/backend/javafx/JavaFXGraphicsBackend.class
