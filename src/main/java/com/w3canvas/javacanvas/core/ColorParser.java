@@ -15,7 +15,7 @@ public class ColorParser {
                 color = java.awt.Color.decode(colorString);
             } else {
                 try {
-                    color = (java.awt.Color) java.awt.Color.class.getField(colorString.toUpperCase()).get(null);
+                    color = (java.awt.Color) java.awt.Color.class.getField(colorString.toLowerCase()).get(null);
                 } catch (Exception e) {
                     color = java.awt.Color.BLACK;
                 }

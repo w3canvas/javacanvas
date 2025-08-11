@@ -133,6 +133,11 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void drawImage(int[] pixels, int x, int y, int width, int height) {
+        // Not implemented for JavaFX backend
+    }
+
+    @Override
     public void drawString(String str, int x, int y) {
         gc.strokeText(str, x, y);
     }

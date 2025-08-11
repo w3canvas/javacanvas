@@ -1,5 +1,6 @@
 package com.w3canvas.javacanvas.core;
 
+import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPixelArray;
 import com.w3canvas.javacanvas.interfaces.*;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -397,11 +398,19 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public IImageData getImageData(int x, int y, int width, int height) {
-        return null;
+        int[] pixels = surface.getPixelData(x, y, width, height);
+        CanvasPixelArray pixelArray = com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPixelArray.getInstance(pixels, width, height);
+        return new com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData(width, height, pixelArray);
     }
 
     @Override
     public void putImageData(IImageData imagedata, int dx, int dy, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
+        if (imagedata instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) {
+            com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData rhinoImageData = (com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) imagedata;
+            com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPixelArray pixelArray = (com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPixelArray) rhinoImageData.getData();
+            int[] pixels = pixelArray.getPixels(dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+            surface.getGraphicsContext().drawImage(pixels, dx, dy, dirtyWidth, dirtyHeight);
+        }
     }
 
     @Override

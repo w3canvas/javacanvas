@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.swing.JFrame;
 import javax.swing.RootPaneContainer;
 
 import com.w3canvas.javacanvas.exception.IllegalNodeException;
@@ -16,26 +15,18 @@ public class Document extends Node {
 
 	private static Document instance;
 
-	private JFrame frame;
-
-	private int run = -1;
+	private RootPaneContainer frame;
 
 	private Map<String, Node> documentsNode = new HashMap<String, Node>();
 
 	private final static String NODE_NAME = "body";
 
-	public void initInstance(JFrame frame) {
+	public void initInstance(RootPaneContainer frame) {
 		instance = this;
 		this.frame = frame;
 	}
 
 	public Node jsFunction_getElementById(String id) {
-		if (frame != null && run != 0) {
-			run = 0;
-			frame.setVisible(true);
-			frame.requestFocus();
-		}
-
 		return documentsNode.get(id);
 	}
 

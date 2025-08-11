@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Disabled;
 
-@Disabled("Worker implementation is incomplete, cannot be tested.")
 @ExtendWith(ApplicationExtension.class)
 public class TestWorker extends ApplicationTest {
 
@@ -59,6 +58,8 @@ public class TestWorker extends ApplicationTest {
 
         Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
         canvas = com.w3canvas.javacanvas.utils.RhinoCanvasUtils.getScriptableInstance(HTMLCanvasElement.class, null);
+        canvas.jsSet_id("canvas");
+        Document.getInstance().addElement("canvas", canvas);
         ScriptableObject.putProperty(scope, "canvas", canvas);
         ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
     }

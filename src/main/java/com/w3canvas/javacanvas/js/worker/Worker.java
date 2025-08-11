@@ -102,6 +102,18 @@ public class Worker extends ProjectScriptableObject {
             workerContext.putThreadLocal("runtime", workerRuntime);
             Scriptable workerScope = workerRuntime.getScope();
 
+            try {
+                ScriptableObject.defineClass(workerScope, OffscreenCanvas.class);
+                ScriptableObject.defineClass(workerScope, com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasRenderingContext2D.class);
+                ScriptableObject.defineClass(workerScope, com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData.class);
+                ScriptableObject.defineClass(workerScope, com.w3canvas.javacanvas.backend.rhino.impl.node.TextMetrics.class);
+                ScriptableObject.defineClass(workerScope, com.w3canvas.javacanvas.backend.rhino.impl.node.DOMMatrix.class);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            ScriptableObject.putProperty(workerScope, "console", new com.w3canvas.javacanvas.utils.ScriptLogger());
+
             // Define postMessage in the worker's global scope
             ScriptableObject.putProperty(workerScope, "postMessage", new Callable() {
                 @Override
