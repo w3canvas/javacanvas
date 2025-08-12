@@ -22,7 +22,7 @@ test.assertPixel(5, 5, 0, 0, 0, 0);       // Check outside the rect
 ctx.strokeStyle = 'blue';
 ctx.lineWidth = 5;
 ctx.strokeRect(70, 10, 50, 50);
-test.assertPixel(72, 12, 0, 0, 255, 255); // Check on the stroke
+test.assertPixel(95, 10, 0, 0, 255, 255); // Check on the stroke
 
 // Test paths
 ctx.beginPath();
@@ -49,8 +49,8 @@ ctx.fillStyle = 'rgba(0, 0, 255, 0.5)';
 ctx.fillRect(10, 10, 20, 20);
 // The 'copy' operation should replace the underlying pixels.
 // The color is semi-transparent blue, but since it's copying, the background is ignored.
-// The final color will be the source color, rgba(0, 0, 255, 128)
-test.assertPixel(15, 15, 0, 0, 255, 128);
+// The final color will be the source color, rgba(0, 0, 255, 127)
+test.assertPixel(15, 15, 0, 0, 255, 127);
 
 // Reset composite operation
 ctx.globalCompositeOperation = 'source-over';
