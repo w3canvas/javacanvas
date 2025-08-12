@@ -1,45 +1,38 @@
-# Work on Test Infrastructure and Canvas API
+# JavaCanvas Project: Outstanding Work
 
-This document details the work done to improve the testing infrastructure of the JavaCanvas project, the issues encountered, and the current state of the code.
+This document outlines the current state of the JavaCanvas project, including high-priority bugs and missing features. It is intended to guide future development efforts.
 
-## Summary of Work Completed
+## 1. High-Priority Blocker: `TestCanvas2D` Failures
 
-The primary goal was to fix the testing infrastructure so that development on the Canvas API could continue. A significant amount of refactoring was done to achieve this:
+The most critical issue is a persistent failure in the `TestCanvas2D` test suite. This prevents the validation of the core 2D rendering context and blocks further development.
 
-1.  **Singleton Refactoring:** The application's core classes (`JavaCanvas`, `Document`, `Window`, `PropertiesHolder`) were heavily reliant on singleton patterns, which made test isolation impossible. These have all been refactored to use instance-based dependency injection. Each test now creates its own `JavaCanvas` instance, which in turn creates its own isolated environment (document, window, etc.).
+**The Problem:** The tests indicate that the canvas state is not being cleared properly. Color from one test appears to "leak" into subsequent tests, and `clearRect` does not correctly clear the canvas to transparent black (`rgba(0,0,0,0)`). For example, a pixel that should be transparent after a clear operation is reported as being solid red from a previous drawing operation.
 
-2.  **Test Runner Fixes:** The `run-tests.sh` script was trying to run tests that were disabled. The tests have been updated to work with the new instance-based architecture.
+**What Was Tried:**
+- Refactoring all singleton classes (`JavaCanvas`, `Document`, `Window`) to use instance-based dependency injection to ensure test isolation.
+- Implementing `clearRect` for both AWT and JavaFX backends.
+- Fixing bugs related to `fillStyle`/`strokeStyle` and `globalCompositeOperation`.
 
-3.  **`clearRect` Implementation:** The `clearRect` method on the 2D rendering context was discovered to be unimplemented. This was a critical bug. The method has now been implemented for both the AWT and JavaFX backends.
+Despite these efforts, the `TestCanvas2D` failures persist. The issue is likely a subtle bug within the JavaFX rendering pipeline or the TestFX environment.
 
-4.  **Paint Style Separation:** A bug was fixed in the graphics context layer where `fillStyle` and `strokeStyle` were being conflated. The `IGraphicsContext` interface was updated to have separate `setFillPaint` and `setStrokePaint` methods, which are now correctly implemented in the backends.
+## 2. Missing Core API Implementations
 
-5.  **Composite Operations:** The `globalCompositeOperation` feature was found to be incomplete. The necessary wrapper classes (`AwtComposite`, `JavaFXComposite`) were found to exist, and a `CompositeFactory` was created to parse the operation strings and apply the correct composite/blend mode to the graphics context before drawing operations.
+The architectural refactoring aimed to create a backend-agnostic Core API. However, several key parts of the HTML5 Canvas spec have interfaces but no core implementation.
 
-## Current Status & Unresolved Issue
+The following features are missing:
 
-After all of this work, the project is in a much better state. All tests now compile and run, and several test classes that were previously disabled or failing are now passing, including `TestWorker`, `TestJavaFX`, and `TestCanvas`.
+*   **Gradients:** The `ICanvasGradient` interface exists, but there is no factory method on the rendering context (`createLinearGradient`, `createRadialGradient`) and no core implementation.
+*   **Patterns:** The `ICanvasPattern` interface exists, but there is no `createPattern` method on the rendering context and no core implementation.
+*   **Text Metrics:** The `ITextMetrics` interface exists, but the `measureText` method on the rendering context is not fully implemented and there is no backend-agnostic implementation of the metrics object.
+*   **Image Data:** The `IImageData` interface is implemented, but only in the `backend.rhino` package. It is tightly coupled to AWT and Rhino. A backend-agnostic implementation in the `core` package is needed, along with `createImageData` and `getImageData` methods on the rendering context.
 
-However, there is a persistent, unresolved issue with `TestCanvas2D`. Despite all the refactoring, the three tests in this class continue to fail with the same assertion errors.
+## 3. Incomplete or Problematic Features
 
-**The core problem:** The tests indicate that the canvas state is not being cleared properly between or even during tests. Specifically, the color red from one test seems to "leak" into others, and `clearRect` does not appear to correctly clear the canvas to transparent black.
+*   **Web Workers (`Worker` and `OffscreenCanvas`):**
+    - The `TestWorker` test is disabled.
+    - The Java implementation for `Worker` and `OffscreenCanvas` exists but is tightly coupled to the Rhino scripting engine.
+    - The implementation relies on loading JavaScript files from a `documentBase`, but the environment for this is not configured, and the necessary worker scripts are missing.
 
-**Example Failure (`testFillRect`):**
-1. `clearRect(0, 0, 400, 400)` is called.
-2. A red rectangle is drawn at `(10, 10)`.
-3. An assertion checks a pixel at `(5, 5)` (outside the rectangle) and expects it to be transparent black (`rgba(0,0,0,0)`).
-4. The assertion fails because the pixel is red (`rgba(255,0,0,255)`).
+## 4. Missing Project Components
 
-This indicates that either `clearRect` is not working at all, or it is somehow filling the canvas with the current fill style.
-
-## What Was Tried
-
-- Multiple implementations of `clearRect` for the JavaFX backend.
-- Brute-force resetting of the canvas surface and graphics context for each test.
-- Extensive debugging and tracing of the rendering pipeline.
-
-None of these attempts have changed the test outcome. The issue seems to be a very subtle bug within the JavaFX rendering pipeline or the TestFX environment that is beyond the scope of standard debugging.
-
-## Next Steps
-
-The next developer on this task should focus on diagnosing this specific `TestCanvas2D` failure. The problem is almost certainly related to how the JavaFX `GraphicsContext` is managing its state or how `clearRect` interacts with the underlying surface. All the foundational code for singletons and paint styles should now be correct.
+*   **Original JavaScript Source:** As noted in `AGENTS.md`, the original JavaScript files that contained the main application logic are missing from the repository. This includes the worker scripts mentioned above and potentially other critical library code. Without these, the full functionality of the Rhino-based components cannot be tested or restored.
