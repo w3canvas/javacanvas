@@ -148,12 +148,9 @@ public class Worker extends ProjectScriptableObject {
             }).start();
 
             try {
-                String documentBase = (String) mainRuntime.getScope().get("documentBase", mainRuntime.getScope());
-                URI uri = new URI(documentBase).resolve(scriptUrl);
-                java.util.Scanner s = new java.util.Scanner(uri.toURL().openStream()).useDelimiter("\\A");
-                String scriptContent = s.hasNext() ? s.next() : "";
-                s.close();
-                workerRuntime.exec(scriptContent);
+                // Load the script from the classpath
+                InputStreamReader reader = new InputStreamReader(Worker.class.getClassLoader().getResourceAsStream(scriptUrl));
+                workerRuntime.exec(reader, scriptUrl);
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
