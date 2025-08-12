@@ -37,8 +37,9 @@ public class JavaFXCanvasSurface implements ICanvasSurface {
 
     @Override
     public void reset() {
-        // This is not ideal, but it will ensure a clean state.
-        graphicsContext = new JavaFXGraphicsContext(canvas.getGraphicsContext2D());
+        // A real reset. Clear the canvas content.
+        // The CoreCanvasRenderingContext2D will reset the transform and other properties.
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
 
     @Override
