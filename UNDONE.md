@@ -1,17 +1,84 @@
 # JavaCanvas Project: Outstanding Work
 
-This document outlines the current state of the JavaCanvas project, including missing features. It is intended to guide future development efforts.
+This document outlines the current state of the JavaCanvas project, including missing features and a roadmap for future development.
 
-## 1. Core API Implementations
+## 1. Critical Missing Components
 
-The architectural refactoring aimed to create a backend-agnostic Core API. The following features are implemented:
+### 1.1. Original JavaScript Application
+- **Status:** MISSING
+- **Description:** As noted in `AGENTS.md`, the original JavaScript files that contained the main application logic are missing. Without these, the full functionality of the Rhino-based components cannot be tested or restored.
+- **Next Step:** Attempt to locate the original source. If it cannot be found, a new demo application should be created to drive the development of the canvas API.
 
-*   **Gradients:** Implemented for both linear and radial gradients with a backend-agnostic approach.
-*   **Patterns:** Implemented with a backend-agnostic approach.
-*   **Text Metrics:** Implemented with a backend-agnostic approach.
-*   **Image Data:** Implemented with a backend-agnostic approach.
-*   **Web Workers (`Worker` and `OffscreenCanvas`):** The `TestWorker` test is now enabled and passes.
+## 2. Canvas API Feature Verification and Implementation
 
-## 2. Missing Project Components
+This section lists the features of the HTML5 Canvas 2D API and their current status in this project. The immediate goal is to get all features to a "Verified" state.
 
-*   **Original JavaScript Source:** As noted in `AGENTS.md`, the original JavaScript files that contained the main application logic are missing from the repository. This includes the worker scripts mentioned above and potentially other critical library code. Without these, the full functionality of the Rhino-based components cannot be tested or restored.
+### 2.1. Drawing Rectangles
+- `fillRect(x, y, w, h)`: **Verified**
+- `strokeRect(x, y, w, h)`: **Verified**
+- `clearRect(x, y, w, h)`: **Verified**
+
+### 2.2. Drawing Paths
+- `beginPath()`: **Verified**
+- `closePath()`: **Verified**
+- `moveTo(x, y)`: **Verified**
+- `lineTo(x, y)`: **Verified**
+- `stroke()`: **Partially Verified** (Basic path tested, but no complex shapes)
+- `fill()`: **Not Verified**
+- `rect(x, y, w, h)`: **Not Verified**
+- `arc(x, y, r, sa, ea, anti-cw)`: **Not Verified**
+- `arcTo(x1, y1, x2, y2, r)`: **Not Verified**
+- `quadraticCurveTo(cpx, cpy, x, y)`: **Not Verified**
+- `bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y)`: **Not Verified**
+
+### 2.3. Drawing Text
+- `fillText(text, x, y, maxWidth)`: **Partially Verified** (Crashes are tested, but output is not validated)
+- `strokeText(text, x, y, maxWidth)`: **Not Verified**
+- `measureText(text)`: **Not Verified**
+
+### 2.4. Line Styles
+- `lineWidth`: **Partially Verified**
+- `lineCap`: **Not Verified**
+- `lineJoin`: **Not Verified**
+- `miterLimit`: **Not Verified**
+
+### 2.5. Fill and Stroke Styles
+- `fillStyle`: **Partially Verified** (Color strings work, but Gradients/Patterns are not tested)
+- `strokeStyle`: **Partially Verified** (Color strings work, but Gradients/Patterns are not tested)
+- `createLinearGradient(x0, y0, x1, y1)`: **Not Verified**
+- `createRadialGradient(x0, y0, r0, x1, y1, r1)`: **Not Verified**
+- `addColorStop(offset, color)`: **Not Verified**
+- `createPattern(image, repetition)`: **Not Verified**
+
+### 2.6. Compositing
+- `globalAlpha`: **Not Verified**
+- `globalCompositeOperation`: **Partially Verified** ('copy' and 'source-over' are tested)
+
+### 2.7. Drawing Images
+- `drawImage(...)`: **Not Verified**
+
+### 2.8. Pixel Manipulation
+- `createImageData(width, height)`: **Not Verified**
+- `getImageData(sx, sy, sw, sh)`: **Verified**
+- `putImageData(imageData, dx, dy)`: **Verified**
+
+### 2.9. State
+- `save()`: **Not Verified**
+- `restore()`: **Not Verified**
+
+### 2.10. Transformations
+- `scale(x, y)`: **Not Verified**
+- `rotate(angle)`: **Not Verified**
+- `translate(x, y)`: **Not Verified**
+- `transform(a, b, c, d, e, f)`: **Not Verified**
+- `setTransform(a, b, c, d, e, f)`: **Not Verified**
+
+## 3. Web Worker API
+- `Worker`: **Verified**
+- `OffscreenCanvas`: **Verified**
+- `postMessage`: **Verified**
+- `onmessage`: **Verified**
+
+## 4. Testing Infrastructure
+
+- **Image Comparison:** The current pixel-by-pixel assertion is brittle. A more robust image comparison framework is needed to properly test anti-aliased rendering. The existing `ImageComparator.java` class could be a starting point.
