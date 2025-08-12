@@ -1,10 +1,24 @@
 # Compiled output
 bin/
+target/
 
 # Build artifacts
 sources.txt
 *.class
+*.log
 
 # Dependencies
 lib/
 *.jar
+
+# IDE files
+.idea/
+*.iml
+*.iws
+.classpath
+.project
+.settings/
+.vscode/
+
+# OS files
+.DS_Store
