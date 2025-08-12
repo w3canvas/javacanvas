@@ -22,6 +22,24 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void fillText(String text, double x, double y, double maxWidth) {
+        if (maxWidth <= 0) {
+            gc.fillText(text, x, y);
+        } else {
+            gc.fillText(text, x, y, maxWidth);
+        }
+    }
+
+    @Override
+    public void strokeText(String text, double x, double y, double maxWidth) {
+        if (maxWidth <= 0) {
+            gc.strokeText(text, x, y);
+        } else {
+            gc.strokeText(text, x, y, maxWidth);
+        }
+    }
+
+    @Override
     public IImageData createImageData(int width, int height) {
         int[] data = new int[width * height];
         return new com.w3canvas.javacanvas.core.ImageData(width, height, new com.w3canvas.javacanvas.core.CanvasPixelArray(data, width, height));
@@ -281,6 +299,16 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         }
         gc.arc(0, 0, radiusX, radiusY, Math.toDegrees(startAngle), Math.toDegrees(length));
         gc.restore();
+    }
+
+    @Override
+    public void fill() {
+        gc.fill();
+    }
+
+    @Override
+    public void stroke() {
+        gc.stroke();
     }
 
     @Override

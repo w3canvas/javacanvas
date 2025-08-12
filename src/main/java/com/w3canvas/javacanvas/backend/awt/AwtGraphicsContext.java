@@ -40,6 +40,31 @@ public class AwtGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void fillText(String text, double x, double y, double maxWidth) {
+        // AWT Graphics2D doesn't have a maxWidth parameter for fillText,
+        // so we ignore it. A more complete implementation might manually
+        // scale the text or truncate it.
+        if (this.fillPaint instanceof AwtPaint) {
+            g2d.setPaint(((AwtPaint)this.fillPaint).getPaint());
+        }
+        g2d.drawString(text, (float)x, (float)y);
+    }
+
+    @Override
+    public void strokeText(String text, double x, double y, double maxWidth) {
+        // AWT Graphics2D doesn't have a direct strokeText method.
+        // We can simulate it by getting the outline of the text and stroking that.
+        if (this.strokePaint instanceof AwtPaint) {
+            g2d.setPaint(((AwtPaint)this.strokePaint).getPaint());
+        }
+        Font font = g2d.getFont();
+        java.awt.font.FontRenderContext frc = g2d.getFontRenderContext();
+        java.awt.font.TextLayout tl = new java.awt.font.TextLayout(text, font, frc);
+        Shape shape = tl.getOutline(AffineTransform.getTranslateInstance(x, y));
+        g2d.draw(shape);
+    }
+
+    @Override
     public void rotate(double theta) {
         g2d.rotate(theta);
     }
@@ -338,6 +363,22 @@ public class AwtGraphicsContext implements IGraphicsContext {
         Shape ellipse = new Arc2D.Double(x - radiusX, y - radiusY, radiusX * 2, radiusY * 2,
                 Math.toDegrees(startAngle), Math.toDegrees(ang), Arc2D.OPEN);
         path.append(tx.createTransformedShape(ellipse), true);
+    }
+
+    @Override
+    public void fill() {
+        if (this.fillPaint instanceof AwtPaint) {
+            g2d.setPaint(((AwtPaint)this.fillPaint).getPaint());
+        }
+        g2d.fill(this.path);
+    }
+
+    @Override
+    public void stroke() {
+        if (this.strokePaint instanceof AwtPaint) {
+            g2d.setPaint(((AwtPaint)this.strokePaint).getPaint());
+        }
+        g2d.draw(this.path);
     }
 
     @Override

@@ -391,10 +391,25 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void fillText(String text, double x, double y, double maxWidth) {
+        // FIXME: This is not working. Text is always rendered in black.
+        applyCurrentState();
+        if (fillStyle instanceof String) {
+            gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
+        } else if (fillStyle instanceof IPaint) {
+            gc.setFillPaint((IPaint) fillStyle);
+        }
+        gc.fillText(text, x, y, maxWidth);
     }
 
     @Override
     public void strokeText(String text, double x, double y, double maxWidth) {
+        applyCurrentState();
+        if (strokeStyle instanceof String) {
+            gc.setStrokePaint(ColorParser.parse((String) strokeStyle, backend));
+        } else if (strokeStyle instanceof IPaint) {
+            gc.setStrokePaint((IPaint) strokeStyle);
+        }
+        gc.strokeText(text, x, y, maxWidth);
     }
 
     @Override

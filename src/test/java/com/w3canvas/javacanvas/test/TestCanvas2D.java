@@ -83,6 +83,38 @@ public class TestCanvas2D extends ApplicationTest {
     }
 
     @Test
+    public void testFillText() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ctx.setFont("30px sans-serif");
+            ctx.setFillStyle("blue");
+            ctx.fillText("Hello", 20, 50, 0);
+        });
+
+        // Check a pixel within the rendered text.
+        assertPixel(ctx, 30, 40, 0, 0, 255, 255, 224);
+    }
+
+    @Test
+    public void testStrokeText() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ctx.setFont("30px sans-serif");
+            ctx.setStrokeStyle("red");
+            ctx.strokeText("Hello", 20, 50, 0);
+        });
+
+        // Check a pixel within the rendered text.
+        assertPixel(ctx, 30, 40, 255, 0, 0, 255, 224);
+    }
+
+    @Test
     public void testFillRect() throws ExecutionException, InterruptedException {
         HTMLCanvasElement canvas = createCanvas();
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
