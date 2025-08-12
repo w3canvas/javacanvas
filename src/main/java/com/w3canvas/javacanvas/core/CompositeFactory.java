@@ -33,10 +33,8 @@ public class CompositeFactory {
         // We will ignore the alpha here and assume it's part of the paint.
         BlendMode mode = BlendMode.SRC_OVER;
         if ("copy".equalsIgnoreCase(operation)) {
-            // There is no direct "copy" in JavaFX BlendMode. SRC_OVER is the default.
-            // For a true copy, you'd clearRect and then draw.
-            // We will use SRC_OVER as a default.
-            mode = BlendMode.SRC_ATOP; // This is closer to 'copy'
+            // There is no direct "copy" in JavaFX BlendMode. Using SRC_OVER as a placeholder.
+            mode = BlendMode.SRC_OVER;
         }
         return new JavaFXComposite(mode);
     }

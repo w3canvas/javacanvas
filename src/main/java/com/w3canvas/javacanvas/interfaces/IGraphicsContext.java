@@ -21,6 +21,7 @@ public interface IGraphicsContext {
     void setLineDash(double[] dash);
     void setLineDashOffset(double offset);
     void setComposite(IComposite comp);
+    void setGlobalAlpha(double alpha);
     void setFont(IFont font);
 
     // Drawing operations

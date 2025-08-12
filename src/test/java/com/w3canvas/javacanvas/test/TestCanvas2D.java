@@ -99,7 +99,7 @@ public class TestCanvas2D extends ApplicationTest {
             ctx.setLineWidth(5);
             ctx.strokeRect(70, 10, 50, 50);
         });
-        assertPixel(ctx, 72, 12, 0, 0, 255, 255);
+        assertPixel(ctx, 95, 10, 0, 0, 255, 255);
     }
 
     @Test

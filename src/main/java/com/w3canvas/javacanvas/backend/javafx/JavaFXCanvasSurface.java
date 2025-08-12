@@ -2,11 +2,15 @@ package com.w3canvas.javacanvas.backend.javafx;
 
 import com.w3canvas.javacanvas.interfaces.ICanvasSurface;
 import com.w3canvas.javacanvas.interfaces.IGraphicsContext;
+import com.w3canvas.javacanvas.interfaces.ICanvasSurface;
+import com.w3canvas.javacanvas.interfaces.IGraphicsContext;
 import javafx.scene.image.WritableImage;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.PixelReader;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.paint.Color;
 
 
 public class JavaFXCanvasSurface implements ICanvasSurface {
@@ -53,7 +57,9 @@ public class JavaFXCanvasSurface implements ICanvasSurface {
     @Override
     public int[] getPixelData(int x, int y, int width, int height) {
         // Snapshot the canvas to the image before reading pixels
-        canvas.snapshot(null, image);
+        SnapshotParameters params = new SnapshotParameters();
+        params.setFill(Color.TRANSPARENT);
+        canvas.snapshot(params, image);
         int[] pixels = new int[width * height];
         PixelReader pixelReader = image.getPixelReader();
         pixelReader.getPixels(x, y, width, height, javafx.scene.image.PixelFormat.getIntArgbInstance(), pixels, 0, width);
