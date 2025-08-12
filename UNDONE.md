@@ -32,8 +32,8 @@ This section lists the features of the HTML5 Canvas 2D API and their current sta
 - `bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y)`: **Not Verified**
 
 ### 2.3. Drawing Text
-- `fillText(text, x, y, maxWidth)`: **Partially Verified** (Crashes are tested, but output is not validated)
-- `strokeText(text, x, y, maxWidth)`: **Not Verified**
+- `fillText(text, x, y, maxWidth)`: **Not Verified** (Failing tests, text is always rendered in black)
+- `strokeText(text, x, y, maxWidth)`: **Not Verified** (Failing tests, text is always rendered in black)
 - `measureText(text)`: **Not Verified**
 
 ### 2.4. Line Styles
