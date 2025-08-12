@@ -24,8 +24,10 @@ public class ColorParser {
         } else if (backend instanceof JavaFXGraphicsBackend) {
             javafx.scene.paint.Color color;
             try {
-                color = javafx.scene.paint.Color.valueOf(colorString.toUpperCase());
+                // Use Color.web() to parse CSS color strings, which supports rgba() and named colors correctly.
+                color = javafx.scene.paint.Color.web(colorString);
             } catch (Exception e) {
+                // Fallback to black if parsing fails
                 color = javafx.scene.paint.Color.BLACK;
             }
             return new JavaFXPaint(color);

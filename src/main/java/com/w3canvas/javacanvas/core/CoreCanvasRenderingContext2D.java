@@ -226,6 +226,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void fillRect(double x, double y, double w, double h) {
+        if ("copy".equals(this.globalCompositeOperation)) {
+            gc.clearRect(x, y, w, h);
+        }
         gc.beginPath();
         gc.rect(x, y, w, h);
         fill();
@@ -293,6 +296,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         if (composite != null) {
             gc.setComposite(composite);
         }
+        gc.setGlobalAlpha(this.globalAlpha);
     }
 
     @Override

@@ -82,6 +82,11 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void setGlobalAlpha(double alpha) {
+        gc.setGlobalAlpha(alpha);
+    }
+
+    @Override
     public void setLineWidth(double width) {
         gc.setLineWidth(width);
     }
@@ -129,7 +134,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void draw(IShape shape) {
-        // To be implemented
+        gc.stroke();
     }
 
     @Override

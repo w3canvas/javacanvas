@@ -154,6 +154,12 @@ public class AwtGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void setGlobalAlpha(double alpha) {
+        // In AWT, alpha is part of the AlphaComposite, which is handled by setComposite.
+        // This method is a no-op for the AWT backend.
+    }
+
+    @Override
     public void setFont(IFont font) {
         if (font instanceof AwtFont) {
             g2d.setFont(((AwtFont) font).getFont());
