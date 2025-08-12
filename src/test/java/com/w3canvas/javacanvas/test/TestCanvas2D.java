@@ -1,7 +1,11 @@
 package com.w3canvas.javacanvas.test;
 
 import com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement;
+import com.w3canvas.javacanvas.interfaces.ICanvasGradient;
+import com.w3canvas.javacanvas.interfaces.ICanvasPattern;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
+import com.w3canvas.javacanvas.interfaces.IImageData;
+import com.w3canvas.javacanvas.interfaces.ITextMetrics;
 import com.w3canvas.javacanvas.rt.JavaCanvas;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +59,7 @@ public class TestCanvas2D extends ApplicationTest {
         }
     }
 
-    private void assertPixel(ICanvasRenderingContext2D ctx, int x, int y, int r, int g, int b, int a) throws ExecutionException, InterruptedException {
+    private void assertPixel(ICanvasRenderingContext2D ctx, int x, int y, int r, int g, int b, int a, int tolerance) throws ExecutionException, InterruptedException {
         CompletableFuture<int[]> future = new CompletableFuture<>();
         interact(() -> {
             future.complete(ctx.getSurface().getPixelData(x, y, 1, 1));
@@ -68,10 +72,14 @@ public class TestCanvas2D extends ApplicationTest {
         int actualG = (pixel >> 8) & 0xff;
         int actualB = pixel & 0xff;
 
-        assertEquals(r, actualR, "Red component mismatch at (" + x + "," + y + ")");
-        assertEquals(g, actualG, "Green component mismatch at (" + x + "," + y + ")");
-        assertEquals(b, actualB, "Blue component mismatch at (" + x + "," + y + ")");
-        assertEquals(a, actualA, "Alpha component mismatch at (" + x + "," + y + ")");
+        assertEquals(r, actualR, tolerance, "Red component mismatch at (" + x + "," + y + ")");
+        assertEquals(g, actualG, tolerance, "Green component mismatch at (" + x + "," + y + ")");
+        assertEquals(b, actualB, tolerance, "Blue component mismatch at (" + x + "," + y + ")");
+        assertEquals(a, actualA, tolerance, "Alpha component mismatch at (" + x + "," + y + ")");
+    }
+
+    private void assertPixel(ICanvasRenderingContext2D ctx, int x, int y, int r, int g, int b, int a) throws ExecutionException, InterruptedException {
+        assertPixel(ctx, x, y, r, g, b, a, 0);
     }
 
     @Test
@@ -117,5 +125,132 @@ public class TestCanvas2D extends ApplicationTest {
         });
         // The 'copy' operation replaces, so the alpha should be 127 (0.5 * 255 rounded)
         assertPixel(ctx, 15, 15, 0, 0, 255, 127);
+    }
+
+    @Test
+    public void testLinearGradient() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ICanvasGradient grad = ctx.createLinearGradient(0, 0, 100, 0);
+            grad.addColorStop(0, "red");
+            grad.addColorStop(1, "blue");
+            ctx.setFillStyle(grad);
+            ctx.fillRect(0, 0, 100, 100);
+        });
+
+        // Check the color at the start of the gradient (red)
+        assertPixel(ctx, 1, 50, 255, 0, 0, 255, 3);
+
+        // Check the color at the end of the gradient (blue)
+        assertPixel(ctx, 99, 50, 0, 0, 255, 255, 3);
+
+        // Check the color in the middle of the gradient (purple)
+        CompletableFuture<int[]> future = new CompletableFuture<>();
+        interact(() -> {
+            future.complete(ctx.getSurface().getPixelData(50, 50, 1, 1));
+        });
+        int[] pixelData = future.get();
+        int pixel = pixelData[0];
+        int actualR = (pixel >> 16) & 0xff;
+        int actualB = (pixel >> 0) & 0xff;
+
+        // Check that red and blue components are close to 127.
+        // A tolerance of 2 is used to account for rounding differences.
+        assertEquals(127, actualR, 2);
+        assertEquals(127, actualB, 2);
+    }
+
+    @Test
+    public void testRadialGradient() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ICanvasGradient grad = ctx.createRadialGradient(50, 50, 10, 50, 50, 50);
+            grad.addColorStop(0, "red");
+            grad.addColorStop(1, "blue");
+            ctx.setFillStyle(grad);
+            ctx.fillRect(0, 0, 100, 100);
+        });
+
+        // Check the color at the center of the gradient (red)
+        assertPixel(ctx, 50, 50, 255, 0, 0, 255, 7);
+
+        // Check the color at the edge of the gradient (blue)
+        assertPixel(ctx, 99, 50, 0, 0, 255, 255, 7);
+    }
+
+    @Test
+    public void testPattern() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        // Create a small canvas to use as the pattern image
+        HTMLCanvasElement patternCanvas = createCanvas();
+        ICanvasRenderingContext2D patternCtx = (ICanvasRenderingContext2D) patternCanvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            patternCanvas.setWidth(10);
+            patternCanvas.setHeight(10);
+            patternCtx.setFillStyle("red");
+            patternCtx.fillRect(0, 0, 5, 5);
+            patternCtx.setFillStyle("blue");
+            patternCtx.fillRect(5, 0, 5, 5);
+            patternCtx.setFillStyle("green");
+            patternCtx.fillRect(0, 5, 5, 5);
+            patternCtx.setFillStyle("yellow");
+            patternCtx.fillRect(5, 5, 5, 5);
+        });
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ICanvasPattern pattern = ctx.createPattern(patternCanvas, "repeat");
+            ctx.setFillStyle(pattern);
+            ctx.fillRect(0, 0, 100, 100);
+        });
+
+        // Check pixels to verify the pattern
+        assertPixel(ctx, 2, 2, 255, 0, 0, 255); // Red
+        assertPixel(ctx, 7, 2, 0, 0, 255, 255); // Blue
+        assertPixel(ctx, 2, 7, 0, 128, 0, 255); // Green
+        assertPixel(ctx, 7, 7, 255, 255, 0, 255); // Yellow
+
+        // Check a repeated part of the pattern
+        assertPixel(ctx, 12, 12, 255, 0, 0, 255); // Red
+    }
+
+    @Test
+    public void testMeasureText() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.setFont("10px sans-serif");
+            ITextMetrics metrics = ctx.measureText("Hello world");
+            double width = metrics.getWidth();
+            // The exact width will depend on the font rendering engine, so we check for a reasonable range.
+            assertEquals(55, width, 20);
+        });
+    }
+
+    @Test
+    public void testImageData() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ctx.setFillStyle("red");
+            ctx.fillRect(10, 10, 50, 50);
+
+            IImageData imageData = ctx.getImageData(10, 10, 50, 50);
+            ctx.putImageData(imageData, 70, 10, 0, 0, 50, 50);
+        });
+
+        assertPixel(ctx, 80, 20, 255, 0, 0, 255);
     }
 }

@@ -31,6 +31,9 @@ public interface IGraphicsContext {
     void drawImage(Object img, int x, int y);
     void drawImage(int[] pixels, int x, int y, int width, int height);
     void drawString(String str, int x, int y);
+    ITextMetrics measureText(String text);
+    IImageData createImageData(int width, int height);
+    IImageData getImageData(int x, int y, int width, int height);
 
     // Clipping
     void setClip(IShape shape);

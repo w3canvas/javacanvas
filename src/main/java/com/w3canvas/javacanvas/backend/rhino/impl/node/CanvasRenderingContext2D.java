@@ -7,7 +7,11 @@ import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.Scriptable;
 
 import com.w3canvas.javacanvas.backend.rhino.impl.gradient.CanvasGradient;
+import com.w3canvas.javacanvas.backend.rhino.impl.gradient.RhinoCanvasGradient;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoCanvasPattern;
 import com.w3canvas.javacanvas.interfaces.ICanvasGradient;
+import javafx.scene.image.PixelFormat;
+import javafx.scene.image.WritableImage;
 import com.w3canvas.javacanvas.interfaces.ICanvasPattern;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
 import com.w3canvas.javacanvas.interfaces.ICanvasSurface;
@@ -137,7 +141,16 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
 
     @Override
     public ICanvasPattern createPattern(Object image, String repetition) {
-        if (image instanceof Image) {
+        if (image instanceof HTMLCanvasElement) {
+            HTMLCanvasElement canvas = (HTMLCanvasElement) image;
+            ICanvasRenderingContext2D context = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+            int width = canvas.getWidth();
+            int height = canvas.getHeight();
+            int[] pixels = context.getSurface().getPixelData(0, 0, width, height);
+            WritableImage patternImage = new WritableImage(width, height);
+            patternImage.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), pixels, 0, width);
+            return core.createPattern(patternImage, repetition);
+        } else if (image instanceof Image) {
             return core.createPattern(((Image) image).getImage(), repetition);
         }
         return null;
@@ -454,7 +467,13 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     public void jsSet_fillStyle(Object fillStyle) {
-        setFillStyle(fillStyle);
+        if (fillStyle instanceof RhinoCanvasGradient) {
+            core.setFillStyle(((RhinoCanvasGradient) fillStyle).getBackendGradient());
+        } else if (fillStyle instanceof RhinoCanvasPattern) {
+            core.setFillStyle(((RhinoCanvasPattern) fillStyle).getBackendPattern());
+        } else {
+            core.setFillStyle(fillStyle);
+        }
     }
 
     public Object jsGet_strokeStyle() {
@@ -462,19 +481,34 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     public void jsSet_strokeStyle(Object strokeStyle) {
-        setStrokeStyle(strokeStyle);
+        if (strokeStyle instanceof RhinoCanvasGradient) {
+            core.setStrokeStyle(((RhinoCanvasGradient) strokeStyle).getBackendGradient());
+        } else if (strokeStyle instanceof RhinoCanvasPattern) {
+            core.setStrokeStyle(((RhinoCanvasPattern) strokeStyle).getBackendPattern());
+        } else {
+            core.setStrokeStyle(strokeStyle);
+        }
     }
 
-    public CanvasGradient jsFunction_createLinearGradient(Double x0, Double y0, Double x1, Double y1) {
-        return (CanvasGradient) createLinearGradient(x0, y0, x1, y1);
+    public RhinoCanvasGradient jsFunction_createLinearGradient(Double x0, Double y0, Double x1, Double y1) {
+        ICanvasGradient backendGradient = createLinearGradient(x0, y0, x1, y1);
+        RhinoCanvasGradient rhinoGradient = (RhinoCanvasGradient) Context.getCurrentContext().newObject(getParentScope(), "RhinoCanvasGradient");
+        rhinoGradient.init(backendGradient);
+        return rhinoGradient;
     }
 
-    public CanvasGradient jsFunction_createRadialGradient(Double x0, Double y0, Double r0, Double x1, Double y1, Double r1) {
-        return (CanvasGradient) createRadialGradient(x0, y0, r0, x1, y1, r1);
+    public RhinoCanvasGradient jsFunction_createRadialGradient(Double x0, Double y0, Double r0, Double x1, Double y1, Double r1) {
+        ICanvasGradient backendGradient = createRadialGradient(x0, y0, r0, x1, y1, r1);
+        RhinoCanvasGradient rhinoGradient = (RhinoCanvasGradient) Context.getCurrentContext().newObject(getParentScope(), "RhinoCanvasGradient");
+        rhinoGradient.init(backendGradient);
+        return rhinoGradient;
     }
 
-    public CanvasPattern jsFunction_createPattern(Image image, String repetition) {
-        return (CanvasPattern) createPattern(image, repetition);
+    public RhinoCanvasPattern jsFunction_createPattern(Image image, String repetition) {
+        ICanvasPattern backendPattern = createPattern(image, repetition);
+        RhinoCanvasPattern rhinoPattern = (RhinoCanvasPattern) Context.getCurrentContext().newObject(getParentScope(), "RhinoCanvasPattern");
+        rhinoPattern.init(backendPattern);
+        return rhinoPattern;
     }
 
     public void jsSet_lineDashOffset(Double offset) {
@@ -664,11 +698,17 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     public ImageData jsFunction_createImageData(int width, int height) {
-        return (ImageData) createImageData(width, height);
+        IImageData coreImageData = createImageData(width, height);
+        ImageData rhinoImageData = (ImageData) Context.getCurrentContext().newObject(getParentScope(), "ImageData");
+        rhinoImageData.init(coreImageData);
+        return rhinoImageData;
     }
 
     public ImageData jsFunction_getImageData(int x, int y, int width, int height) {
-        return (ImageData) getImageData(x, y, width, height);
+        IImageData coreImageData = getImageData(x, y, width, height);
+        ImageData rhinoImageData = (ImageData) Context.getCurrentContext().newObject(getParentScope(), "ImageData");
+        rhinoImageData.init(coreImageData);
+        return rhinoImageData;
     }
 
     public void jsFunction_putImageData(ImageData imagedata, int dx, int dy, Object dirtyX, Object dirtyY, Object dirtyWidth, Object dirtyHeight) {
