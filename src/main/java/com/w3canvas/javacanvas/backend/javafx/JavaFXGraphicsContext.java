@@ -129,7 +129,13 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void clearRect(double x, double y, double w, double h) {
+        // gc.clearRect(x, y, w, h); // Original implementation
+
+        // New, more robust implementation that is not affected by transform
+        gc.save();
+        gc.setTransform(new Affine()); // Identity transform
         gc.clearRect(x, y, w, h);
+        gc.restore();
     }
 
     @Override
