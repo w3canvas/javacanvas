@@ -14,18 +14,21 @@ import java.awt.geom.Arc2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.awt.Transparency;
 
 import com.w3canvas.javacanvas.interfaces.*;
 
 public class AwtGraphicsContext implements IGraphicsContext {
 
     private final Graphics2D g2d;
+    private final AwtCanvasSurface surface;
     private GeneralPath path;
     private IPaint fillPaint;
     private IPaint strokePaint;
 
-    public AwtGraphicsContext(Graphics2D g2d) {
+    public AwtGraphicsContext(Graphics2D g2d, AwtCanvasSurface surface) {
         this.g2d = g2d;
+        this.surface = surface;
         this.g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         this.path = new GeneralPath();
     }
@@ -216,6 +219,26 @@ public class AwtGraphicsContext implements IGraphicsContext {
             g2d.setPaint(((AwtPaint)this.fillPaint).getPaint());
         }
         g2d.drawString(str, x, y);
+    }
+
+    @Override
+    public ITextMetrics measureText(String text) {
+        // Not implemented for AWT backend
+        return null;
+    }
+
+    @Override
+    public IImageData createImageData(int width, int height) {
+        int[] data = new int[width * height];
+        return new com.w3canvas.javacanvas.core.ImageData(width, height, new com.w3canvas.javacanvas.core.CanvasPixelArray(data, width, height));
+    }
+
+    @Override
+    public IImageData getImageData(int x, int y, int width, int height) {
+        BufferedImage image = (BufferedImage) surface.getNativeImage();
+        int[] pixels = new int[width * height];
+        image.getRGB(x, y, width, height, pixels, 0, width);
+        return new com.w3canvas.javacanvas.core.ImageData(width, height, new com.w3canvas.javacanvas.core.CanvasPixelArray(pixels, width, height));
     }
 
     // Clipping

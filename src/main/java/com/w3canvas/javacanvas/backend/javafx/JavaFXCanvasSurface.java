@@ -52,6 +52,9 @@ public class JavaFXCanvasSurface implements ICanvasSurface {
 
     @Override
     public Object getNativeImage() {
+        SnapshotParameters params = new SnapshotParameters();
+        params.setFill(Color.TRANSPARENT);
+        canvas.snapshot(params, image);
         return image;
     }
 

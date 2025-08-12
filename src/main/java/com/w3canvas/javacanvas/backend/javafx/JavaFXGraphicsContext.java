@@ -6,6 +6,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.image.WritableImage;
+import javafx.scene.image.PixelFormat;
+import javafx.scene.text.Text;
 import javafx.scene.transform.Affine;
 import javafx.scene.image.Image;
 
@@ -16,6 +19,28 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     public JavaFXGraphicsContext(GraphicsContext gc) {
         this.gc = gc;
+    }
+
+    @Override
+    public IImageData createImageData(int width, int height) {
+        int[] data = new int[width * height];
+        return new com.w3canvas.javacanvas.core.ImageData(width, height, new com.w3canvas.javacanvas.core.CanvasPixelArray(data, width, height));
+    }
+
+    @Override
+    public IImageData getImageData(int x, int y, int width, int height) {
+        WritableImage snapshot = new WritableImage(width, height);
+        gc.getCanvas().snapshot(null, snapshot);
+        int[] pixels = new int[width * height];
+        snapshot.getPixelReader().getPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), pixels, 0, width);
+        return new com.w3canvas.javacanvas.core.ImageData(width, height, new com.w3canvas.javacanvas.core.CanvasPixelArray(pixels, width, height));
+    }
+
+    @Override
+    public ITextMetrics measureText(String text) {
+        Text t = new Text(text);
+        t.setFont(gc.getFont());
+        return new com.w3canvas.javacanvas.core.TextMetrics(t.getLayoutBounds().getWidth());
     }
 
     @Override
@@ -64,6 +89,12 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     public void setFillPaint(IPaint paint) {
         if (paint instanceof JavaFXPaint) {
             gc.setFill(((JavaFXPaint) paint).getPaint());
+        } else if (paint instanceof JavaFXLinearGradient) {
+            gc.setFill((Paint) ((JavaFXLinearGradient) paint).getPaint());
+        } else if (paint instanceof JavaFXRadialGradient) {
+            gc.setFill((Paint) ((JavaFXRadialGradient) paint).getPaint());
+        } else if (paint instanceof JavaFXPattern) {
+            gc.setFill((Paint) ((JavaFXPattern) paint).getPaint());
         }
     }
 
@@ -71,6 +102,12 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     public void setStrokePaint(IPaint paint) {
         if (paint instanceof JavaFXPaint) {
             gc.setStroke(((JavaFXPaint) paint).getPaint());
+        } else if (paint instanceof JavaFXLinearGradient) {
+            gc.setStroke((Paint) ((JavaFXLinearGradient) paint).getPaint());
+        } else if (paint instanceof JavaFXRadialGradient) {
+            gc.setStroke((Paint) ((JavaFXRadialGradient) paint).getPaint());
+        } else if (paint instanceof JavaFXPattern) {
+            gc.setStroke((Paint) ((JavaFXPattern) paint).getPaint());
         }
     }
 
@@ -157,7 +194,12 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void drawImage(int[] pixels, int x, int y, int width, int height) {
-        // Not implemented for JavaFX backend
+        if (pixels == null || pixels.length == 0) {
+            return;
+        }
+        WritableImage image = new WritableImage(width, height);
+        image.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), pixels, 0, width);
+        gc.drawImage(image, x, y);
     }
 
     @Override

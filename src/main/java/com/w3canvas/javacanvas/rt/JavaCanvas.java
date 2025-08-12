@@ -29,6 +29,7 @@ import java.util.Properties;
 import com.w3canvas.javacanvas.backend.rhino.impl.event.JSMouseEvent;
 import com.w3canvas.javacanvas.backend.rhino.impl.gradient.LinearCanvasGradient;
 import com.w3canvas.javacanvas.backend.rhino.impl.gradient.RadialCanvasGradient;
+import com.w3canvas.javacanvas.backend.rhino.impl.gradient.RhinoCanvasGradient;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPattern;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPixelArray;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasRenderingContext2D;
@@ -157,6 +158,7 @@ public class JavaCanvas {
             ScriptableObject.defineClass(runtime.getScope(), HTMLCanvasElement.class, false, true);
 
             ScriptableObject.defineClass(runtime.getScope(), CanvasRenderingContext2D.class, false, true);
+            ScriptableObject.defineClass(runtime.getScope(), RhinoCanvasGradient.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), LinearCanvasGradient.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), RadialCanvasGradient.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), CanvasPattern.class, false, true);

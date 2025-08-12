@@ -143,20 +143,17 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public ICanvasGradient createLinearGradient(double x0, double y0, double x1, double y1) {
-        // This should be implemented in the backend or a factory
-        return null;
+        return backend.createLinearGradient(x0, y0, x1, y1);
     }
 
     @Override
     public ICanvasGradient createRadialGradient(double x0, double y0, double r0, double x1, double y1, double r1) {
-        // This should be implemented in the backend or a factory
-        return null;
+        return backend.createRadialGradient(x0, y0, r0, x1, y1, r1);
     }
 
     @Override
     public ICanvasPattern createPattern(Object image, String repetition) {
-        // This should be implemented in the backend or a factory
-        return null;
+        return backend.createPattern(image, repetition);
     }
 
     @Override
@@ -304,8 +301,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         applyCurrentState();
         if (fillStyle instanceof String) {
             gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
-        } else if (fillStyle instanceof ICanvasGradient) {
-            // The backend needs to handle this.
+        } else if (fillStyle instanceof IPaint) {
+            gc.setFillPaint((IPaint) fillStyle);
         } else if (fillStyle instanceof ICanvasPattern) {
             // The backend needs to handle this.
         }
@@ -317,8 +314,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         applyCurrentState();
         if (strokeStyle instanceof String) {
             gc.setStrokePaint(ColorParser.parse((String) strokeStyle, backend));
-        } else if (strokeStyle instanceof ICanvasGradient) {
-            // The backend needs to handle this.
+        } else if (strokeStyle instanceof IPaint) {
+            gc.setStrokePaint((IPaint) strokeStyle);
         } else if (strokeStyle instanceof ICanvasPattern) {
             // The backend needs to handle this.
         }
@@ -362,8 +359,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public ITextMetrics measureText(String text) {
-        // This requires backend support for font metrics
-        return null;
+        return gc.measureText(text);
     }
 
     @Override
@@ -403,24 +399,24 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public IImageData createImageData(int width, int height) {
-        return null;
+        return gc.createImageData(width, height);
     }
 
     @Override
     public IImageData getImageData(int x, int y, int width, int height) {
-        int[] pixels = surface.getPixelData(x, y, width, height);
-        CanvasPixelArray pixelArray = com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPixelArray.getInstance(pixels, width, height);
-        return new com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData(width, height, pixelArray);
+        return gc.getImageData(x, y, width, height);
     }
 
     @Override
     public void putImageData(IImageData imagedata, int dx, int dy, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
+        ICanvasPixelArray pixelArray;
         if (imagedata instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) {
-            com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData rhinoImageData = (com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) imagedata;
-            com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPixelArray pixelArray = (com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPixelArray) rhinoImageData.getData();
-            int[] pixels = pixelArray.getPixels(dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-            surface.getGraphicsContext().drawImage(pixels, dx, dy, dirtyWidth, dirtyHeight);
+            pixelArray = ((com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) imagedata).getData();
+        } else {
+            pixelArray = imagedata.getData();
         }
+        int[] pixels = pixelArray.getPixels(dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+        surface.getGraphicsContext().drawImage(pixels, dx, dy, dirtyWidth, dirtyHeight);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.w3canvas.javacanvas.interfaces;
 
 public interface ICanvasPixelArray {
-    // This is a marker interface for now.
-    // It will later define methods like getLength() and get(index).
+    int getWidth();
+    int getHeight();
+    int[] getPixels(int x, int y, int width, int height);
 }

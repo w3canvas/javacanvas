@@ -4,7 +4,8 @@ import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPixelArray;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasRenderingContext2D;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.Document;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement;
-import com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData;
+import com.w3canvas.javacanvas.interfaces.ICanvasPixelArray;
+import com.w3canvas.javacanvas.interfaces.IImageData;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.Node;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptableObject;
@@ -37,13 +38,15 @@ public class TestUtils extends ScriptableObject {
                                 return;
                             }
 
-                            ImageData imageData = (ImageData) ctx.jsFunction_getImageData(x, y, 1, 1);
-                            CanvasPixelArray data = imageData.jsGet_data();
+                            IImageData imageData = ctx.getImageData(x, y, 1, 1);
+                            ICanvasPixelArray data = imageData.getData();
+                            int[] pixels = data.getPixels(0, 0, 1, 1);
+                            int pixel = pixels[0];
 
-                            int red = (Integer) data.get(0, data);
-                            int green = (Integer) data.get(1, data);
-                            int blue = (Integer) data.get(2, data);
-                            int alpha = (Integer) data.get(3, data);
+                            int alpha = (pixel >> 24) & 0xff;
+                            int red = (pixel >> 16) & 0xff;
+                            int green = (pixel >> 8) & 0xff;
+                            int blue = pixel & 0xff;
 
                             if (red != r || green != g || blue != b || alpha != a) {
                                 System.err.println("Assertion failed at pixel (" + x + "," + y + "):");
