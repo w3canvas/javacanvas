@@ -285,4 +285,121 @@ public class TestCanvas2D extends ApplicationTest {
 
         assertPixel(ctx, 80, 20, 255, 0, 0, 255);
     }
+
+    @Test
+    public void testRect() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ctx.beginPath();
+            ctx.rect(10, 10, 50, 50);
+            ctx.setFillStyle("purple");
+            ctx.fill();
+        });
+
+        // Check a pixel inside the rectangle
+        assertPixel(ctx, 20, 20, 128, 0, 128, 255);
+        // Check a pixel outside the rectangle
+        assertPixel(ctx, 5, 5, 0, 0, 0, 0);
+    }
+
+    @Test
+    public void testArc() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ctx.beginPath();
+            ctx.arc(100, 75, 50, 0, Math.PI, false);
+            ctx.setStrokeStyle("blue");
+            ctx.setLineWidth(5);
+            ctx.stroke();
+        });
+
+        // Check a pixel on the arc
+        assertPixel(ctx, 100, 25, 0, 0, 255, 255, 5);
+    }
+
+    @Test
+    public void testArcTo() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ctx.beginPath();
+            ctx.moveTo(20, 20);
+            ctx.lineTo(70, 20);
+            ctx.arcTo(120, 20, 120, 70, 50);
+            ctx.lineTo(120, 120);
+            ctx.setStrokeStyle("green");
+            ctx.setLineWidth(5);
+            ctx.stroke();
+        });
+
+        // Check a pixel on the arc
+        assertPixel(ctx, 85, 35, 0, 128, 0, 255, 10);
+    }
+
+    @Test
+    public void testQuadraticCurveTo() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ctx.beginPath();
+            ctx.moveTo(20, 20);
+            ctx.quadraticCurveTo(20, 100, 200, 20);
+            ctx.setStrokeStyle("orange");
+            ctx.setLineWidth(5);
+            ctx.stroke();
+        });
+
+        // Check a pixel on the curve
+        assertPixel(ctx, 60, 60, 255, 165, 0, 255, 10);
+    }
+
+    @Test
+    public void testBezierCurveTo() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ctx.beginPath();
+            ctx.moveTo(20, 20);
+            ctx.bezierCurveTo(20, 100, 200, 100, 200, 20);
+            ctx.setStrokeStyle("purple");
+            ctx.setLineWidth(5);
+            ctx.stroke();
+        });
+
+        // Check a pixel on the curve
+        assertPixel(ctx, 100, 80, 128, 0, 128, 255, 10);
+    }
+
+    @Test
+    public void testFill() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ctx.beginPath();
+            ctx.moveTo(25, 25);
+            ctx.lineTo(105, 25);
+            ctx.lineTo(25, 105);
+            ctx.setFillStyle("green");
+            ctx.fill();
+        });
+
+        // Check a pixel inside the triangle
+        assertPixel(ctx, 50, 50, 0, 128, 0, 255);
+        // Check a pixel outside the triangle
+        assertPixel(ctx, 100, 100, 0, 0, 0, 0);
+    }
 }
