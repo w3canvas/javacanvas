@@ -16,9 +16,15 @@ import javafx.scene.image.Image;
 public class JavaFXGraphicsContext implements IGraphicsContext {
 
     private final GraphicsContext gc;
+    private double[] lastPoint = new double[2];
 
     public JavaFXGraphicsContext(GraphicsContext gc) {
         this.gc = gc;
+    }
+
+    @Override
+    public double[] getLastPoint() {
+        return lastPoint;
     }
 
     @Override
@@ -248,21 +254,29 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     @Override
     public void moveTo(double x, double y) {
         gc.moveTo(x, y);
+        lastPoint[0] = x;
+        lastPoint[1] = y;
     }
 
     @Override
     public void lineTo(double x, double y) {
         gc.lineTo(x, y);
+        lastPoint[0] = x;
+        lastPoint[1] = y;
     }
 
     @Override
     public void quadraticCurveTo(double cpx, double cpy, double x, double y) {
         gc.quadraticCurveTo(cpx, cpy, x, y);
+        lastPoint[0] = x;
+        lastPoint[1] = y;
     }
 
     @Override
     public void bezierCurveTo(double cp1x, double cp1y, double cp2x, double cp2y, double x, double y) {
         gc.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+        lastPoint[0] = x;
+        lastPoint[1] = y;
     }
 
     @Override
@@ -284,6 +298,9 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
             length = -(length);
         }
         gc.arc(x, y, radius, radius, Math.toDegrees(startAngle), Math.toDegrees(length));
+        double endAngleRad = startAngle + length;
+        lastPoint[0] = x + radius * Math.cos(endAngleRad);
+        lastPoint[1] = y + radius * Math.sin(endAngleRad);
     }
 
     @Override

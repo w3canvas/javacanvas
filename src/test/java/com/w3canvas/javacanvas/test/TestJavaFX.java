@@ -75,4 +75,26 @@ public class TestJavaFX extends ApplicationTest {
 
         assertEquals(0xFFFF0000, pixelData[0], "The pixel at (15,15) should be red.");
     }
+
+    @Test
+    public void testPureJavaFXArcTo() {
+        interact(() -> {
+            javafx.scene.canvas.Canvas canvas = new javafx.scene.canvas.Canvas(400, 400);
+            javafx.scene.canvas.GraphicsContext gc = canvas.getGraphicsContext2D();
+            gc.beginPath();
+            gc.moveTo(20, 20);
+            gc.lineTo(70, 20);
+            gc.arcTo(120, 20, 120, 70, 50);
+            gc.lineTo(120, 120);
+            gc.setStroke(javafx.scene.paint.Color.GREEN);
+            gc.setLineWidth(5);
+            gc.stroke();
+
+            javafx.scene.image.WritableImage snapshot = new javafx.scene.image.WritableImage(400, 400);
+            canvas.snapshot(null, snapshot);
+            int pixel = snapshot.getPixelReader().getArgb(85, 35);
+            int green = (pixel >> 8) & 0xff;
+            assertEquals(128, green, 10, "The green component of the pixel at (85,35) should be around 128.");
+        });
+    }
 }

@@ -79,6 +79,12 @@ This section lists the features of the HTML5 Canvas 2D API and their current sta
 - `postMessage`: **Verified**
 - `onmessage`: **Verified**
 
-## 4. Testing Infrastructure
+## 4. Known Issues
+
+### 4.1. JavaFX Backend Rendering
+- **Status:** Unresolved
+- **Description:** Several tests related to drawing operations (`fillText`, `strokeText`, `arcTo`) are failing when using the JavaFX backend. The operations render in black instead of the specified color. Extensive debugging has confirmed that the correct color is being passed to the JavaFX `GraphicsContext`, but it is not being applied during rendering. The root cause is unknown, but it is likely a subtle state management issue within the JavaFX backend or its interaction with the headless testing environment.
+
+## 5. Testing Infrastructure
 
 - **Image Comparison:** The current pixel-by-pixel assertion is brittle. A more robust image comparison framework is needed to properly test anti-aliased rendering. The existing `ImageComparator.java` class could be a starting point.

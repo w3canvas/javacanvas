@@ -6,8 +6,8 @@ import javafx.scene.text.Font;
 public class JavaFXFont implements IFont {
     private final Font font;
 
-    public JavaFXFont(Font font) {
-        this.font = font;
+    public JavaFXFont(String family, double size) {
+        this.font = new Font(family, size);
     }
 
     public Font getFont() {

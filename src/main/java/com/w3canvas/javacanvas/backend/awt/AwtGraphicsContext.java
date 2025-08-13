@@ -23,6 +23,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
     private final Graphics2D g2d;
     private final AwtCanvasSurface surface;
     private GeneralPath path;
+    private double[] lastPoint = new double[2];
     private IPaint fillPaint;
     private IPaint strokePaint;
 
@@ -294,6 +295,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void moveTo(double x, double y) {
+        lastPoint[0] = x;
+        lastPoint[1] = y;
         Point2D p = new Point2D.Double(x, y);
         g2d.getTransform().transform(p, p);
         path.moveTo(p.getX(), p.getY());
@@ -301,6 +304,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void lineTo(double x, double y) {
+        lastPoint[0] = x;
+        lastPoint[1] = y;
         Point2D p = new Point2D.Double(x, y);
         g2d.getTransform().transform(p, p);
         path.lineTo(p.getX(), p.getY());
@@ -308,6 +313,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void quadraticCurveTo(double cpx, double cpy, double x, double y) {
+        lastPoint[0] = x;
+        lastPoint[1] = y;
         double[] xy = { cpx, cpy, x, y };
         g2d.getTransform().transform(xy, 0, xy, 0, 2);
         path.quadTo(xy[0], xy[1], xy[2], xy[3]);
@@ -315,6 +322,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void bezierCurveTo(double cp1x, double cp1y, double cp2x, double cp2y, double x, double y) {
+        lastPoint[0] = x;
+        lastPoint[1] = y;
         float[] xy = { (float)cp1x, (float)cp1y, (float)cp2x, (float)cp2y, (float)x, (float)y };
         g2d.getTransform().transform(xy, 0, xy, 0, 3);
         path.curveTo(xy[0], xy[1], xy[2], xy[3], xy[4], xy[5]);
@@ -344,6 +353,9 @@ public class AwtGraphicsContext implements IGraphicsContext {
         path.append(g2d.getTransform().createTransformedShape(
                 new Arc2D.Double(x - radius, y - radius, 2 * radius, 2 * radius,
                         Math.toDegrees(startAngle), Math.toDegrees(ang), Arc2D.OPEN)), true);
+        double endAngleRad = startAngle + ang;
+        lastPoint[0] = x + radius * Math.cos(endAngleRad);
+        lastPoint[1] = y + radius * Math.sin(endAngleRad);
     }
 
     @Override
@@ -384,5 +396,10 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public IShape getPath() {
         return new AwtShape(path);
+    }
+
+    @Override
+    public double[] getLastPoint() {
+        return lastPoint;
     }
 }
