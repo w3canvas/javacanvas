@@ -331,7 +331,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         }
         gc.setLineDashOffset(this.lineDashOffset);
 
-        gc.draw(gc.getPath());
+        gc.stroke();
     }
 
     @Override
