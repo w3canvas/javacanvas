@@ -35,4 +35,10 @@ public class AwtGraphicsBackend implements IGraphicsBackend {
         // Not implemented for AWT backend
         return null;
     }
+
+    @Override
+    public com.w3canvas.javacanvas.interfaces.IFont createFont(String family, double size) {
+        // Not implemented for AWT backend
+        return null;
+    }
 }

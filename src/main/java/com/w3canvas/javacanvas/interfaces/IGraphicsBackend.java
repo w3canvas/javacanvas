@@ -14,4 +14,6 @@ public interface IGraphicsBackend {
     ICanvasGradient createRadialGradient(double x0, double y0, double r0, double x1, double y1, double r1);
 
     ICanvasPattern createPattern(Object image, String repetition);
+
+    IFont createFont(String family, double size);
 }

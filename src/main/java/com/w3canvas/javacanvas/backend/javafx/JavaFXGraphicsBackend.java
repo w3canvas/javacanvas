@@ -3,6 +3,7 @@ package com.w3canvas.javacanvas.backend.javafx;
 import com.w3canvas.javacanvas.interfaces.ICanvasGradient;
 import com.w3canvas.javacanvas.interfaces.ICanvasPattern;
 import com.w3canvas.javacanvas.interfaces.ICanvasSurface;
+import com.w3canvas.javacanvas.interfaces.IFont;
 import com.w3canvas.javacanvas.interfaces.IGraphicsBackend;
 
 public class JavaFXGraphicsBackend implements IGraphicsBackend {
@@ -25,5 +26,10 @@ public class JavaFXGraphicsBackend implements IGraphicsBackend {
     @Override
     public ICanvasPattern createPattern(Object image, String repetition) {
         return new JavaFXPattern((javafx.scene.image.Image) image, repetition);
+    }
+
+    @Override
+    public IFont createFont(String family, double size) {
+        return new JavaFXFont(family, size);
     }
 }

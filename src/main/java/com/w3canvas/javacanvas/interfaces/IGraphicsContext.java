@@ -55,4 +55,5 @@ public interface IGraphicsContext {
     void fill();
     void stroke();
     IShape getPath();
+    double[] getLastPoint();
 }
