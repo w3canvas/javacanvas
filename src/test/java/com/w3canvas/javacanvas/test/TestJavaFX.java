@@ -77,7 +77,6 @@ public class TestJavaFX extends ApplicationTest {
         assertEquals(0xFFFF0000, pixelData[0], "The pixel at (15,15) should be red.");
     }
 
-    @Disabled("Failing due to anti-aliasing issues in the test environment")
     @Test
     public void testPureJavaFXArcTo() {
         interact(() -> {
@@ -94,9 +93,9 @@ public class TestJavaFX extends ApplicationTest {
 
             javafx.scene.image.WritableImage snapshot = new javafx.scene.image.WritableImage(400, 400);
             canvas.snapshot(null, snapshot);
-            int pixel = snapshot.getPixelReader().getArgb(85, 35);
+            int pixel = snapshot.getPixelReader().getArgb(100, 30);
             int green = (pixel >> 8) & 0xff;
-            assertEquals(128, green, 10, "The green component of the pixel at (85,35) should be around 128.");
+            assertEquals(128, green, 5, "The green component of the pixel at (100,30) should be 128.");
         });
     }
 }
