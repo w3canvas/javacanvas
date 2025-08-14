@@ -326,7 +326,6 @@ public class TestCanvas2D extends ApplicationTest {
         assertPixel(ctx, 100, 25, 0, 0, 255, 255, 5);
     }
 
-    @Disabled("Failing due to known issue with JavaFX backend rendering")
     @Test
     public void testArcTo() throws ExecutionException, InterruptedException {
         HTMLCanvasElement canvas = createCanvas();

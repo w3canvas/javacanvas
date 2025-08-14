@@ -341,14 +341,12 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public boolean isPointInPath(double x, double y) {
-        // This requires backend support
-        return false;
+        return gc.isPointInPath(x, y);
     }
 
     @Override
     public boolean isPointInStroke(double x, double y) {
-        // This requires backend support
-        return false;
+        return gc.isPointInStroke(x, y);
     }
 
     @Override
