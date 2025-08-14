@@ -350,7 +350,9 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public boolean isPointInStroke(double x, double y) {
-        return gc.isPointInStroke(x, y);
+        // TODO: This is a temporary implementation. The isPointInStroke method does not exist on GraphicsContext.
+        // A proper implementation would require a more sophisticated way to handle stroke properties on the path.
+        return false;
     }
 
     @Override

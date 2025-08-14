@@ -336,7 +336,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void clip() {
-        gc.clip(gc.getPath());
+        gc.clip();
     }
 
     @Override
