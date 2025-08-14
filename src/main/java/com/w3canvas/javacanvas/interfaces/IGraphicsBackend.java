@@ -17,4 +17,5 @@ public interface IGraphicsBackend {
 
     IFont createFont(String family, double size);
     IFont createFont(String family, double size, String style, String weight);
+    IFont createFont(byte[] fontData, float size, String style, String weight);
 }

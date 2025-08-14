@@ -10,12 +10,16 @@ import javax.swing.RootPaneContainer;
 import com.w3canvas.javacanvas.exception.IllegalNodeException;
 import com.w3canvas.javacanvas.js.AbstractView;
 
+import com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFaceSet;
+import com.w3canvas.javacanvas.dom.FontFaceSet;
+
 @SuppressWarnings("serial")
 public class Document extends Node {
 
 	private RootPaneContainer frame;
 	private Map<String, Node> documentsNode = new HashMap<String, Node>();
 	private final static String NODE_NAME = "body";
+	private RhinoFontFaceSet fonts;
 
 	public Document() {
 		// No-arg constructor for Rhino
@@ -24,6 +28,8 @@ public class Document extends Node {
 	public void init(RootPaneContainer frame) {
 		this.frame = frame;
 		this.setDocument(this);
+		this.fonts = new RhinoFontFaceSet();
+		this.fonts.init(this.getParentScope(), new FontFaceSet());
 	}
 
 	public Node jsFunction_getElementById(String id) {
@@ -61,6 +67,10 @@ public class Document extends Node {
 
 	public AbstractView jsGet_defaultView() {
 		return null;
+	}
+
+	public RhinoFontFaceSet jsGet_fonts() {
+		return fonts;
 	}
 
 	@Override

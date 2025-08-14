@@ -38,7 +38,7 @@ public class OffscreenCanvas extends ProjectScriptableObject implements ICanvas 
 
     public Scriptable jsFunction_getContext(String type) {
         if (context == null && "2d".equals(type)) {
-            ICanvasRenderingContext2D coreContext = new CoreCanvasRenderingContext2D(this.backend, getWidth(), getHeight());
+            ICanvasRenderingContext2D coreContext = new CoreCanvasRenderingContext2D(null, this.backend, getWidth(), getHeight());
 
             context = new CanvasRenderingContext2D();
             context.init(coreContext);

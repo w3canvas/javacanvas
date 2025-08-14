@@ -24,6 +24,14 @@ public class JavaFXFont implements IFont {
         this.font = createFont();
     }
 
+    public JavaFXFont(Font font, double size, String style, String weight) {
+        this.font = font;
+        this.family = font.getFamily();
+        this.size = size;
+        this.style = style;
+        this.weight = weight;
+    }
+
     private Font createFont() {
         FontWeight fw = parseWeight(weight);
         FontPosture fp = parseStyle(style);

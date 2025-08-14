@@ -139,7 +139,7 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 			}
 
 			// 2. Create the core rendering context, providing the backend and canvas dimensions
-			ICanvasRenderingContext2D coreContext = new CoreCanvasRenderingContext2D(backend, getWidth(), getHeight());
+			ICanvasRenderingContext2D coreContext = new CoreCanvasRenderingContext2D(getDocument(), backend, getWidth(), getHeight());
 
 			// 3. Create the Rhino adapter, passing the core context to it
 			canvas = new CanvasRenderingContext2D();

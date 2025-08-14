@@ -125,5 +125,13 @@
             <version>5.18.0</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- NanoHTTPD -->
+        <dependency>
+            <groupId>org.nanohttpd</groupId>
+            <artifactId>nanohttpd</artifactId>
+            <version>2.3.1</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

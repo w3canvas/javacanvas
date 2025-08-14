@@ -18,6 +18,14 @@ public class AwtFont implements IFont {
         this.font = createFont();
     }
 
+    public AwtFont(Font font, float size, String style, String weight) {
+        this.font = font;
+        this.family = font.getFamily();
+        this.size = size;
+        this.style = style;
+        this.weight = weight;
+    }
+
     private Font createFont() {
         int awtStyle = parseStyleAndWeight(style, weight);
         return new Font(family, awtStyle, (int) size);
