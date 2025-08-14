@@ -269,17 +269,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     // Clipping
     @Override
-    public void setClip(IShape shape) {
-        if (shape instanceof AwtShape) {
-            g2d.setClip(((AwtShape) shape).getShape());
-        }
-    }
-
-    @Override
-    public void clip(IShape shape) {
-        if (shape instanceof AwtShape) {
-            g2d.clip(((AwtShape) shape).getShape());
-        }
+    public void clip() {
+        g2d.clip(this.path);
     }
 
     // Path methods
@@ -396,6 +387,16 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public IShape getPath() {
         return new AwtShape(path);
+    }
+
+    @Override
+    public boolean isPointInPath(double x, double y) {
+        return path.contains(x, y);
+    }
+
+    @Override
+    public boolean isPointInStroke(double x, double y) {
+        return g2d.getStroke().createStrokedShape(path).contains(x, y);
     }
 
     @Override

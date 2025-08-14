@@ -13,13 +13,17 @@ import javafx.scene.transform.Affine;
 import javafx.scene.image.Image;
 
 
+import javafx.scene.shape.Path;
+
 public class JavaFXGraphicsContext implements IGraphicsContext {
 
     private final GraphicsContext gc;
     private double[] lastPoint = new double[2];
+    private Path path;
 
     public JavaFXGraphicsContext(GraphicsContext gc) {
         this.gc = gc;
+        this.path = new Path();
     }
 
     @Override
@@ -232,28 +236,26 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
-    public void setClip(IShape shape) {
-        // To be implemented
-    }
-
-    @Override
-    public void clip(IShape shape) {
-        // To be implemented
+    public void clip() {
+        gc.clip();
     }
 
     @Override
     public void beginPath() {
         gc.beginPath();
+        path = new Path();
     }
 
     @Override
     public void closePath() {
         gc.closePath();
+        path.getElements().add(new javafx.scene.shape.ClosePath());
     }
 
     @Override
     public void moveTo(double x, double y) {
         gc.moveTo(x, y);
+        path.getElements().add(new javafx.scene.shape.MoveTo(x, y));
         lastPoint[0] = x;
         lastPoint[1] = y;
     }
@@ -261,6 +263,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     @Override
     public void lineTo(double x, double y) {
         gc.lineTo(x, y);
+        path.getElements().add(new javafx.scene.shape.LineTo(x, y));
         lastPoint[0] = x;
         lastPoint[1] = y;
     }
@@ -268,6 +271,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     @Override
     public void quadraticCurveTo(double cpx, double cpy, double x, double y) {
         gc.quadraticCurveTo(cpx, cpy, x, y);
+        path.getElements().add(new javafx.scene.shape.QuadCurveTo(cpx, cpy, x, y));
         lastPoint[0] = x;
         lastPoint[1] = y;
     }
@@ -275,6 +279,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     @Override
     public void bezierCurveTo(double cp1x, double cp1y, double cp2x, double cp2y, double x, double y) {
         gc.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+        path.getElements().add(new javafx.scene.shape.CubicCurveTo(cp1x, cp1y, cp2x, cp2y, x, y));
         lastPoint[0] = x;
         lastPoint[1] = y;
     }
@@ -282,11 +287,19 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     @Override
     public void arcTo(double x1, double y1, double x2, double y2, double radius) {
         gc.arcTo(x1, y1, x2, y2, radius);
+        // Path does not have arcTo, so we need to calculate the arc and add it manually.
+        // This is a complex calculation, so for now we will just draw a line to the first point.
+        path.getElements().add(new javafx.scene.shape.LineTo(x1, y1));
     }
 
     @Override
     public void rect(double x, double y, double w, double h) {
         gc.rect(x, y, w, h);
+        path.getElements().add(new javafx.scene.shape.MoveTo(x, y));
+        path.getElements().add(new javafx.scene.shape.LineTo(x + w, y));
+        path.getElements().add(new javafx.scene.shape.LineTo(x + w, y + h));
+        path.getElements().add(new javafx.scene.shape.LineTo(x, y + h));
+        path.getElements().add(new javafx.scene.shape.ClosePath());
     }
 
     @Override
@@ -298,6 +311,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
             length = -(length);
         }
         gc.arc(x, y, radius, radius, Math.toDegrees(startAngle), Math.toDegrees(length));
+        path.getElements().add(new javafx.scene.shape.ArcTo(radius, radius, 0, x + radius * Math.cos(endAngle), y + radius * Math.sin(endAngle), false, !counterclockwise));
         double endAngleRad = startAngle + length;
         lastPoint[0] = x + radius * Math.cos(endAngleRad);
         lastPoint[1] = y + radius * Math.sin(endAngleRad);
@@ -315,6 +329,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
             length = -(length);
         }
         gc.arc(0, 0, radiusX, radiusY, Math.toDegrees(startAngle), Math.toDegrees(length));
+        path.getElements().add(new javafx.scene.shape.ArcTo(radiusX, radiusY, Math.toDegrees(rotation), x + radiusX * Math.cos(endAngle), y + radiusY * Math.sin(endAngle), false, !counterclockwise));
         gc.restore();
     }
 
@@ -329,8 +344,17 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public boolean isPointInPath(double x, double y) {
+        return gc.isPointInPath(x, y);
+    }
+
+    @Override
+    public boolean isPointInStroke(double x, double y) {
+        return gc.isPointInStroke(x, y);
+    }
+
+    @Override
     public IShape getPath() {
-        // To be implemented
-        return null;
+        return new JavaFXShape(new Path(path.getElements()));
     }
 }

@@ -38,8 +38,7 @@ public interface IGraphicsContext {
     IImageData getImageData(int x, int y, int width, int height);
 
     // Clipping
-    void setClip(IShape shape);
-    void clip(IShape shape);
+    void clip();
 
     // Path methods
     void beginPath();
@@ -54,6 +53,8 @@ public interface IGraphicsContext {
     void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise);
     void fill();
     void stroke();
+    boolean isPointInPath(double x, double y);
+    boolean isPointInStroke(double x, double y);
     IShape getPath();
     double[] getLastPoint();
 }
