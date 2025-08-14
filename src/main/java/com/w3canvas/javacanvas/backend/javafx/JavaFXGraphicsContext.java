@@ -11,6 +11,7 @@ import javafx.scene.image.PixelFormat;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Affine;
 import javafx.scene.image.Image;
+import javafx.scene.shape.ArcTo;
 
 
 import javafx.scene.shape.Path;
@@ -286,10 +287,53 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void arcTo(double x1, double y1, double x2, double y2, double radius) {
+        double x0 = lastPoint[0];
+        double y0 = lastPoint[1];
+
+        if (radius == 0 || (x0 == x1 && y0 == y1) || (x1 == x2 && y1 == y2)) {
+            lineTo(x1, y1);
+            return;
+        }
+
+        double dx01 = x1 - x0;
+        double dy01 = y1 - y0;
+        double len01 = Math.sqrt(dx01 * dx01 + dy01 * dy01);
+        dx01 /= len01;
+        dy01 /= len01;
+
+        double dx12 = x2 - x1;
+        double dy12 = y2 - y1;
+        double len12 = Math.sqrt(dx12 * dx12 + dy12 * dy12);
+        dx12 /= len12;
+        dy12 /= len12;
+
+        double angle = Math.acos(dx01 * dx12 + dy01 * dy12);
+
+        if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
+            lineTo(x1, y1);
+            return;
+        }
+
+        double tangent = radius / Math.tan(angle / 2.0);
+
+        double t1x = x1 - tangent * dx01;
+        double t1y = y1 - tangent * dy01;
+        double t2x = x1 + tangent * dx12;
+        double t2y = y1 + tangent * dy12;
+
+        lineTo(t1x, t1y);
+
+        // We use the JavaFX GraphicsContext's arcTo to draw on the canvas.
         gc.arcTo(x1, y1, x2, y2, radius);
-        // Path does not have arcTo, so we need to calculate the arc and add it manually.
-        // This is a complex calculation, so for now we will just draw a line to the first point.
-        path.getElements().add(new javafx.scene.shape.LineTo(x1, y1));
+
+        // And we add a JavaFX ArcTo path element to our own path object.
+        // The sweep flag is determined by the sign of the cross product of the two vectors.
+        boolean sweepFlag = (dx01 * dy12 - dy01 * dx12) < 0;
+        ArcTo arcTo = new ArcTo(radius, radius, 0, t2x, t2y, false, sweepFlag);
+        path.getElements().add(arcTo);
+
+        lastPoint[0] = t2x;
+        lastPoint[1] = t2y;
     }
 
     @Override
@@ -304,17 +348,32 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise) {
-        // JavaFX arc angles are in degrees, and it's extent-based, not end-angle based.
-        double length = endAngle - startAngle;
-        if(counterclockwise) {
-            if(length < 0) length += 2 * Math.PI;
-            length = -(length);
+        double sweep = endAngle - startAngle;
+        if (counterclockwise) {
+            if (sweep > 0) {
+                sweep = sweep - 2 * Math.PI;
+            }
+        } else {
+            if (sweep < 0) {
+                sweep = sweep + 2 * Math.PI;
+            }
         }
-        gc.arc(x, y, radius, radius, Math.toDegrees(startAngle), Math.toDegrees(length));
-        path.getElements().add(new javafx.scene.shape.ArcTo(radius, radius, 0, x + radius * Math.cos(endAngle), y + radius * Math.sin(endAngle), false, !counterclockwise));
-        double endAngleRad = startAngle + length;
-        lastPoint[0] = x + radius * Math.cos(endAngleRad);
-        lastPoint[1] = y + radius * Math.sin(endAngleRad);
+
+        double startX = x + radius * Math.cos(startAngle);
+        double startY = y + radius * Math.sin(startAngle);
+        if (path.getElements().isEmpty()) {
+            moveTo(startX, startY);
+        } else {
+            lineTo(startX, startY);
+        }
+
+        gc.arc(x, y, radius, radius, Math.toDegrees(startAngle), Math.toDegrees(sweep));
+
+        double endX = x + radius * Math.cos(startAngle + sweep);
+        double endY = y + radius * Math.sin(startAngle + sweep);
+        path.getElements().add(new ArcTo(radius, radius, 0, endX, endY, Math.abs(sweep) > Math.PI, !counterclockwise));
+        lastPoint[0] = endX;
+        lastPoint[1] = endY;
     }
 
     @Override
@@ -350,9 +409,11 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public boolean isPointInStroke(double x, double y) {
-        // TODO: This is a temporary implementation. The isPointInStroke method does not exist on GraphicsContext.
-        // A proper implementation would require a more sophisticated way to handle stroke properties on the path.
-        return false;
+        path.setStrokeWidth(gc.getLineWidth());
+        path.setStrokeLineCap(gc.getLineCap());
+        path.setStrokeLineJoin(gc.getLineJoin());
+        path.setStrokeMiterLimit(gc.getMiterLimit());
+        return path.intersects(x - 0.5, y - 0.5, 1, 1);
     }
 
     @Override
