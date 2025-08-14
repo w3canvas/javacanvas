@@ -326,7 +326,6 @@ public class TestCanvas2D extends ApplicationTest {
         assertPixel(ctx, 100, 25, 0, 0, 255, 255, 5);
     }
 
-    @Disabled("Failing due to incorrect rendering of arcTo in the JavaFX backend")
     @Test
     public void testArcTo() throws ExecutionException, InterruptedException {
         HTMLCanvasElement canvas = createCanvas();
@@ -345,7 +344,28 @@ public class TestCanvas2D extends ApplicationTest {
         });
 
         // Check a pixel on the arc
-        assertPixel(ctx, 85, 35, 0, 128, 0, 255, 10);
+        assertPixel(ctx, 100, 30, 0, 128, 0, 255, 10);
+    }
+
+    @Test
+    public void testArcToFill() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            ctx.clearRect(0, 0, 400, 400);
+            ctx.beginPath();
+            ctx.moveTo(20, 20);
+            ctx.lineTo(70, 20);
+            ctx.arcTo(120, 20, 120, 70, 50);
+            ctx.lineTo(120, 120);
+            ctx.closePath();
+            ctx.setFillStyle("purple");
+            ctx.fill();
+        });
+
+        // Check a pixel inside the filled shape
+        assertPixel(ctx, 100, 50, 128, 0, 128, 255);
     }
 
     @Test
