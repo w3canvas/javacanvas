@@ -32,4 +32,9 @@ public class JavaFXGraphicsBackend implements IGraphicsBackend {
     public IFont createFont(String family, double size) {
         return new JavaFXFont(family, size);
     }
+
+    @Override
+    public IFont createFont(String family, double size, String style, String weight) {
+        return new JavaFXFont(family, size, style, weight);
+    }
 }
