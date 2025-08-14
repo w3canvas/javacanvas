@@ -45,9 +45,6 @@ public class AwtGraphicsContext implements IGraphicsContext {
         // AWT Graphics2D doesn't have a maxWidth parameter for fillText,
         // so we ignore it. A more complete implementation might manually
         // scale the text or truncate it.
-        if (this.fillPaint instanceof AwtPaint) {
-            g2d.setPaint(((AwtPaint)this.fillPaint).getPaint());
-        }
         g2d.drawString(text, (float)x, (float)y);
     }
 
@@ -55,9 +52,6 @@ public class AwtGraphicsContext implements IGraphicsContext {
     public void strokeText(String text, double x, double y, double maxWidth) {
         // AWT Graphics2D doesn't have a direct strokeText method.
         // We can simulate it by getting the outline of the text and stroking that.
-        if (this.strokePaint instanceof AwtPaint) {
-            g2d.setPaint(((AwtPaint)this.strokePaint).getPaint());
-        }
         Font font = g2d.getFont();
         java.awt.font.FontRenderContext frc = g2d.getFontRenderContext();
         java.awt.font.TextLayout tl = new java.awt.font.TextLayout(text, font, frc);
@@ -106,11 +100,29 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public void setFillPaint(IPaint paint) {
         this.fillPaint = paint;
+        if (paint instanceof AwtPaint) {
+            g2d.setPaint(((AwtPaint) paint).getPaint());
+        } else if (paint instanceof AwtLinearGradient) {
+            g2d.setPaint(((AwtLinearGradient) paint).getPaint());
+        } else if (paint instanceof AwtRadialGradient) {
+            g2d.setPaint(((AwtRadialGradient) paint).getPaint());
+        } else if (paint instanceof AwtPattern) {
+            g2d.setPaint(((AwtPattern) paint).getPaint());
+        }
     }
 
     @Override
     public void setStrokePaint(IPaint paint) {
         this.strokePaint = paint;
+        if (paint instanceof AwtPaint) {
+            g2d.setPaint(((AwtPaint) paint).getPaint());
+        } else if (paint instanceof AwtLinearGradient) {
+            g2d.setPaint(((AwtLinearGradient) paint).getPaint());
+        } else if (paint instanceof AwtRadialGradient) {
+            g2d.setPaint(((AwtRadialGradient) paint).getPaint());
+        } else if (paint instanceof AwtPattern) {
+            g2d.setPaint(((AwtPattern) paint).getPaint());
+        }
     }
 
     private float lineWidth = 1.0f;
@@ -207,9 +219,6 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public void draw(IShape shape) {
         if (shape instanceof AwtShape) {
-            if (this.strokePaint instanceof AwtPaint) {
-                g2d.setPaint(((AwtPaint)this.strokePaint).getPaint());
-            }
             g2d.draw(((AwtShape) shape).getShape());
         }
     }
@@ -217,9 +226,6 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public void fill(IShape shape) {
         if (shape instanceof AwtShape) {
-            if (this.fillPaint instanceof AwtPaint) {
-                g2d.setPaint(((AwtPaint)this.fillPaint).getPaint());
-            }
             System.out.println("Filling with paint: " + g2d.getPaint());
             g2d.fill(((AwtShape) shape).getShape());
         }
@@ -241,16 +247,12 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void drawString(String str, int x, int y) {
-        if (this.fillPaint instanceof AwtPaint) {
-            g2d.setPaint(((AwtPaint)this.fillPaint).getPaint());
-        }
         g2d.drawString(str, x, y);
     }
 
     @Override
     public ITextMetrics measureText(String text) {
-        // Not implemented for AWT backend
-        return null;
+        return new AwtTextMetrics(g2d.getFontMetrics().stringWidth(text));
     }
 
     @Override
@@ -322,10 +324,68 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void arcTo(double x1, double y1, double x2, double y2, double radius) {
-        // This is a simplified implementation. A proper implementation is more complex.
         Point2D p0 = path.getCurrentPoint();
-        if (p0 == null) return;
-        path.lineTo(x1, y1);
+        if (p0 == null) {
+            return;
+        }
+
+        double x0 = p0.getX();
+        double y0 = p0.getY();
+
+        if (radius == 0 || (x0 == x1 && y0 == y1) || (x1 == x2 && y1 == y2)) {
+            lineTo(x1, y1);
+            return;
+        }
+
+        double dx01 = x1 - x0;
+        double dy01 = y1 - y0;
+        double len01 = Math.sqrt(dx01 * dx01 + dy01 * dy01);
+        dx01 /= len01;
+        dy01 /= len01;
+
+        double dx12 = x2 - x1;
+        double dy12 = y2 - y1;
+        double len12 = Math.sqrt(dx12 * dx12 + dy12 * dy12);
+        dx12 /= len12;
+        dy12 /= len12;
+
+        double angle = Math.acos(dx01 * dx12 + dy01 * dy12);
+
+        if (Math.abs(angle) < 1e-6 || Math.abs(angle - Math.PI) < 1e-6) {
+            lineTo(x1, y1);
+            return;
+        }
+
+        double tangent = radius / Math.tan(angle / 2.0);
+
+        double t1x = x1 - tangent * dx01;
+        double t1y = y1 - tangent * dy01;
+        double t2x = x1 + tangent * dx12;
+        double t2y = y1 + tangent * dy12;
+
+        lineTo(t1x, t1y);
+
+        double cx = t1x - radius * dy01;
+        double cy = t1y + radius * dx01;
+
+        double startAngle = Math.atan2(t1y - cy, t1x - cx);
+        double endAngle = Math.atan2(t2y - cy, t2x - cx);
+        double sweepAngle = endAngle - startAngle;
+
+        if ((dx01 * dy12 - dy01 * dx12) < 0) { // Clockwise
+            if (sweepAngle > 0) {
+                sweepAngle -= 2 * Math.PI;
+            }
+        } else { // Counter-clockwise
+            if (sweepAngle < 0) {
+                sweepAngle += 2 * Math.PI;
+            }
+        }
+
+        path.append(new Arc2D.Double(cx - radius, cy - radius, 2 * radius, 2 * radius, Math.toDegrees(startAngle), Math.toDegrees(sweepAngle), Arc2D.OPEN), true);
+
+        lastPoint[0] = t2x;
+        lastPoint[1] = t2y;
     }
 
     @Override
@@ -370,17 +430,11 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fill() {
-        if (this.fillPaint instanceof AwtPaint) {
-            g2d.setPaint(((AwtPaint)this.fillPaint).getPaint());
-        }
         g2d.fill(this.path);
     }
 
     @Override
     public void stroke() {
-        if (this.strokePaint instanceof AwtPaint) {
-            g2d.setPaint(((AwtPaint)this.strokePaint).getPaint());
-        }
         g2d.draw(this.path);
     }
 

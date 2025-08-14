@@ -15,30 +15,27 @@ public class AwtGraphicsBackend implements IGraphicsBackend {
 
     @Override
     public ICanvasGradient createLinearGradient(double x0, double y0, double x1, double y1) {
-        // Not implemented for AWT backend
-        return null;
+        return new AwtLinearGradient(x0, y0, x1, y1, this);
     }
 
     @Override
     public ICanvasGradient createRadialGradient(double x0, double y0, double r0, double x1, double y1, double r1) {
-        // Not implemented for AWT backend
-        return null;
+        return new AwtRadialGradient(x0, y0, r0, x1, y1, r1, this);
     }
 
     @Override
     public ICanvasPattern createPattern(Object image, String repetition) {
-        // Not implemented for AWT backend
-        return null;
+        return new AwtPattern(image, repetition);
     }
 
     public ITextMetrics measureText(String text) {
-        // Not implemented for AWT backend
+        // This should be implemented in a way that doesn't require a Graphics context,
+        // but for now, we'll return null and implement it in AwtGraphicsContext.
         return null;
     }
 
     @Override
     public com.w3canvas.javacanvas.interfaces.IFont createFont(String family, double size) {
-        // Not implemented for AWT backend
-        return null;
+        return new AwtFont(new java.awt.Font(family, java.awt.Font.PLAIN, (int) size));
     }
 }
