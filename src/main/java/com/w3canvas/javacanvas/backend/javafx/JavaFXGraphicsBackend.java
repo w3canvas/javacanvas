@@ -37,4 +37,15 @@ public class JavaFXGraphicsBackend implements IGraphicsBackend {
     public IFont createFont(String family, double size, String style, String weight) {
         return new JavaFXFont(family, size, style, weight);
     }
+
+    @Override
+    public IFont createFont(byte[] fontData, float size, String style, String weight) {
+        try {
+            javafx.scene.text.Font fxFont = javafx.scene.text.Font.loadFont(new java.io.ByteArrayInputStream(fontData), size);
+            return new JavaFXFont(fxFont, size, style, weight);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

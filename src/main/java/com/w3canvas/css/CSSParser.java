@@ -1,5 +1,7 @@
 package com.w3canvas.css;
 
+import com.w3canvas.javacanvas.backend.rhino.impl.node.Document;
+import com.w3canvas.javacanvas.dom.FontFace;
 import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,6 +10,8 @@ import java.util.regex.Pattern;
 
 public class CSSParser {
 
+    private static final Pattern FONT_FACE_RULE = Pattern.compile("@font-face\\s*\\{([^}]+)\\}");
+    private static final Pattern FONT_PROPERTY = Pattern.compile("font-family:\\s*['\"]?([^;'\"\\n]+)['\"]?;|src:\\s*url\\((['\"]?([^)]+?)['\"]?)\\);|font-style:\\s*(\\w+);|font-weight:\\s*(\\w+);");
     private static final Map<String, Color> COLOR_MAP = new HashMap<>();
 
     static {
@@ -126,5 +130,30 @@ public class CSSParser {
             }
         }
         return font;
+    }
+
+    public static void parseStyleSheet(String sheet, Document document) {
+        Matcher ruleMatcher = FONT_FACE_RULE.matcher(sheet);
+        while (ruleMatcher.find()) {
+            String rule = ruleMatcher.group(1);
+            Matcher propMatcher = FONT_PROPERTY.matcher(rule);
+            String family = null, src = null, style = "normal", weight = "normal";
+            while (propMatcher.find()) {
+                if (propMatcher.group(1) != null) {
+                    family = propMatcher.group(1);
+                } else if (propMatcher.group(3) != null) {
+                    src = propMatcher.group(3);
+                } else if (propMatcher.group(4) != null) {
+                    style = propMatcher.group(4);
+                } else if (propMatcher.group(5) != null) {
+                    weight = propMatcher.group(5);
+                }
+            }
+            if (family != null && src != null) {
+                com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFace rf = new com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFace();
+                rf.jsConstructor(family, src, null);
+                document.jsGet_fonts().jsFunction_add(rf);
+            }
+        }
     }
 }

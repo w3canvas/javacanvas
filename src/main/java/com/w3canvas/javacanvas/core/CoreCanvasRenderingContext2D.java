@@ -1,6 +1,7 @@
 package com.w3canvas.javacanvas.core;
 
 import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPixelArray;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.Document;
 import com.w3canvas.javacanvas.interfaces.*;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -11,6 +12,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     private final IGraphicsBackend backend;
     private final ICanvasSurface surface;
     private final IGraphicsContext gc;
+    private Document document;
 
     private Stack<ContextState> stack;
     private Object fillStyle;
@@ -24,7 +26,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     private Object lineDash;
     private double lineDashOffset;
 
-    public CoreCanvasRenderingContext2D(IGraphicsBackend backend, int width, int height) {
+    public CoreCanvasRenderingContext2D(Document document, IGraphicsBackend backend, int width, int height) {
+        this.document = document;
         this.backend = backend;
         this.surface = backend.createCanvasSurface(width, height);
         this.gc = surface.getGraphicsContext();
@@ -370,6 +373,26 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public void setFont(String font) {
         this.font = font;
+
+        if (document != null) {
+            for (com.w3canvas.javacanvas.dom.FontFace face : document.jsGet_fonts().getFaces()) {
+                if (font.contains(face.getFamily())) {
+                    if ("loaded".equals(face.getStatus())) {
+                        java.util.Map<String, Object> fontInfo = com.w3canvas.css.CSSParser.parseFont(font);
+                        float size = (Float) fontInfo.get("size");
+                        IFont newFont = backend.createFont(face.getFontData(), size, face.getStyle(), face.getWeight());
+                        if (newFont != null) {
+                            face.setFont(newFont);
+                            gc.setFont(newFont);
+                            return;
+                        }
+                    } else {
+                        face.load();
+                    }
+                }
+            }
+        }
+
         java.util.Map<String, Object> fontInfo = com.w3canvas.css.CSSParser.parseFont(font);
         String style = (String) fontInfo.get("style");
         String weight = (String) fontInfo.get("weight");

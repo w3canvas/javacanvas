@@ -30,6 +30,14 @@ public class RhinoRuntime
             exec("importPackage(Packages.com.w3canvas.javacanvas.backend.rhino.impl.node)");
             exec("importPackage(Packages.com.w3canvas.javacanvas.backend.rhino.impl.event)");
             exec("importPackage(Packages.com.w3canvas.javacanvas.backend.rhino.impl.gradient)");
+            exec("importPackage(Packages.com.w3canvas.javacanvas.backend.rhino.impl.font)");
+
+            try {
+                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFace.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFaceSet.class);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
             defineProperty("setTimeout", new Callable()
             {

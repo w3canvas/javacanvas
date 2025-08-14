@@ -43,4 +43,15 @@ public class AwtGraphicsBackend implements IGraphicsBackend {
     public com.w3canvas.javacanvas.interfaces.IFont createFont(String family, double size, String style, String weight) {
         return new AwtFont(family, (float) size, style, weight);
     }
+
+    @Override
+    public com.w3canvas.javacanvas.interfaces.IFont createFont(byte[] fontData, float size, String style, String weight) {
+        try {
+            java.awt.Font awtFont = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, new java.io.ByteArrayInputStream(fontData));
+            return new AwtFont(awtFont, (float)size, style, weight);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
