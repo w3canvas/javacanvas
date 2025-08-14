@@ -50,6 +50,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         miterLimit = 10.0;
         lineDash = new double[0];
         lineDashOffset = 0.0;
+        setFont("10px sans-serif");
         gc.resetTransform();
     }
 
@@ -360,13 +361,22 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         return gc.measureText(text);
     }
 
+    private String font;
     @Override
     public String getFont() {
-        return "";
+        return font;
     }
 
     @Override
     public void setFont(String font) {
+        this.font = font;
+        java.util.Map<String, Object> fontInfo = com.w3canvas.css.CSSParser.parseFont(font);
+        String style = (String) fontInfo.get("style");
+        String weight = (String) fontInfo.get("weight");
+        float size = (Float) fontInfo.get("size");
+        String family = (String) fontInfo.get("family");
+        IFont newFont = backend.createFont(family, size, style, weight);
+        gc.setFont(newFont);
     }
 
     @Override

@@ -35,6 +35,8 @@ This section lists the features of the HTML5 Canvas 2D API and their current sta
 - `fillText(text, x, y, maxWidth)`: **Not Verified** (Failing tests, text is always rendered in black)
 - `strokeText(text, x, y, maxWidth)`: **Not Verified** (Failing tests, text is always rendered in black)
 - `measureText(text)`: **Not Verified**
+- `@font-face`: **Not Implemented**
+- `font` property parsing: **Not Implemented**
 
 ### 2.4. Line Styles
 - `lineWidth`: **Partially Verified**

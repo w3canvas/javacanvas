@@ -35,4 +35,44 @@ public class TestCSSParser {
         assertEquals(Color.BLACK, CSSParser.parseColor("#invalid"));
         assertEquals(Color.BLACK, CSSParser.parseColor("rgb(invalid)"));
     }
+    @Test
+    public void testFontParsing() {
+        java.util.Map<String, Object> font;
+
+        font = CSSParser.parseFont("12px sans-serif");
+        assertEquals("normal", font.get("style"));
+        assertEquals("normal", font.get("weight"));
+        assertEquals(12.0f, font.get("size"));
+        assertEquals("sans-serif", font.get("family"));
+
+        font = CSSParser.parseFont("italic 12px sans-serif");
+        assertEquals("italic", font.get("style"));
+        assertEquals("normal", font.get("weight"));
+        assertEquals(12.0f, font.get("size"));
+        assertEquals("sans-serif", font.get("family"));
+
+        font = CSSParser.parseFont("bold 12px sans-serif");
+        assertEquals("normal", font.get("style"));
+        assertEquals("bold", font.get("weight"));
+        assertEquals(12.0f, font.get("size"));
+        assertEquals("sans-serif", font.get("family"));
+
+        font = CSSParser.parseFont("italic bold 12px sans-serif");
+        assertEquals("italic", font.get("style"));
+        assertEquals("bold", font.get("weight"));
+        assertEquals(12.0f, font.get("size"));
+        assertEquals("sans-serif", font.get("family"));
+
+        font = CSSParser.parseFont("12px 'Times New Roman'");
+        assertEquals("normal", font.get("style"));
+        assertEquals("normal", font.get("weight"));
+        assertEquals(12.0f, font.get("size"));
+        assertEquals("'Times New Roman'", font.get("family"));
+
+        font = CSSParser.parseFont("700 12px sans-serif");
+        assertEquals("normal", font.get("style"));
+        assertEquals("700", font.get("weight"));
+        assertEquals(12.0f, font.get("size"));
+        assertEquals("sans-serif", font.get("family"));
+    }
 }

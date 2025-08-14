@@ -13,4 +13,28 @@ public class AwtTextMetrics implements ITextMetrics {
     public double getWidth() {
         return width;
     }
+
+    @Override
+    public double getActualBoundingBoxLeft() {
+        // TODO: Implement this properly
+        return 0;
+    }
+
+    @Override
+    public double getActualBoundingBoxRight() {
+        // TODO: Implement this properly
+        return width;
+    }
+
+    @Override
+    public double getActualBoundingBoxAscent() {
+        // TODO: Implement this properly
+        return 0;
+    }
+
+    @Override
+    public double getActualBoundingBoxDescent() {
+        // TODO: Implement this properly
+        return 0;
+    }
 }

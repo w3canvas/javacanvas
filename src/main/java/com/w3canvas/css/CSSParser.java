@@ -60,4 +60,71 @@ public class CSSParser {
         }
         return Color.BLACK;
     }
+    public static java.util.Map<String, Object> parseFont(String text) {
+        java.util.Map<String, Object> font = new java.util.HashMap<>();
+        font.put("style", "normal");
+        font.put("variant", "normal");
+        font.put("weight", "normal");
+        font.put("size", 10.0f);
+        font.put("family", "sans-serif");
+
+        if (text == null) {
+            return font;
+        }
+
+        String[] parts = text.split("\\s+");
+        if (parts.length == 0) {
+            return font;
+        }
+
+        int sizeIndex = -1;
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i];
+            if (part.matches("\\d+(\\.\\d+)?px")) {
+                sizeIndex = i;
+                break;
+            }
+        }
+
+        if (sizeIndex != -1) {
+            String sizeStr = parts[sizeIndex].replace("px", "");
+            font.put("size", Float.parseFloat(sizeStr));
+
+            StringBuilder familyBuilder = new StringBuilder();
+            for (int i = sizeIndex + 1; i < parts.length; i++) {
+                familyBuilder.append(parts[i]).append(" ");
+            }
+            if (familyBuilder.length() > 0) {
+                font.put("family", familyBuilder.toString().trim());
+            }
+
+            for (int i = 0; i < sizeIndex; i++) {
+                String part = parts[i].toLowerCase();
+                switch (part) {
+                    case "italic":
+                    case "oblique":
+                        font.put("style", part);
+                        break;
+                    case "small-caps":
+                        font.put("variant", part);
+                        break;
+                    case "bold":
+                    case "bolder":
+                    case "lighter":
+                    case "100":
+                    case "200":
+                    case "300":
+                    case "400":
+                    case "500":
+                    case "600":
+                    case "700":
+                    case "800":
+                    case "900":
+                        font.put("weight", part);
+                        break;
+                }
+            }
+        }
+        return font;
+    }
 }

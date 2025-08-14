@@ -16,4 +16,5 @@ public interface IGraphicsBackend {
     ICanvasPattern createPattern(Object image, String repetition);
 
     IFont createFont(String family, double size);
+    IFont createFont(String family, double size, String style, String weight);
 }

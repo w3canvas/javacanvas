@@ -13,4 +13,24 @@ public class TextMetrics implements ITextMetrics {
     public double getWidth() {
         return width;
     }
+
+    @Override
+    public double getActualBoundingBoxLeft() {
+        return 0; // Not implemented
+    }
+
+    @Override
+    public double getActualBoundingBoxRight() {
+        return width; // Not implemented
+    }
+
+    @Override
+    public double getActualBoundingBoxAscent() {
+        return 0; // Not implemented
+    }
+
+    @Override
+    public double getActualBoundingBoxDescent() {
+        return 0; // Not implemented
+    }
 }
