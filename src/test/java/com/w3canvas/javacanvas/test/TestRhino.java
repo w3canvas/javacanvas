@@ -38,7 +38,6 @@ public class TestRhino extends ApplicationTest {
 
     @BeforeEach
     public void setUp() {
-        System.setProperty("w3canvas.backend", "javafx");
 
         String basePath = ".";
         javaCanvas = new JavaCanvas(basePath, true);

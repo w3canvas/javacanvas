@@ -21,10 +21,11 @@ public class CompositeFactory {
     }
 
     private static AwtComposite createAwtComposite(String operation, double alpha) {
-        int rule = AlphaComposite.SRC_OVER;
         if ("copy".equalsIgnoreCase(operation)) {
-            rule = AlphaComposite.SRC;
-        } // Add other composite types here
+            return new AwtComposite(AlphaComposite.Src);
+        }
+        int rule = AlphaComposite.SRC_OVER;
+        // Add other composite types here
         return new AwtComposite(AlphaComposite.getInstance(rule, (float) alpha));
     }
 

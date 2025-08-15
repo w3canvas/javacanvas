@@ -35,6 +35,8 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     public JavaFXGraphicsContext(GraphicsContext gc) {
         this.gc = gc;
         this.path = new Path();
+        this.fillPaint = new JavaFXPaint(javafx.scene.paint.Color.BLACK);
+        this.strokePaint = new JavaFXPaint(javafx.scene.paint.Color.BLACK);
     }
 
     @Override
@@ -44,14 +46,12 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fillText(String text, double x, double y, double maxWidth) {
+        gc.save();
         if (this.fillPaint instanceof JavaFXPaint) {
             gc.setFill(((JavaFXPaint) this.fillPaint).getPaint());
         }
-        Text t = new Text(x, y, text);
-        t.setFont(gc.getFont());
-        t.setTextAlignment(gc.getTextAlign());
-        t.setTextOrigin(gc.getTextBaseline());
-        gc.fillText(t.getText(), t.getX(), t.getY());
+        gc.fillText(text, x, y);
+        gc.restore();
     }
 
     @Override
@@ -59,11 +59,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         if (this.strokePaint instanceof JavaFXPaint) {
             gc.setStroke(((JavaFXPaint) this.strokePaint).getPaint());
         }
-        Text t = new Text(x, y, text);
-        t.setFont(gc.getFont());
-        t.setTextAlignment(gc.getTextAlign());
-        t.setTextOrigin(gc.getTextBaseline());
-        gc.strokeText(t.getText(), t.getX(), t.getY());
+        gc.strokeText(text, x, y);
     }
 
     @Override
@@ -132,6 +128,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void setFillPaint(IPaint paint) {
+        System.out.println("JavaFXGraphicsContext.setFillPaint: " + paint);
         this.fillPaint = paint;
         if (paint instanceof JavaFXPaint) {
             gc.setFill(((JavaFXPaint) paint).getPaint());
@@ -146,6 +143,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void setStrokePaint(IPaint paint) {
+        System.out.println("JavaFXGraphicsContext.setStrokePaint: " + paint);
         this.strokePaint = paint;
         if (paint instanceof JavaFXPaint) {
             gc.setStroke(((JavaFXPaint) paint).getPaint());

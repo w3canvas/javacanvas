@@ -55,6 +55,10 @@ The following features have an implementation in the codebase but lack specific,
 ### 1.4. Not Implemented
 - (None at the moment, all major features have at least a partial implementation)
 
+## 4. AWT Backend Test Timeouts
+- **Status:** Unresolved
+- **Description:** The full test suite times out when running with the AWT backend (`./mvnw -Dw3canvas.backend=awt test`). This prevents a full verification of the AWT backend. The cause of the timeout is unknown and needs further investigation.
+
 ## 2. Known Issues
 
 ### 2.1. JavaFX and AWT Backend Text Rendering
