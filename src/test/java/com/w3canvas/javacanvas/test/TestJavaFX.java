@@ -35,7 +35,6 @@ public class TestJavaFX extends ApplicationTest {
 
     @BeforeEach
     public void setUp() {
-        System.setProperty("w3canvas.backend", "javafx");
 
         // Initialize the canvas in headless mode.
         // This sets up the necessary backend and Rhino environment
