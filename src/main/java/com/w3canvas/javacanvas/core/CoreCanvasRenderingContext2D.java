@@ -355,8 +355,12 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void drawImage(Object image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh) {
-        // This requires more complex implementation to handle slicing and scaling
-        // gc.drawImage(...);
+        if (image instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) {
+            com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement canvas = (com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) image;
+            ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+            ICanvasSurface surface = ctx.getSurface();
+            gc.drawImage(surface.getNativeImage(), (int) sx, (int) sy);
+        }
     }
 
     @Override
@@ -422,7 +426,6 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void fillText(String text, double x, double y, double maxWidth) {
-        // FIXME: This is not working. Text is always rendered in black.
         applyCurrentState();
         if (fillStyle instanceof String) {
             gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
