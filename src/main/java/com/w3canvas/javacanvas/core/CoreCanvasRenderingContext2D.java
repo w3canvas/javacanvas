@@ -54,6 +54,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         lineDash = new double[0];
         lineDashOffset = 0.0;
         setFont("10px sans-serif");
+        setTextAlign("start");
+        setTextBaseline("alphabetic");
         gc.resetTransform();
     }
 
@@ -369,6 +371,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     }
 
     private String font;
+    private String textAlign;
+    private String textBaseline;
+
     @Override
     public String getFont() {
         return font;
@@ -408,20 +413,22 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public String getTextAlign() {
-        return "";
+        return textAlign;
     }
 
     @Override
     public void setTextAlign(String textAlign) {
+        this.textAlign = textAlign;
     }
 
     @Override
     public String getTextBaseline() {
-        return "";
+        return textBaseline;
     }
 
     @Override
     public void setTextBaseline(String textBaseline) {
+        this.textBaseline = textBaseline;
     }
 
     @Override
@@ -432,6 +439,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         } else if (fillStyle instanceof IPaint) {
             gc.setFillPaint((IPaint) fillStyle);
         }
+        gc.setTextAlign(textAlign);
+        gc.setTextBaseline(textBaseline);
         gc.fillText(text, x, y, maxWidth);
     }
 
@@ -443,6 +452,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         } else if (strokeStyle instanceof IPaint) {
             gc.setStrokePaint((IPaint) strokeStyle);
         }
+        gc.setTextAlign(textAlign);
+        gc.setTextBaseline(textBaseline);
         gc.strokeText(text, x, y, maxWidth);
     }
 

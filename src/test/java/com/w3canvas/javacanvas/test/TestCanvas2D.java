@@ -600,12 +600,66 @@ public class TestCanvas2D extends ApplicationTest {
                 ctx.translate(100, 100);
                 ctx.setFillStyle("blue");
                 ctx.fillRect(10, 10, 50, 50);
+
+                ctx.rotate(Math.PI / 4);
+                ctx.setFillStyle("green");
+                ctx.fillRect(10, 10, 50, 50);
+
+                ctx.scale(2, 2);
+                ctx.setFillStyle("purple");
+                ctx.fillRect(10, 10, 25, 25);
+
             } finally {
                 Context.exit();
             }
         });
 
         assertPixel(ctx, 135, 135, 0, 0, 255, 255);
+    }
+
+    @Test
+    public void testSetTransform() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setTransform(2, 0.5, 0.5, 2, 50, 50);
+                ctx.setFillStyle("red");
+                ctx.fillRect(0, 0, 50, 50);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        assertPixel(ctx, 75, 75, 255, 0, 0, 255);
+    }
+
+    @Test
+    public void testResetTransform() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.translate(100, 100);
+                ctx.resetTransform();
+                ctx.setFillStyle("green");
+                ctx.fillRect(10, 10, 50, 50);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        assertPixel(ctx, 35, 35, 0, 128, 0, 255);
     }
 
     @Test
@@ -681,6 +735,31 @@ public class TestCanvas2D extends ApplicationTest {
     }
 
     @Test
+    public void testIsPointInStroke() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+        CompletableFuture<Boolean> inStroke = new CompletableFuture<>();
+        CompletableFuture<Boolean> notInStroke = new CompletableFuture<>();
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.beginPath();
+                ctx.rect(10, 10, 100, 100);
+                ctx.setLineWidth(10);
+                ctx.stroke();
+                inStroke.complete(ctx.isPointInStroke(10, 15));
+                notInStroke.complete(ctx.isPointInStroke(50, 50));
+            } finally {
+                Context.exit();
+            }
+        });
+
+        assertEquals(true, inStroke.get());
+        assertEquals(false, notInStroke.get());
+    }
+
+    @Test
     public void testLineStyles() throws ExecutionException, InterruptedException {
         HTMLCanvasElement canvas = createCanvas();
         canvas.setWidth(400);
@@ -724,7 +803,7 @@ public class TestCanvas2D extends ApplicationTest {
                 ctx.stroke();
 
                 // Line Dash
-                ctx.setLineDash(new Object[]{5, 15});
+                ctx.setLineDash(new Object[]{5.0, 15.0});
                 ctx.beginPath();
                 ctx.moveTo(0, 220);
                 ctx.lineTo(400, 220);
@@ -746,6 +825,20 @@ public class TestCanvas2D extends ApplicationTest {
         // For now, we are just testing that the methods don't crash.
         // We can visually inspect the output if needed.
         assertPixel(ctx, 20, 20, 0, 0, 0, 255);
+
+        CompletableFuture<Object[]> getLineDashFuture = new CompletableFuture<>();
+        interact(() -> {
+            Context.enter();
+            try {
+                getLineDashFuture.complete((Object[]) ctx.getLineDash());
+            } finally {
+                Context.exit();
+            }
+        });
+        Object[] lineDash = getLineDashFuture.get();
+        assertEquals(2, lineDash.length);
+        assertEquals(5.0, (Double) lineDash[0], 0.1);
+        assertEquals(15.0, (Double) lineDash[1], 0.1);
     }
 
     @Test
@@ -800,5 +893,71 @@ public class TestCanvas2D extends ApplicationTest {
         assertEquals(200, imageData.getHeight());
         // The underlying data is an int array, so the length is width * height
         assertEquals(100 * 200, imageData.getData().getPixels(0, 0, 100, 200).length);
+    }
+
+    @Test
+    public void testTextAlign() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setFont("30px sans-serif");
+                ctx.setFillStyle("blue");
+
+                ctx.setTextAlign("center");
+                ctx.fillText("Hello", 200, 50, 0);
+
+                ctx.setTextAlign("right");
+                ctx.fillText("Hello", 200, 100, 0);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Check a pixel within the centered text.
+        assertPixel(ctx, 200, 40, 0, 0, 255, 255, 224);
+        // Check a pixel within the right-aligned text.
+        assertPixel(ctx, 190, 90, 0, 0, 255, 255, 224);
+    }
+
+    @Test
+    public void testTextBaseline() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setFont("30px sans-serif");
+                ctx.setFillStyle("blue");
+
+                ctx.setTextBaseline("top");
+                ctx.fillText("Top", 50, 50, 0);
+
+                ctx.setTextBaseline("middle");
+                ctx.fillText("Middle", 50, 100, 0);
+
+                ctx.setTextBaseline("bottom");
+                ctx.fillText("Bottom", 50, 150, 0);
+
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Check a pixel within the "Top" text.
+        assertPixel(ctx, 60, 60, 0, 0, 255, 255, 224);
+        // Check a pixel within the "Middle" text.
+        assertPixel(ctx, 60, 100, 0, 0, 255, 255, 224);
+        // Check a pixel within the "Bottom" text.
+        assertPixel(ctx, 60, 140, 0, 0, 255, 255, 224);
     }
 }
