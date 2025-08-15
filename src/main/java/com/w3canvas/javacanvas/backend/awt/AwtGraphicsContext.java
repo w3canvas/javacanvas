@@ -45,6 +45,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
         // AWT Graphics2D doesn't have a maxWidth parameter for fillText,
         // so we ignore it. A more complete implementation might manually
         // scale the text or truncate it.
+        setPaint(fillPaint);
         g2d.drawString(text, (float)x, (float)y);
     }
 
@@ -56,6 +57,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
         java.awt.font.FontRenderContext frc = g2d.getFontRenderContext();
         java.awt.font.TextLayout tl = new java.awt.font.TextLayout(text, font, frc);
         Shape shape = tl.getOutline(AffineTransform.getTranslateInstance(x, y));
+        setPaint(strokePaint);
         g2d.draw(shape);
     }
 
@@ -97,9 +99,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
     }
 
     // Drawing properties
-    @Override
-    public void setFillPaint(IPaint paint) {
-        this.fillPaint = paint;
+    private void setPaint(IPaint paint) {
         if (paint instanceof AwtPaint) {
             g2d.setPaint(((AwtPaint) paint).getPaint());
         } else if (paint instanceof AwtLinearGradient) {
@@ -112,17 +112,13 @@ public class AwtGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void setFillPaint(IPaint paint) {
+        this.fillPaint = paint;
+    }
+
+    @Override
     public void setStrokePaint(IPaint paint) {
         this.strokePaint = paint;
-        if (paint instanceof AwtPaint) {
-            g2d.setPaint(((AwtPaint) paint).getPaint());
-        } else if (paint instanceof AwtLinearGradient) {
-            g2d.setPaint(((AwtLinearGradient) paint).getPaint());
-        } else if (paint instanceof AwtRadialGradient) {
-            g2d.setPaint(((AwtRadialGradient) paint).getPaint());
-        } else if (paint instanceof AwtPattern) {
-            g2d.setPaint(((AwtPattern) paint).getPaint());
-        }
     }
 
     private float lineWidth = 1.0f;
@@ -219,6 +215,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public void draw(IShape shape) {
         if (shape instanceof AwtShape) {
+            setPaint(strokePaint);
             g2d.draw(((AwtShape) shape).getShape());
         }
     }
@@ -226,6 +223,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public void fill(IShape shape) {
         if (shape instanceof AwtShape) {
+            setPaint(fillPaint);
             System.out.println("Filling with paint: " + g2d.getPaint());
             g2d.fill(((AwtShape) shape).getShape());
         }
@@ -430,11 +428,13 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fill() {
+        setPaint(fillPaint);
         g2d.fill(this.path);
     }
 
     @Override
     public void stroke() {
+        setPaint(strokePaint);
         g2d.draw(this.path);
     }
 

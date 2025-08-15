@@ -34,11 +34,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fillText(String text, double x, double y, double maxWidth) {
-        if (maxWidth > 0) {
-            gc.fillText(text, x, y, maxWidth);
-        } else {
-            gc.fillText(text, x, y);
-        }
+        gc.fillText(text, x, y, maxWidth);
     }
 
     @Override

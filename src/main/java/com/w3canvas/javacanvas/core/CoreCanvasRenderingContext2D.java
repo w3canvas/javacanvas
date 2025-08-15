@@ -428,11 +428,11 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     public void fillText(String text, double x, double y, double maxWidth) {
         applyCurrentState();
         if (fillStyle instanceof String) {
-            gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
+            gc.setStrokePaint(ColorParser.parse((String) fillStyle, backend));
         } else if (fillStyle instanceof IPaint) {
-            gc.setFillPaint((IPaint) fillStyle);
+            gc.setStrokePaint((IPaint) fillStyle);
         }
-        gc.fillText(text, x, y, maxWidth);
+        gc.strokeText(text, x, y, maxWidth);
     }
 
     @Override
