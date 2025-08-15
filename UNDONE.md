@@ -38,7 +38,7 @@ The following features have an implementation in the codebase but lack specific,
 
 - **Text Drawing**: `fillText()`, `strokeText()`
   - **Status**: FAILING
-  - **Description**: Tests for these methods are disabled due to a known issue where text is always rendered in black, regardless of the `fillStyle` or `strokeStyle` set. This appears to be a state management problem within the JavaFX graphics backend.
+  - **Description**: The existing tests for these methods are failing because text is always rendered in black, regardless of the `fillStyle` or `strokeStyle` set. Pure tests for both AWT (`PureAWTFontTest.testFillTextPure`) and JavaFX (`PureJavaFXFontTest.testFillTextPure`) have been added, which demonstrate that direct text rendering with `java.awt.Graphics2D` and `javafx.scene.canvas.GraphicsContext` works correctly. This confirms the issue lies within the project's canvas abstraction layer, not in the underlying graphics libraries themselves.
 - **Font Loading**: `@font-face`, `document.fonts`
   - **Status**: PARTIALLY IMPLEMENTED
   - **Description**: The `FontFace` API is implemented for loading fonts from URLs, and the `RhinoFontFace` class exposes this to JavaScript. However, there are no rendering tests to confirm that loaded fonts are correctly applied to the canvas.
@@ -57,9 +57,9 @@ The following features have an implementation in the codebase but lack specific,
 
 ## 2. Known Issues
 
-### 2.1. JavaFX Backend Text Rendering
+### 2.1. JavaFX and AWT Backend Text Rendering
 - **Status:** Unresolved
-- **Description:** As noted above, `fillText()` and `strokeText()` do not respect the current `fillStyle` or `strokeStyle`, rendering text in black. This is the most critical bug blocking full API compliance. Debugging suggests the color information is lost within the JavaFX `GraphicsContext`.
+- **Description:** As noted above, `fillText()` and `strokeText()` do not respect the current `fillStyle` or `strokeStyle`, rendering text in black. This is the most critical bug blocking full API compliance. Pure tests for both JavaFX and AWT have confirmed that the underlying `GraphicsContext` and `Graphics2D` are functioning correctly. The issue is now isolated to the abstraction layer, specifically the `CoreCanvasRenderingContext2D` and its interaction with the backend graphics contexts (`JavaFXGraphicsContext` and `AwtGraphicsContext`). The state information (specifically the fill/stroke paint) is not being correctly propagated to the backend contexts before their text rendering methods are called.
 
 ## 3. Rhino Interface and Testing
 
