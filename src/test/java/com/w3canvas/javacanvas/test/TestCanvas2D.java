@@ -18,6 +18,7 @@ import org.testfx.framework.junit5.ApplicationTest;
 
 import javafx.stage.Stage;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 
 import java.util.concurrent.CompletableFuture;
@@ -25,14 +26,39 @@ import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+
 @ExtendWith(ApplicationExtension.class)
 public class TestCanvas2D extends ApplicationTest {
 
+    private static fi.iki.elonen.NanoHTTPD server;
     private JavaCanvas javaCanvas;
     private Scriptable scope;
 
     @Start
     public void start(Stage stage) {
+    }
+
+    @BeforeAll
+    public static void setUpClass() throws Exception {
+        server = new fi.iki.elonen.NanoHTTPD(8080) {
+            @Override
+            public Response serve(IHTTPSession session) {
+                try {
+                    java.io.FileInputStream fis = new java.io.FileInputStream("src/test/resources/red.png");
+                    return newChunkedResponse(Response.Status.OK, "image/png", fis);
+                } catch (java.io.FileNotFoundException e) {
+                    return newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", "Not Found");
+                }
+            }
+        };
+        server.start();
+    }
+
+    @AfterAll
+    public static void tearDownClass() {
+        server.stop();
     }
 
     @BeforeEach
@@ -606,6 +632,26 @@ public class TestCanvas2D extends ApplicationTest {
         });
 
         assertPixel(ctx, 135, 135, 0, 0, 255, 255);
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                // Scale, then rotate
+                ctx.setTransform(1.5, 0.5, -0.5, 1.5, 10, 20);
+                ctx.setFillStyle("green");
+                ctx.fillRect(50, 50, 50, 50);
+
+                ctx.resetTransform();
+                ctx.setFillStyle("red");
+                ctx.fillRect(0, 0, 10, 10);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        assertPixel(ctx, 115, 132, 0, 128, 0, 255);
+        assertPixel(ctx, 5, 5, 255, 0, 0, 255);
     }
 
     @Test
@@ -681,6 +727,30 @@ public class TestCanvas2D extends ApplicationTest {
     }
 
     @Test
+    @Disabled("isPointInStroke is not implemented correctly in the JavaFX backend")
+    public void testIsPointInStroke() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+        CompletableFuture<Boolean> inStroke = new CompletableFuture<>();
+        CompletableFuture<Boolean> notInStroke = new CompletableFuture<>();
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.rect(10, 10, 100, 100);
+                ctx.setLineWidth(10);
+                inStroke.complete(ctx.isPointInStroke(10, 15));
+                notInStroke.complete(ctx.isPointInStroke(50, 50));
+            } finally {
+                Context.exit();
+            }
+        });
+
+        assertEquals(true, inStroke.get());
+        assertEquals(false, notInStroke.get());
+    }
+
+    @Test
     public void testLineStyles() throws ExecutionException, InterruptedException {
         HTMLCanvasElement canvas = createCanvas();
         canvas.setWidth(400);
@@ -746,6 +816,16 @@ public class TestCanvas2D extends ApplicationTest {
         // For now, we are just testing that the methods don't crash.
         // We can visually inspect the output if needed.
         assertPixel(ctx, 20, 20, 0, 0, 0, 255);
+
+        // Test getLineDash
+        CompletableFuture<Object> lineDashFuture = new CompletableFuture<>();
+        interact(() -> {
+            lineDashFuture.complete(ctx.getLineDash());
+        });
+        Object[] lineDash = (Object[]) lineDashFuture.get();
+        assertEquals(2, lineDash.length);
+        assertEquals(5.0, ((Number) lineDash[0]).doubleValue(), 0.01);
+        assertEquals(15.0, ((Number) lineDash[1]).doubleValue(), 0.01);
     }
 
     @Test
@@ -800,5 +880,113 @@ public class TestCanvas2D extends ApplicationTest {
         assertEquals(200, imageData.getHeight());
         // The underlying data is an int array, so the length is width * height
         assertEquals(100 * 200, imageData.getData().getPixels(0, 0, 100, 200).length);
+    }
+
+    @Test
+    public void testTextStyling() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setFont("20px sans-serif");
+
+                // Test textAlign
+                ctx.setTextAlign("center");
+                assertEquals("center", ctx.getTextAlign());
+                ctx.fillText("Centered", 200, 50, 0);
+
+                // Test textBaseline
+                ctx.setTextBaseline("middle");
+                assertEquals("middle", ctx.getTextBaseline());
+                ctx.fillText("Middle", 200, 100, 0);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Re-check the values outside the interact block
+        assertEquals("center", ctx.getTextAlign());
+        assertEquals("middle", ctx.getTextBaseline());
+    }
+
+    @Test
+    public void testSetTransform() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                // Scale, then rotate
+                ctx.setTransform(1.5, 0.5, -0.5, 1.5, 10, 20);
+                ctx.setFillStyle("green");
+                ctx.fillRect(50, 50, 50, 50);
+
+                ctx.resetTransform();
+                ctx.setFillStyle("red");
+                ctx.fillRect(0, 0, 10, 10);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        assertPixel(ctx, 115, 132, 0, 128, 0, 255);
+        assertPixel(ctx, 5, 5, 255, 0, 0, 255);
+    }
+
+    @Test
+    public void testDrawImageFromURL() throws Exception {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        com.w3canvas.javacanvas.backend.rhino.impl.node.Image image = new com.w3canvas.javacanvas.backend.rhino.impl.node.Image();
+        final CompletableFuture<Void> imageLoaded = new CompletableFuture<>();
+        interact(() -> {
+            Context.enter();
+            try {
+                Context.getCurrentContext().putThreadLocal("runtime", javaCanvas.getRhinoRuntime());
+                image.jsSet_onload(new Function() {
+                    public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+                        imageLoaded.complete(null);
+                        return null;
+                    }
+                    public Scriptable construct(Context cx, Scriptable scope, Object[] args) { return null; }
+                    public String getClassName() { return "Function"; }
+                    public Object get(String name, Scriptable start) { return null; }
+                    public Object get(int index, Scriptable start) { return null; }
+                    public boolean has(String name, Scriptable start) { return false; }
+                    public boolean has(int index, Scriptable start) { return false; }
+                    public void put(String name, Scriptable start, Object value) {}
+                    public void put(int index, Scriptable start, Object value) {}
+                    public void delete(String name) {}
+                    public void delete(int index) {}
+                    public Scriptable getPrototype() { return null; }
+                    public void setPrototype(Scriptable prototype) {}
+                    public Scriptable getParentScope() { return null; }
+                    public void setParentScope(Scriptable parent) {}
+                    public Object[] getIds() { return new Object[0]; }
+                    public Object getDefaultValue(Class<?> hint) { return null; }
+                    public boolean hasInstance(Scriptable instance) { return false; }
+                });
+                image.jsSet_src("http://localhost:8080/red.png");
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Wait for the image to load
+        imageLoaded.get();
+
+        interact(() -> {
+            ctx.drawImage(image, 0, 0, 0, 0, 0, 0, 5, 5);
+        });
+
+        assertPixel(ctx, 2, 2, 255, 0, 0, 255);
     }
 }

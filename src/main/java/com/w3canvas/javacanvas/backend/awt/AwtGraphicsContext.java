@@ -217,6 +217,23 @@ public class AwtGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void fillRect(double x, double y, double w, double h) {
+        g2d.fillRect((int) x, (int) y, (int) w, (int) h);
+    }
+
+    @Override
+    public void fillRect(double x, double y, double w, double h, Object transform) {
+        if (transform instanceof AffineTransform) {
+            AffineTransform originalTransform = g2d.getTransform();
+            g2d.transform((AffineTransform) transform);
+            g2d.fillRect((int) x, (int) y, (int) w, (int) h);
+            g2d.setTransform(originalTransform);
+        } else {
+            fillRect(x, y, w, h);
+        }
+    }
+
+    @Override
     public void draw(IShape shape) {
         if (shape instanceof AwtShape) {
             g2d.draw(((AwtShape) shape).getShape());
