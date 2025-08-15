@@ -207,6 +207,18 @@ public class AwtGraphicsContext implements IGraphicsContext {
         }
     }
 
+    @Override
+    public void setTextAlign(String textAlign) {
+        // AWT Graphics2D does not have a direct equivalent.
+        // This would require manual calculation based on font metrics.
+    }
+
+    @Override
+    public void setTextBaseline(String textBaseline) {
+        // AWT Graphics2D does not have a direct equivalent.
+        // This would require manual calculation based on font metrics.
+    }
+
     // Drawing operations
     @Override
     public void clearRect(double x, double y, double w, double h) {

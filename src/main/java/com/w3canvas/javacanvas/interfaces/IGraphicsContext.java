@@ -23,6 +23,8 @@ public interface IGraphicsContext {
     void setComposite(IComposite comp);
     void setGlobalAlpha(double alpha);
     void setFont(IFont font);
+    void setTextAlign(String textAlign);
+    void setTextBaseline(String textBaseline);
 
     // Drawing operations
     void clearRect(double x, double y, double w, double h);
