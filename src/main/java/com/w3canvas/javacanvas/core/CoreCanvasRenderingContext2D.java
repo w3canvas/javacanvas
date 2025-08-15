@@ -25,9 +25,6 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     private double miterLimit;
     private Object lineDash;
     private double lineDashOffset;
-    private String textAlign;
-    private String textBaseline;
-    private double m11, m12, m21, m22, dx, dy;
 
     public CoreCanvasRenderingContext2D(Document document, IGraphicsBackend backend, int width, int height) {
         this.document = document;
@@ -56,9 +53,6 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         miterLimit = 10.0;
         lineDash = new double[0];
         lineDashOffset = 0.0;
-        textAlign = "start";
-        textBaseline = "alphabetic";
-        m11 = 1.0; m12 = 0.0; m21 = 0.0; m22 = 1.0; dx = 0.0; dy = 0.0;
         setFont("10px sans-serif");
         gc.resetTransform();
     }
@@ -98,12 +92,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void setTransform(double m11, double m12, double m21, double m22, double dx, double dy) {
-        this.m11 = m11;
-        this.m12 = m12;
-        this.m21 = m21;
-        this.m22 = m22;
-        this.dx = dx;
-        this.dy = dy;
+        gc.setTransform(m11, m12, m21, m22, dx, dy);
     }
 
     @Override
@@ -241,13 +230,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         if ("copy".equals(this.globalCompositeOperation)) {
             gc.clearRect(x, y, w, h);
         }
-        applyCurrentState();
-        if (fillStyle instanceof String) {
-            gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
-        } else if (fillStyle instanceof IPaint) {
-            gc.setFillPaint((IPaint) fillStyle);
-        }
-        gc.fillRect(x, y, w, h);
+        gc.beginPath();
+        gc.rect(x, y, w, h);
+        fill();
     }
 
     @Override
@@ -313,7 +298,6 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             gc.setComposite(composite);
         }
         gc.setGlobalAlpha(this.globalAlpha);
-        gc.setTransform(m11, m12, m21, m22, dx, dy);
     }
 
     @Override
@@ -424,22 +408,20 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public String getTextAlign() {
-        return textAlign;
+        return "";
     }
 
     @Override
     public void setTextAlign(String textAlign) {
-        this.textAlign = textAlign;
     }
 
     @Override
     public String getTextBaseline() {
-        return textBaseline;
+        return "";
     }
 
     @Override
     public void setTextBaseline(String textBaseline) {
-        this.textBaseline = textBaseline;
     }
 
     @Override
@@ -516,9 +498,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         private final double miterLimit;
         private final Object lineDash;
         private final double lineDashOffset;
-        private final String textAlign;
-        private final String textBaseline;
-        private final double m11, m12, m21, m22, dx, dy;
+        private final Object transform;
 
         ContextState(CoreCanvasRenderingContext2D ctx) {
             this.fillStyle = ctx.fillStyle;
@@ -531,14 +511,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             this.miterLimit = ctx.miterLimit;
             this.lineDash = ctx.lineDash;
             this.lineDashOffset = ctx.lineDashOffset;
-            this.textAlign = ctx.textAlign;
-            this.textBaseline = ctx.textBaseline;
-            this.m11 = ctx.m11;
-            this.m12 = ctx.m12;
-            this.m21 = ctx.m21;
-            this.m22 = ctx.m22;
-            this.dx = ctx.dx;
-            this.dy = ctx.dy;
+            this.transform = ctx.gc.getTransform();
         }
 
         void apply(CoreCanvasRenderingContext2D ctx) {
@@ -552,14 +525,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             ctx.miterLimit = this.miterLimit;
             ctx.lineDash = this.lineDash;
             ctx.lineDashOffset = this.lineDashOffset;
-            ctx.textAlign = this.textAlign;
-            ctx.textBaseline = this.textBaseline;
-            ctx.m11 = this.m11;
-            ctx.m12 = this.m12;
-            ctx.m21 = this.m21;
-            ctx.m22 = this.m22;
-            ctx.dx = this.dx;
-            ctx.dy = this.dy;
+            ctx.gc.setTransform(this.transform);
         }
     }
 }
