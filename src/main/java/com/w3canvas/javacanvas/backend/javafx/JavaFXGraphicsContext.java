@@ -94,7 +94,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void setTransform(double m11, double m12, double m21, double m22, double dx, double dy) {
-        gc.setTransform(new Affine(m11, m21, dx, m12, m22, dy));
+        gc.setTransform(javafx.scene.transform.Transform.affine(m11, m21, m12, m22, dx, dy));
     }
 
     @Override
@@ -202,6 +202,21 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         gc.save();
         gc.setTransform(new Affine()); // Identity transform
         gc.clearRect(x, y, w, h);
+        gc.restore();
+    }
+
+    @Override
+    public void fillRect(double x, double y, double w, double h) {
+        gc.fillRect(x, y, w, h);
+    }
+
+    @Override
+    public void fillRect(double x, double y, double w, double h, Object transform) {
+        gc.save();
+        if (transform instanceof Affine) {
+            gc.setTransform((Affine) transform);
+        }
+        gc.fillRect(x, y, w, h);
         gc.restore();
     }
 

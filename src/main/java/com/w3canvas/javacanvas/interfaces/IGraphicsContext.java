@@ -26,6 +26,8 @@ public interface IGraphicsContext {
 
     // Drawing operations
     void clearRect(double x, double y, double w, double h);
+    void fillRect(double x, double y, double w, double h);
+    void fillRect(double x, double y, double w, double h, Object transform);
     void draw(IShape shape);
     void fill(IShape shape);
     void drawImage(Object img, int x, int y);
