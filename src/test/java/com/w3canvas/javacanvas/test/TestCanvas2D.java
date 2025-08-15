@@ -83,34 +83,42 @@ public class TestCanvas2D extends ApplicationTest {
         assertPixel(ctx, x, y, r, g, b, a, 0);
     }
 
-    @Disabled("Failing due to known issue with JavaFX backend rendering")
     @Test
     public void testFillText() throws ExecutionException, InterruptedException {
         HTMLCanvasElement canvas = createCanvas();
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.setFont("30px sans-serif");
-            ctx.setFillStyle("blue");
-            ctx.fillText("Hello", 20, 50, 0);
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setFont("30px sans-serif");
+                ctx.setFillStyle("blue");
+                ctx.fillText("Hello", 20, 50, 0);
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check a pixel within the rendered text.
         assertPixel(ctx, 30, 40, 0, 0, 255, 255, 224);
     }
 
-    @Disabled("Failing due to known issue with JavaFX backend rendering")
     @Test
     public void testStrokeText() throws ExecutionException, InterruptedException {
         HTMLCanvasElement canvas = createCanvas();
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.setFont("30px sans-serif");
-            ctx.setStrokeStyle("red");
-            ctx.strokeText("Hello", 20, 50, 0);
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setFont("30px sans-serif");
+                ctx.setStrokeStyle("red");
+                ctx.strokeText("Hello", 20, 50, 0);
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check a pixel within the rendered text.
@@ -123,9 +131,14 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.setFillStyle("red");
-            ctx.fillRect(10, 10, 50, 50);
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setFillStyle("red");
+                ctx.fillRect(10, 10, 50, 50);
+            } finally {
+                Context.exit();
+            }
         });
         assertPixel(ctx, 20, 20, 255, 0, 0, 255);
         assertPixel(ctx, 5, 5, 0, 0, 0, 0);
@@ -137,10 +150,15 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.setStrokeStyle("blue");
-            ctx.setLineWidth(5);
-            ctx.strokeRect(70, 10, 50, 50);
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setStrokeStyle("blue");
+                ctx.setLineWidth(5);
+                ctx.strokeRect(70, 10, 50, 50);
+            } finally {
+                Context.exit();
+            }
         });
         assertPixel(ctx, 95, 10, 0, 0, 255, 255);
     }
@@ -151,12 +169,17 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.setFillStyle("red");
-            ctx.fillRect(10, 10, 20, 20);
-            ctx.setGlobalCompositeOperation("copy");
-            ctx.setFillStyle("rgba(0, 0, 255, 0.5)"); // semi-transparent blue
-            ctx.fillRect(10, 10, 20, 20);
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setFillStyle("red");
+                ctx.fillRect(10, 10, 20, 20);
+                ctx.setGlobalCompositeOperation("copy");
+                ctx.setFillStyle("rgba(0, 0, 255, 0.5)"); // semi-transparent blue
+                ctx.fillRect(10, 10, 20, 20);
+            } finally {
+                Context.exit();
+            }
         });
         // The 'copy' operation replaces, so the alpha should be 127 (0.5 * 255 rounded)
         assertPixel(ctx, 15, 15, 0, 0, 255, 127);
@@ -168,12 +191,17 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ICanvasGradient grad = ctx.createLinearGradient(0, 0, 100, 0);
-            grad.addColorStop(0, "red");
-            grad.addColorStop(1, "blue");
-            ctx.setFillStyle(grad);
-            ctx.fillRect(0, 0, 100, 100);
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ICanvasGradient grad = ctx.createLinearGradient(0, 0, 100, 0);
+                grad.addColorStop(0, "red");
+                grad.addColorStop(1, "blue");
+                ctx.setFillStyle(grad);
+                ctx.fillRect(0, 0, 100, 100);
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check the color at the start of the gradient (red)
@@ -204,12 +232,17 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ICanvasGradient grad = ctx.createRadialGradient(50, 50, 10, 50, 50, 50);
-            grad.addColorStop(0, "red");
-            grad.addColorStop(1, "blue");
-            ctx.setFillStyle(grad);
-            ctx.fillRect(0, 0, 100, 100);
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ICanvasGradient grad = ctx.createRadialGradient(50, 50, 10, 50, 50, 50);
+                grad.addColorStop(0, "red");
+                grad.addColorStop(1, "blue");
+                ctx.setFillStyle(grad);
+                ctx.fillRect(0, 0, 100, 100);
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check the color at the center of the gradient (red)
@@ -229,23 +262,33 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D patternCtx = (ICanvasRenderingContext2D) patternCanvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            patternCanvas.setWidth(10);
-            patternCanvas.setHeight(10);
-            patternCtx.setFillStyle("red");
-            patternCtx.fillRect(0, 0, 5, 5);
-            patternCtx.setFillStyle("blue");
-            patternCtx.fillRect(5, 0, 5, 5);
-            patternCtx.setFillStyle("green");
-            patternCtx.fillRect(0, 5, 5, 5);
-            patternCtx.setFillStyle("yellow");
-            patternCtx.fillRect(5, 5, 5, 5);
+            Context.enter();
+            try {
+                patternCanvas.setWidth(10);
+                patternCanvas.setHeight(10);
+                patternCtx.setFillStyle("red");
+                patternCtx.fillRect(0, 0, 5, 5);
+                patternCtx.setFillStyle("blue");
+                patternCtx.fillRect(5, 0, 5, 5);
+                patternCtx.setFillStyle("green");
+                patternCtx.fillRect(0, 5, 5, 5);
+                patternCtx.setFillStyle("yellow");
+                patternCtx.fillRect(5, 5, 5, 5);
+            } finally {
+                Context.exit();
+            }
         });
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ICanvasPattern pattern = ctx.createPattern(patternCanvas, "repeat");
-            ctx.setFillStyle(pattern);
-            ctx.fillRect(0, 0, 100, 100);
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ICanvasPattern pattern = ctx.createPattern(patternCanvas, "repeat");
+                ctx.setFillStyle(pattern);
+                ctx.fillRect(0, 0, 100, 100);
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check pixels to verify the pattern
@@ -264,11 +307,16 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.setFont("10px sans-serif");
-            ITextMetrics metrics = ctx.measureText("Hello world");
-            double width = metrics.getWidth();
-            // The exact width will depend on the font rendering engine, so we check for a reasonable range.
-            assertEquals(55, width, 20);
+            Context.enter();
+            try {
+                ctx.setFont("10px sans-serif");
+                ITextMetrics metrics = ctx.measureText("Hello world");
+                double width = metrics.getWidth();
+                // The exact width will depend on the font rendering engine, so we check for a reasonable range.
+                assertEquals(55, width, 20);
+            } finally {
+                Context.exit();
+            }
         });
     }
 
@@ -278,12 +326,17 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.setFillStyle("red");
-            ctx.fillRect(10, 10, 50, 50);
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setFillStyle("red");
+                ctx.fillRect(10, 10, 50, 50);
 
-            IImageData imageData = ctx.getImageData(10, 10, 50, 50);
-            ctx.putImageData(imageData, 70, 10, 0, 0, 50, 50);
+                IImageData imageData = ctx.getImageData(10, 10, 50, 50);
+                ctx.putImageData(imageData, 70, 10, 0, 0, 50, 50);
+            } finally {
+                Context.exit();
+            }
         });
 
         assertPixel(ctx, 80, 20, 255, 0, 0, 255);
@@ -295,11 +348,16 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.beginPath();
-            ctx.rect(10, 10, 50, 50);
-            ctx.setFillStyle("purple");
-            ctx.fill();
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.beginPath();
+                ctx.rect(10, 10, 50, 50);
+                ctx.setFillStyle("purple");
+                ctx.fill();
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check a pixel inside the rectangle
@@ -314,12 +372,17 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.beginPath();
-            ctx.arc(100, 75, 50, 0, Math.PI, false);
-            ctx.setStrokeStyle("blue");
-            ctx.setLineWidth(5);
-            ctx.stroke();
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.beginPath();
+                ctx.arc(100, 75, 50, 0, Math.PI, false);
+                ctx.setStrokeStyle("blue");
+                ctx.setLineWidth(5);
+                ctx.stroke();
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check a pixel on the arc
@@ -332,15 +395,20 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.beginPath();
-            ctx.moveTo(20, 20);
-            ctx.lineTo(70, 20);
-            ctx.arcTo(120, 20, 120, 70, 50);
-            ctx.lineTo(120, 120);
-            ctx.setStrokeStyle("green");
-            ctx.setLineWidth(5);
-            ctx.stroke();
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.beginPath();
+                ctx.moveTo(20, 20);
+                ctx.lineTo(70, 20);
+                ctx.arcTo(120, 20, 120, 70, 50);
+                ctx.lineTo(120, 120);
+                ctx.setStrokeStyle("green");
+                ctx.setLineWidth(5);
+                ctx.stroke();
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check a pixel on the arc
@@ -353,15 +421,20 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.beginPath();
-            ctx.moveTo(20, 20);
-            ctx.lineTo(70, 20);
-            ctx.arcTo(120, 20, 120, 70, 50);
-            ctx.lineTo(120, 120);
-            ctx.closePath();
-            ctx.setFillStyle("purple");
-            ctx.fill();
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.beginPath();
+                ctx.moveTo(20, 20);
+                ctx.lineTo(70, 20);
+                ctx.arcTo(120, 20, 120, 70, 50);
+                ctx.lineTo(120, 120);
+                ctx.closePath();
+                ctx.setFillStyle("purple");
+                ctx.fill();
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check a pixel inside the filled shape
@@ -374,13 +447,18 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.beginPath();
-            ctx.moveTo(20, 20);
-            ctx.quadraticCurveTo(20, 100, 200, 20);
-            ctx.setStrokeStyle("orange");
-            ctx.setLineWidth(5);
-            ctx.stroke();
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.beginPath();
+                ctx.moveTo(20, 20);
+                ctx.quadraticCurveTo(20, 100, 200, 20);
+                ctx.setStrokeStyle("orange");
+                ctx.setLineWidth(5);
+                ctx.stroke();
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check a pixel on the curve
@@ -393,29 +471,34 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.setLineWidth(10);
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setLineWidth(10);
 
-            // Butt cap
-            ctx.beginPath();
-            ctx.moveTo(20, 20);
-            ctx.lineTo(100, 20);
-            ctx.setLineCap("butt");
-            ctx.stroke();
+                // Butt cap
+                ctx.beginPath();
+                ctx.moveTo(20, 20);
+                ctx.lineTo(100, 20);
+                ctx.setLineCap("butt");
+                ctx.stroke();
 
-            // Round cap
-            ctx.beginPath();
-            ctx.moveTo(20, 40);
-            ctx.lineTo(100, 40);
-            ctx.setLineCap("round");
-            ctx.stroke();
+                // Round cap
+                ctx.beginPath();
+                ctx.moveTo(20, 40);
+                ctx.lineTo(100, 40);
+                ctx.setLineCap("round");
+                ctx.stroke();
 
-            // Square cap
-            ctx.beginPath();
-            ctx.moveTo(20, 60);
-            ctx.lineTo(100, 60);
-            ctx.setLineCap("square");
-            ctx.stroke();
+                // Square cap
+                ctx.beginPath();
+                ctx.moveTo(20, 60);
+                ctx.lineTo(100, 60);
+                ctx.setLineCap("square");
+                ctx.stroke();
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check a pixel at the end of the line for the round cap
@@ -432,13 +515,18 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.beginPath();
-            ctx.moveTo(20, 20);
-            ctx.bezierCurveTo(20, 100, 200, 100, 200, 20);
-            ctx.setStrokeStyle("purple");
-            ctx.setLineWidth(5);
-            ctx.stroke();
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.beginPath();
+                ctx.moveTo(20, 20);
+                ctx.bezierCurveTo(20, 100, 200, 100, 200, 20);
+                ctx.setStrokeStyle("purple");
+                ctx.setLineWidth(5);
+                ctx.stroke();
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check a pixel on the curve
@@ -451,18 +539,266 @@ public class TestCanvas2D extends ApplicationTest {
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         interact(() -> {
-            ctx.clearRect(0, 0, 400, 400);
-            ctx.beginPath();
-            ctx.moveTo(25, 25);
-            ctx.lineTo(105, 25);
-            ctx.lineTo(25, 105);
-            ctx.setFillStyle("green");
-            ctx.fill();
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.beginPath();
+                ctx.moveTo(25, 25);
+                ctx.lineTo(105, 25);
+                ctx.lineTo(25, 105);
+                ctx.setFillStyle("green");
+                ctx.fill();
+            } finally {
+                Context.exit();
+            }
         });
 
         // Check a pixel inside the triangle
         assertPixel(ctx, 50, 50, 0, 128, 0, 255);
         // Check a pixel outside the triangle
         assertPixel(ctx, 100, 100, 0, 0, 0, 0);
+    }
+
+    @Test
+    public void testSaveRestore() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.setFillStyle("red");
+                ctx.fillRect(0, 0, 100, 100);
+
+                ctx.save();
+                ctx.setFillStyle("blue");
+                ctx.fillRect(100, 0, 100, 100);
+                ctx.restore();
+
+                ctx.fillRect(200, 0, 100, 100);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        assertPixel(ctx, 50, 50, 255, 0, 0, 255);
+        assertPixel(ctx, 150, 50, 0, 0, 255, 255);
+        assertPixel(ctx, 250, 50, 255, 0, 0, 255);
+    }
+
+    @Test
+    public void testTransformations() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.translate(100, 100);
+                ctx.setFillStyle("blue");
+                ctx.fillRect(10, 10, 50, 50);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        assertPixel(ctx, 135, 135, 0, 0, 255, 255);
+    }
+
+    @Test
+    public void testEllipse() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.beginPath();
+                ctx.ellipse(200, 200, 50, 75, Math.PI / 4, 0, 2 * Math.PI, false);
+                ctx.setFillStyle("purple");
+                ctx.fill();
+            } finally {
+                Context.exit();
+            }
+        });
+
+        assertPixel(ctx, 200, 200, 128, 0, 128, 255);
+        assertPixel(ctx, 100, 100, 0, 0, 0, 0);
+    }
+
+    @Test
+    public void testClip() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.beginPath();
+                ctx.arc(200, 200, 50, 0, Math.PI * 2, false);
+                ctx.clip();
+
+                ctx.setFillStyle("blue");
+                ctx.fillRect(0, 0, 400, 400);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        assertPixel(ctx, 200, 200, 0, 0, 255, 255);
+        assertPixel(ctx, 100, 100, 0, 0, 0, 0);
+    }
+
+    @Test
+    public void testIsPointInPath() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+        CompletableFuture<Boolean> inPath = new CompletableFuture<>();
+        CompletableFuture<Boolean> notInPath = new CompletableFuture<>();
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.rect(10, 10, 100, 100);
+                inPath.complete(ctx.isPointInPath(50, 50));
+                notInPath.complete(ctx.isPointInPath(200, 200));
+            } finally {
+                Context.exit();
+            }
+        });
+
+        assertEquals(true, inPath.get());
+        assertEquals(false, notInPath.get());
+    }
+
+    @Test
+    public void testLineStyles() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Line Join
+                ctx.setLineWidth(20);
+                ctx.beginPath();
+                ctx.moveTo(20, 20);
+                ctx.lineTo(100, 50);
+                ctx.lineTo(20, 80);
+                ctx.setLineJoin("round");
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(120, 20);
+                ctx.lineTo(200, 50);
+                ctx.lineTo(120, 80);
+                ctx.setLineJoin("bevel");
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(220, 20);
+                ctx.lineTo(300, 50);
+                ctx.lineTo(220, 80);
+                ctx.setLineJoin("miter");
+                ctx.stroke();
+
+                // Miter Limit
+                ctx.setMiterLimit(2);
+                ctx.beginPath();
+                ctx.moveTo(20, 120);
+                ctx.lineTo(100, 150);
+                ctx.lineTo(20, 180);
+                ctx.stroke();
+
+                // Line Dash
+                ctx.setLineDash(new Object[]{5, 15});
+                ctx.beginPath();
+                ctx.moveTo(0, 220);
+                ctx.lineTo(400, 220);
+                ctx.stroke();
+
+                // Line Dash Offset
+                ctx.setLineDashOffset(5);
+                ctx.beginPath();
+                ctx.moveTo(0, 250);
+                ctx.lineTo(400, 250);
+                ctx.stroke();
+
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Assertions for line styles would require more complex image analysis.
+        // For now, we are just testing that the methods don't crash.
+        // We can visually inspect the output if needed.
+        assertPixel(ctx, 20, 20, 0, 0, 0, 255);
+    }
+
+    @Test
+    public void testGlobalAlpha() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setFillStyle("red");
+                ctx.fillRect(10, 10, 100, 100);
+
+                ctx.setGlobalAlpha(0.5);
+
+                ctx.setFillStyle("blue");
+                ctx.fillRect(50, 50, 100, 100);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // The overlapping area should be a blend of red and blue
+        // The blue color has 50% alpha, so the resulting color will be
+        // R = 0 * 0.5 + 255 * (1 - 0.5) = 127.5
+        // G = 0
+        // B = 255 * 0.5 + 0 * (1 - 0.5) = 127.5
+        // A = 255
+        assertPixel(ctx, 75, 75, 127, 0, 127, 255, 1);
+    }
+
+    @Test
+    public void testCreateImageData() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+        CompletableFuture<IImageData> imageDataFuture = new CompletableFuture<>();
+
+        interact(() -> {
+            Context.enter();
+            try {
+                imageDataFuture.complete(ctx.createImageData(100, 200));
+            } finally {
+                Context.exit();
+            }
+        });
+
+        IImageData imageData = imageDataFuture.get();
+        assertEquals(100, imageData.getWidth());
+        assertEquals(200, imageData.getHeight());
+        // The underlying data is an int array, so the length is width * height
+        assertEquals(100 * 200, imageData.getData().getPixels(0, 0, 100, 200).length);
     }
 }

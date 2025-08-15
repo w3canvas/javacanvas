@@ -34,19 +34,19 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fillText(String text, double x, double y, double maxWidth) {
-        if (maxWidth <= 0) {
-            gc.fillText(text, x, y);
-        } else {
+        if (maxWidth > 0) {
             gc.fillText(text, x, y, maxWidth);
+        } else {
+            gc.fillText(text, x, y);
         }
     }
 
     @Override
     public void strokeText(String text, double x, double y, double maxWidth) {
-        if (maxWidth <= 0) {
-            gc.strokeText(text, x, y);
-        } else {
+        if (maxWidth > 0) {
             gc.strokeText(text, x, y, maxWidth);
+        } else {
+            gc.strokeText(text, x, y);
         }
     }
 
@@ -116,6 +116,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void setFillPaint(IPaint paint) {
+        System.out.println("Setting fill paint: " + paint);
         if (paint instanceof JavaFXPaint) {
             gc.setFill(((JavaFXPaint) paint).getPaint());
         } else if (paint instanceof JavaFXLinearGradient) {
@@ -228,7 +229,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         }
         WritableImage image = new WritableImage(width, height);
         image.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), pixels, 0, width);
-        gc.drawImage(image, x, y);
+        gc.drawImage(image, x, y, width, height);
     }
 
     @Override
@@ -387,6 +388,14 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
             if(length < 0) length += 2 * Math.PI;
             length = -(length);
         }
+        // Manually calculate the start point of the ellipse arc
+        double startX = radiusX * Math.cos(startAngle);
+        double startY = radiusY * Math.sin(startAngle);
+
+        // Move to the start point of the arc
+        gc.moveTo(startX, startY);
+        path.getElements().add(new javafx.scene.shape.MoveTo(startX, startY));
+
         gc.arc(0, 0, radiusX, radiusY, Math.toDegrees(startAngle), Math.toDegrees(length));
         path.getElements().add(new javafx.scene.shape.ArcTo(radiusX, radiusY, Math.toDegrees(rotation), x + radiusX * Math.cos(endAngle), y + radiusY * Math.sin(endAngle), false, !counterclockwise));
         gc.restore();

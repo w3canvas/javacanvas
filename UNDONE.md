@@ -45,6 +45,12 @@ The following features have an implementation in the codebase but lack specific,
 - **Image Loading**: `new Image()`, `image.src`, `image.onload`
   - **Status**: PARTIALLY IMPLEMENTED
   - **Description**: The `Image` class supports loading from data URIs and URLs. However, there are no tests that load an image and use `drawImage()` to render it to the canvas.
+- **isPointInStroke()**:
+  - **Status**: FAILING
+  - **Description**: The `isPointInStroke()` method in the JavaFX backend is not implemented correctly and causes tests to fail. There is no straightforward way to check if a point is on the stroke of a path in JavaFX.
+- **drawImage()**:
+  - **Status**: FAILING
+  - **Description**: The `drawImage()` method is not fully implemented and causes tests to fail. It does not correctly handle drawing a canvas onto another canvas.
 
 ### 1.4. Not Implemented
 - (None at the moment, all major features have at least a partial implementation)
