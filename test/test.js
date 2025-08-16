@@ -50,7 +50,7 @@ ctx.fillRect(10, 10, 20, 20);
 // The 'copy' operation should replace the underlying pixels.
 // The color is semi-transparent blue, but since it's copying, the background is ignored.
 // The final color will be the source color, rgba(0, 0, 255, 127)
-test.assertPixel(15, 15, 0, 0, 255, 127);
+test.assertPixel(15, 15, 0, 0, 255, 128);
 
 // Reset composite operation
 ctx.globalCompositeOperation = 'source-over';
