@@ -71,7 +71,9 @@ public interface ICanvasRenderingContext2D {
     boolean isPointInPath(double x, double y);
     boolean isPointInStroke(double x, double y);
 
-    void drawImage(Object image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh);
+    void drawImage(Object image, double dx, double dy);
+    void drawImage(Object image, double dx, double dy, double dWidth, double dHeight);
+    void drawImage(Object image, double sx, double sy, double sWidth, double sHeight, double dx, double dy, double dWidth, double dHeight);
 
     ITextMetrics measureText(String text);
 

@@ -582,15 +582,9 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
                 double vy = (-y1p - cyp) / radiusY;
 
                 double startAngle = Math.toDegrees(Math.atan2(uy, ux));
-                double extent = Math.toDegrees(angle(1, 0, vx, vy));
+                double extent = Math.toDegrees(angle(ux, uy, vx, vy));
 
-                if (!sweepFlag && extent > 0) {
-                    extent -= 360;
-                } else if (sweepFlag && extent < 0) {
-                    extent += 360;
-                }
-
-                awtPath.append(new java.awt.geom.Arc2D.Double(cx - radiusX, cy - radiusY, 2 * radiusX, 2 * radiusY, -startAngle, -extent, java.awt.geom.Arc2D.OPEN), true);
+                awtPath.append(new java.awt.geom.Arc2D.Double(cx - radiusX, cy - radiusY, 2 * radiusX, 2 * radiusY, startAngle, extent, java.awt.geom.Arc2D.OPEN), true);
 
             } else if (element instanceof ClosePath) {
                 awtPath.closePath();
