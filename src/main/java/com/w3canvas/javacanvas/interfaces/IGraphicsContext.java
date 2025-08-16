@@ -14,6 +14,7 @@ public interface IGraphicsContext {
     // Drawing properties
     void setFillPaint(IPaint paint);
     void setStrokePaint(IPaint paint);
+    ICanvasPattern createPattern(Object image, String repetition);
     void setLineWidth(double width);
     void setLineCap(String cap);
     void setLineJoin(String join);

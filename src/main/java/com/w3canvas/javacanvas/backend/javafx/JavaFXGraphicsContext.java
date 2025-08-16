@@ -128,7 +128,6 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void setFillPaint(IPaint paint) {
-        System.out.println("JavaFXGraphicsContext.setFillPaint: " + paint);
         this.fillPaint = paint;
         if (paint instanceof JavaFXPaint) {
             gc.setFill(((JavaFXPaint) paint).getPaint());
@@ -137,13 +136,15 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         } else if (paint instanceof JavaFXRadialGradient) {
             gc.setFill((Paint) ((JavaFXRadialGradient) paint).getPaint());
         } else if (paint instanceof JavaFXPattern) {
-            gc.setFill((Paint) ((JavaFXPattern) paint).getPaint());
+            JavaFXPattern pattern = (JavaFXPattern) paint;
+            double width = gc.getCanvas().getWidth();
+            double height = gc.getCanvas().getHeight();
+            gc.setFill(pattern.getPaint(width, height));
         }
     }
 
     @Override
     public void setStrokePaint(IPaint paint) {
-        System.out.println("JavaFXGraphicsContext.setStrokePaint: " + paint);
         this.strokePaint = paint;
         if (paint instanceof JavaFXPaint) {
             gc.setStroke(((JavaFXPaint) paint).getPaint());
@@ -152,8 +153,29 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         } else if (paint instanceof JavaFXRadialGradient) {
             gc.setStroke((Paint) ((JavaFXRadialGradient) paint).getPaint());
         } else if (paint instanceof JavaFXPattern) {
-            gc.setStroke((Paint) ((JavaFXPattern) paint).getPaint());
+            JavaFXPattern pattern = (JavaFXPattern) paint;
+            double width = gc.getCanvas().getWidth();
+            double height = gc.getCanvas().getHeight();
+            gc.setStroke(pattern.getPaint(width, height));
         }
+    }
+
+    @Override
+    public ICanvasPattern createPattern(Object image, String repetition) {
+        if (image instanceof Image) {
+            return new JavaFXPattern((Image) image, repetition);
+        } else if (image instanceof java.awt.image.BufferedImage) {
+            // Convert BufferedImage to JavaFX Image
+            java.awt.image.BufferedImage awtImage = (java.awt.image.BufferedImage) image;
+            WritableImage fxImage = new WritableImage(awtImage.getWidth(), awtImage.getHeight());
+            for (int x = 0; x < awtImage.getWidth(); x++) {
+                for (int y = 0; y < awtImage.getHeight(); y++) {
+                    fxImage.getPixelWriter().setArgb(x, y, awtImage.getRGB(x, y));
+                }
+            }
+            return new JavaFXPattern(fxImage, repetition);
+        }
+        return null;
     }
 
     @Override

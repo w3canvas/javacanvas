@@ -57,6 +57,13 @@ public class JavaFXPattern implements ICanvasPattern, IPaint {
         GraphicsContext gc = tempCanvas.getGraphicsContext2D();
 
         switch (repetition) {
+            case "repeat":
+                for (double y = 0; y < boundsHeight; y += imgHeight) {
+                    for (double x = 0; x < boundsWidth; x += imgWidth) {
+                        gc.drawImage(image, x, y);
+                    }
+                }
+                break;
             case "repeat-x":
                 for (double x = 0; x < boundsWidth; x += imgWidth) {
                     gc.drawImage(image, x, 0);
