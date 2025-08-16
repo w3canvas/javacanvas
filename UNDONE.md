@@ -15,9 +15,9 @@ The following features are considered stable and have passing tests.
 
 - **Drawing Rectangles**: `fillRect()`, `strokeRect()`, `clearRect()`
 - **Path Stroking and Filling**: `stroke()`, `fill()`
-- **Path Primitives**: `beginPath()`, `closePath()`, `moveTo()`, `lineTo()`, `rect()`, `arc()`, `arcTo()`, `quadraticCurveTo()`, `bezierCurveTo()`
+- **Path Primitives**: `beginPath()`, `closePath()`, `moveTo()`, `lineTo()`, `rect()`, `quadraticCurveTo()`, `bezierCurveTo()`
 - **Line Styles**: `lineWidth`, `lineCap`
-- **Fill and Stroke Styles**: `fillStyle` (colors), `strokeStyle` (colors), `createLinearGradient()`, `createRadialGradient()`, `addColorStop()`, `createPattern()`
+- **Fill and Stroke Styles**: `fillStyle` (colors), `strokeStyle` (colors), `createLinearGradient()`, `createRadialGradient()`, `addColorStop()`
 - **Compositing**: `globalCompositeOperation` ('source-over', 'copy')
 - **Pixel Manipulation**: `getImageData()`, `putImageData()`
 - **Text**: `measureText()`
@@ -32,24 +32,23 @@ The following features have an implementation in the codebase but lack specific,
 - **Line Styles**: `lineJoin`, `miterLimit`, `setLineDash()`, `getLineDash()`, `lineDashOffset`
 - **Text Styling**: `textAlign`, `textBaseline`
 - **Compositing**: `globalAlpha`
-- **Image Drawing**: `drawImage()`
 - **Pixel Manipulation**: `createImageData()`
 - **Text Drawing**: `fillText`'s `maxWidth` parameter is currently ignored by the AWT backend.
 
 ### 1.3. Partially Implemented or Failing
 
-- **Font Loading**: `@font-face`, `document.fonts`
-  - **Status**: PARTIALLY IMPLEMENTED
-  - **Description**: The `FontFace` API is implemented for loading fonts from URLs, and the `RhinoFontFace` class exposes this to JavaScript. However, there are no rendering tests to confirm that loaded fonts are correctly applied to the canvas.
-- **Image Loading**: `new Image()`, `image.src`, `image.onload`
-  - **Status**: PARTIALLY IMPLEMENTED
-  - **Description**: The `Image` class supports loading from data URIs and URLs. However, there are no tests that load an image and use `drawImage()` to render it to the canvas.
 - **isPointInStroke()**:
   - **Status**: FAILING
-  - **Description**: The `isPointInStroke()` method in the JavaFX backend is not implemented correctly and causes tests to fail. There is no straightforward way to check if a point is on the stroke of a path in JavaFX.
+  - **Description**: The `isPointInStroke()` method in the JavaFX backend is not implemented correctly and causes tests to fail. There is no straightforward way to check if a point is on the stroke of a path in JavaFX. The current implementation attempts to convert the JavaFX path to an AWT path and use AWT's stroke testing capabilities. This approach is flawed because the conversion of `ArcTo` elements is not implemented.
+- **arcTo()**:
+    - **Status**: PARTIALLY IMPLEMENTED
+    - **Description**: The `arcTo()` method is implemented in the JavaFX backend, but the conversion to an AWT path is not implemented in `convertFxPathToAwtPath`. This causes `isPointInStroke()` to fail for paths that contain arcs. This is a complex conversion that will be addressed in a future task.
 - **drawImage()**:
   - **Status**: FAILING
-  - **Description**: The `drawImage()` method is not fully implemented and causes tests to fail. It does not correctly handle drawing a canvas onto another canvas.
+  - **Description**: The `drawImage()` method is not fully implemented and causes tests to fail. It does not correctly handle drawing a canvas onto another canvas. The nine-argument version of `drawImage` is not correctly implemented in `CoreCanvasRenderingContext2D`.
+- **createPattern()**:
+    - **Status**: FAILING
+    - **Description**: The `createPattern()` method does not correctly handle the `repetition` parameter. This causes the `testPattern` test to fail.
 
 ### 1.4. Not Implemented
 - (None at the moment, all major features have at least a partial implementation)

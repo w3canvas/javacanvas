@@ -259,6 +259,13 @@ public class AwtGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void drawImage(Object img, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh) {
+        if (img instanceof BufferedImage) {
+            g2d.drawImage((BufferedImage) img, dx, dy, dx + dw, dy + dh, sx, sy, sx + sw, sy + sh, null);
+        }
+    }
+
+    @Override
     public void drawString(String str, int x, int y) {
         g2d.drawString(str, x, y);
     }

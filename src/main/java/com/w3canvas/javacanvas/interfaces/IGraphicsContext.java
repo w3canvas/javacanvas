@@ -31,6 +31,7 @@ public interface IGraphicsContext {
     void draw(IShape shape);
     void fill(IShape shape);
     void drawImage(Object img, int x, int y);
+    void drawImage(Object img, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);
     void drawImage(int[] pixels, int x, int y, int width, int height);
     void drawString(String str, int x, int y);
     ITextMetrics measureText(String text);
