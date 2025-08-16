@@ -393,24 +393,35 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
         lineTo(t1x, t1y);
 
-        double cx = t1x - radius * dy01;
-        double cy = t1y + radius * dx01;
+        double cross_product = dx01 * dy12 - dy01 * dx12;
+        double normal_x, normal_y;
 
-        double startAngle = Math.atan2(t1y - cy, t1x - cx);
-        double endAngle = Math.atan2(t2y - cy, t2x - cx);
+        if (cross_product < 0) { // Clockwise
+            normal_x = dy01;
+            normal_y = -dx01;
+        } else { // Counter-clockwise
+            normal_x = -dy01;
+            normal_y = dx01;
+        }
+
+        double cx = t1x + normal_x * radius;
+        double cy = t1y + normal_y * radius;
+
+        double startAngle = Math.toDegrees(Math.atan2(t1y - cy, t1x - cx));
+        double endAngle = Math.toDegrees(Math.atan2(t2y - cy, t2x - cx));
         double sweepAngle = endAngle - startAngle;
 
-        if ((dx01 * dy12 - dy01 * dx12) < 0) { // Clockwise
+        if (cross_product < 0) { // Clockwise
             if (sweepAngle > 0) {
-                sweepAngle -= 2 * Math.PI;
+                sweepAngle -= 360;
             }
         } else { // Counter-clockwise
             if (sweepAngle < 0) {
-                sweepAngle += 2 * Math.PI;
+                sweepAngle += 360;
             }
         }
 
-        path.append(new Arc2D.Double(cx - radius, cy - radius, 2 * radius, 2 * radius, Math.toDegrees(startAngle), Math.toDegrees(sweepAngle), Arc2D.OPEN), true);
+        path.append(new Arc2D.Double(cx - radius, cy - radius, 2 * radius, 2 * radius, startAngle, sweepAngle, Arc2D.OPEN), true);
 
         lastPoint[0] = t2x;
         lastPoint[1] = t2y;
