@@ -4,19 +4,28 @@ import com.w3canvas.javacanvas.interfaces.ICanvasPattern;
 import com.w3canvas.javacanvas.interfaces.IPaint;
 import javafx.scene.image.Image;
 import javafx.scene.paint.ImagePattern;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.paint.Paint;
 
 public class JavaFXPattern implements ICanvasPattern, IPaint {
 
-    private final ImagePattern paint;
+    private final Image image;
+    private final String repetition;
 
     public JavaFXPattern(Image image, String repetition) {
-        // The repetition parameter is not fully supported in this implementation.
-        // It's a complex feature to implement correctly.
-        this.paint = new ImagePattern(image, 0, 0, image.getWidth(), image.getHeight(), false);
+        this.image = image;
+        this.repetition = repetition;
+    }
+
+    public Image getImage() {
+        return image;
+    }
+
+    public String getRepetition() {
+        return repetition;
     }
 
     public Object getPaint() {
-        return paint;
+        // This will be used for stroke for now.
+        return new ImagePattern(image, 0, 0, image.getWidth(), image.getHeight(), false);
     }
 }
