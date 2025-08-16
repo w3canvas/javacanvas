@@ -10,17 +10,17 @@ import com.w3canvas.javacanvas.interfaces.IPaint;
 public class ColorParser {
     public static IPaint parse(String colorString, IGraphicsBackend backend) {
         if (backend instanceof AwtGraphicsBackend) {
-            java.awt.Color color;
-            if (colorString.startsWith("#")) {
-                color = java.awt.Color.decode(colorString);
-            } else {
-                try {
-                    color = (java.awt.Color) java.awt.Color.class.getField(colorString.toLowerCase()).get(null);
-                } catch (Exception e) {
-                    color = java.awt.Color.BLACK;
-                }
+            javafx.scene.paint.Color fxColor;
+            try {
+                fxColor = javafx.scene.paint.Color.web(colorString);
+            } catch (Exception e) {
+                fxColor = javafx.scene.paint.Color.BLACK;
             }
-            return new AwtPaint(color);
+            java.awt.Color awtColor = new java.awt.Color((float) fxColor.getRed(),
+                                                         (float) fxColor.getGreen(),
+                                                         (float) fxColor.getBlue(),
+                                                         (float) fxColor.getOpacity());
+            return new AwtPaint(awtColor);
         } else if (backend instanceof JavaFXGraphicsBackend) {
             javafx.scene.paint.Color color;
             try {
