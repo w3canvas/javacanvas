@@ -361,7 +361,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement canvas = (com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) image;
             ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
             ICanvasSurface surface = ctx.getSurface();
-            gc.drawImage(surface.getNativeImage(), (int) sx, (int) sy);
+            gc.drawImage(surface.getNativeImage(), (int) sx, (int) sy, (int) sw, (int) sh, (int) dx, (int) dy, (int) dw, (int) dh);
         }
     }
 

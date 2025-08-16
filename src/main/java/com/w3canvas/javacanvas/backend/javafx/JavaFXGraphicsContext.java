@@ -287,6 +287,13 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void drawImage(Object img, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh) {
+        if (img instanceof Image) {
+            gc.drawImage((Image) img, sx, sy, sw, sh, dx, dy, dw, dh);
+        }
+    }
+
+    @Override
     public void drawString(String str, int x, int y) {
         gc.strokeText(str, x, y);
     }
@@ -522,13 +529,84 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
                         cubicTo.getControlX2(), cubicTo.getControlY2(),
                         cubicTo.getX(), cubicTo.getY());
             } else if (element instanceof ArcTo) {
-                // ArcTo conversion is more complex and might not be needed for the current tests.
-                // I will leave it out for now.
+                ArcTo arcTo = (ArcTo) element;
+                double x = arcTo.getX();
+                double y = arcTo.getY();
+                double radiusX = arcTo.getRadiusX();
+                double radiusY = arcTo.getRadiusY();
+                boolean sweepFlag = arcTo.isSweepFlag();
+                boolean largeArcFlag = arcTo.isLargeArcFlag();
+                double xAxisRotation = arcTo.getXAxisRotation();
+
+                double x0 = awtPath.getCurrentPoint().getX();
+                double y0 = awtPath.getCurrentPoint().getY();
+
+                // SVG arc to center-parameterized arc conversion
+                // See https://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
+                double cosr = Math.cos(Math.toRadians(xAxisRotation));
+                double sinr = Math.sin(Math.toRadians(xAxisRotation));
+
+                double dx = (x0 - x) / 2;
+                double dy = (y0 - y) / 2;
+
+                double x1p = cosr * dx + sinr * dy;
+                double y1p = -sinr * dx + cosr * dy;
+
+                double rx_sq = radiusX * radiusX;
+                double ry_sq = radiusY * radiusY;
+                double x1p_sq = x1p * x1p;
+                double y1p_sq = y1p * y1p;
+
+                double lambda = x1p_sq / rx_sq + y1p_sq / ry_sq;
+                if (lambda > 1) {
+                    radiusX *= Math.sqrt(lambda);
+                    radiusY *= Math.sqrt(lambda);
+                    rx_sq = radiusX * radiusX;
+                    ry_sq = radiusY * radiusY;
+                }
+
+                double sign = (largeArcFlag == sweepFlag) ? -1 : 1;
+                double c_sq_num = rx_sq * ry_sq - rx_sq * y1p_sq - ry_sq * x1p_sq;
+                double c_sq_den = rx_sq * y1p_sq + ry_sq * x1p_sq;
+                double c_rad = Math.sqrt(Math.max(0, c_sq_num / c_sq_den));
+
+                double cxp = sign * c_rad * (radiusX * y1p / radiusY);
+                double cyp = sign * c_rad * -(radiusY * x1p / radiusX);
+
+                double cx = cosr * cxp - sinr * cyp + (x0 + x) / 2;
+                double cy = sinr * cxp + cosr * cyp + (y0 + y) / 2;
+
+                double ux = (x1p - cxp) / radiusX;
+                double uy = (y1p - cyp) / radiusY;
+                double vx = (-x1p - cxp) / radiusX;
+                double vy = (-y1p - cyp) / radiusY;
+
+                double startAngle = Math.toDegrees(Math.atan2(uy, ux));
+                double extent = Math.toDegrees(angle(1, 0, vx, vy));
+
+                if (!sweepFlag && extent > 0) {
+                    extent -= 360;
+                } else if (sweepFlag && extent < 0) {
+                    extent += 360;
+                }
+
+                awtPath.append(new java.awt.geom.Arc2D.Double(cx - radiusX, cy - radiusY, 2 * radiusX, 2 * radiusY, -startAngle, -extent, java.awt.geom.Arc2D.OPEN), true);
+
             } else if (element instanceof ClosePath) {
                 awtPath.closePath();
             }
         }
         return awtPath;
+    }
+
+    private double angle(double ux, double uy, double vx, double vy) {
+        double dot = ux * vx + uy * vy;
+        double len = Math.sqrt(ux * ux + uy * uy) * Math.sqrt(vx * vx + vy * vy);
+        double angle = Math.acos(Math.min(Math.max(dot / len, -1), 1));
+        if ((ux * vy - uy * vx) < 0) {
+            angle = -angle;
+        }
+        return angle;
     }
 
     private Path convertAwtShapeToFxPath(java.awt.Shape awtShape) {
