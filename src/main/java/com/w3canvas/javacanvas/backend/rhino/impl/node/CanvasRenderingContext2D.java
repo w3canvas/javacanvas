@@ -312,11 +312,21 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     @Override
-    public void drawImage(Object image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh) {
-        if (image instanceof Image) {
-            core.drawImage(((Image) image).getImage(), sx, sy, sw, sh, dx, dy, dw, dh);
-            canvas.dirty();
-        }
+    public void drawImage(Object image, double dx, double dy) {
+        core.drawImage(image, dx, dy);
+        canvas.dirty();
+    }
+
+    @Override
+    public void drawImage(Object image, double dx, double dy, double dWidth, double dHeight) {
+        core.drawImage(image, dx, dy, dWidth, dHeight);
+        canvas.dirty();
+    }
+
+    @Override
+    public void drawImage(Object image, double sx, double sy, double sWidth, double sHeight, double dx, double dy, double dWidth, double dHeight) {
+        core.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+        canvas.dirty();
     }
 
     @Override

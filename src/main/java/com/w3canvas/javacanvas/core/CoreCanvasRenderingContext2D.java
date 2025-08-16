@@ -355,13 +355,54 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         return gc.isPointInStroke(x, y);
     }
 
-    @Override
-    public void drawImage(Object image, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh) {
+    private Object getNativeImage(Object image) {
         if (image instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) {
             com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement canvas = (com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) image;
             ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
-            ICanvasSurface surface = ctx.getSurface();
-            gc.drawImage(surface.getNativeImage(), (int) sx, (int) sy, (int) sw, (int) sh, (int) dx, (int) dy, (int) dw, (int) dh);
+            return ctx.getSurface().getNativeImage();
+        } else if (image instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.Image) {
+            return ((com.w3canvas.javacanvas.backend.rhino.impl.node.Image) image).getImage();
+        }
+        return null;
+    }
+
+    private int getImageWidth(Object image) {
+        if (image instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) {
+            return ((com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) image).getWidth();
+        } else if (image instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.Image) {
+            return ((com.w3canvas.javacanvas.backend.rhino.impl.node.Image) image).getRealWidth();
+        }
+        return 0;
+    }
+
+    private int getImageHeight(Object image) {
+        if (image instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) {
+            return ((com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) image).getHeight();
+        } else if (image instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.Image) {
+            return ((com.w3canvas.javacanvas.backend.rhino.impl.node.Image) image).getRealHeight();
+        }
+        return 0;
+    }
+
+    @Override
+    public void drawImage(Object image, double dx, double dy) {
+        int width = getImageWidth(image);
+        int height = getImageHeight(image);
+        drawImage(image, dx, dy, width, height);
+    }
+
+    @Override
+    public void drawImage(Object image, double dx, double dy, double dWidth, double dHeight) {
+        int sWidth = getImageWidth(image);
+        int sHeight = getImageHeight(image);
+        drawImage(image, 0, 0, sWidth, sHeight, dx, dy, dWidth, dHeight);
+    }
+
+    @Override
+    public void drawImage(Object image, double sx, double sy, double sWidth, double sHeight, double dx, double dy, double dWidth, double dHeight) {
+        Object nativeImage = getNativeImage(image);
+        if (nativeImage != null) {
+            gc.drawImage(nativeImage, (int) sx, (int) sy, (int) sWidth, (int) sHeight, (int) dx, (int) dy, (int) dWidth, (int) dHeight);
         }
     }
 

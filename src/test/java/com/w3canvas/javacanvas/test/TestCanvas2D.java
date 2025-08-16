@@ -1004,4 +1004,100 @@ public class TestCanvas2D extends ApplicationTest {
         // Check a pixel within the "Bottom" text.
         assertPixel(ctx, 60, 140, 0, 0, 255, 255, 224);
     }
+
+    private HTMLCanvasElement createTestPatternCanvas() {
+        HTMLCanvasElement patternCanvas = createCanvas();
+        ICanvasRenderingContext2D patternCtx = (ICanvasRenderingContext2D) patternCanvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                patternCanvas.setWidth(10);
+                patternCanvas.setHeight(10);
+                patternCtx.setFillStyle("red");
+                patternCtx.fillRect(0, 0, 5, 5);
+                patternCtx.setFillStyle("blue");
+                patternCtx.fillRect(5, 0, 5, 5);
+                patternCtx.setFillStyle("green");
+                patternCtx.fillRect(0, 5, 5, 5);
+                patternCtx.setFillStyle("yellow");
+                patternCtx.fillRect(5, 5, 5, 5);
+            } finally {
+                Context.exit();
+            }
+        });
+        return patternCanvas;
+    }
+
+    @Test
+    public void testDrawImage_3args() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement sourceCanvas = createTestPatternCanvas();
+        HTMLCanvasElement destCanvas = createCanvas();
+        ICanvasRenderingContext2D destCtx = (ICanvasRenderingContext2D) destCanvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            destCtx.drawImage(sourceCanvas, 20, 30);
+        });
+
+        // Check a red pixel from the source canvas drawn on the destination
+        assertPixel(destCtx, 22, 32, 255, 0, 0, 255);
+        // Check a blue pixel
+        assertPixel(destCtx, 27, 32, 0, 0, 255, 255);
+    }
+
+    @Test
+    public void testDrawImage_5args() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement sourceCanvas = createTestPatternCanvas();
+        HTMLCanvasElement destCanvas = createCanvas();
+        ICanvasRenderingContext2D destCtx = (ICanvasRenderingContext2D) destCanvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            destCtx.drawImage(sourceCanvas, 20, 30, 20, 20); // Scale up the 10x10 image
+        });
+
+        // Check a red pixel from the source canvas drawn on the destination
+        assertPixel(destCtx, 22, 32, 255, 0, 0, 255);
+        // Check a blue pixel from the scaled image
+        assertPixel(destCtx, 35, 35, 0, 0, 255, 255);
+    }
+
+    @Test
+    public void testDrawImage_9args() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement sourceCanvas = createTestPatternCanvas();
+        HTMLCanvasElement destCanvas = createCanvas();
+        ICanvasRenderingContext2D destCtx = (ICanvasRenderingContext2D) destCanvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            // Draw the top-left quadrant (red) of the source to the destination
+            destCtx.drawImage(sourceCanvas, 0, 0, 5, 5, 20, 30, 10, 10);
+        });
+
+        // The destination should be filled with red
+        assertPixel(destCtx, 25, 35, 255, 0, 0, 255);
+        // A pixel outside this area should be transparent
+        assertPixel(destCtx, 15, 25, 0, 0, 0, 0);
+    }
+
+    @Test
+    public void testIsPointInStrokeWithArcTo() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+        CompletableFuture<Boolean> inStroke = new CompletableFuture<>();
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.beginPath();
+                ctx.moveTo(20, 20);
+                ctx.arcTo(120, 20, 120, 70, 50);
+                ctx.setLineWidth(10);
+                // Don't stroke the path, isPointInStroke should work on the current path
+                inStroke.complete(ctx.isPointInStroke(70, 16));
+            } finally {
+                Context.exit();
+            }
+        });
+
+        assertTrue(inStroke.get(), "Point should be in the stroke of the arc");
+    }
 }
