@@ -146,12 +146,13 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
             ICanvasRenderingContext2D context = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
             int width = canvas.getWidth();
             int height = canvas.getHeight();
-            int[] pixels = context.getSurface().getPixelData(0, 0, width, height);
-            WritableImage patternImage = new WritableImage(width, height);
-            patternImage.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), pixels, 0, width);
-            return core.createPattern(patternImage, repetition);
+            // This is a bit of a hack. We should probably have a more direct way to get the image from the canvas.
+            Object nativeImage = context.getSurface().getNativeImage();
+            return core.createPattern(nativeImage, repetition);
         } else if (image instanceof Image) {
             return core.createPattern(((Image) image).getImage(), repetition);
+        } else if (image instanceof java.awt.image.BufferedImage) {
+            return core.createPattern(image, repetition);
         }
         return null;
     }

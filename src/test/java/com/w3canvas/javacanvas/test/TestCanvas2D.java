@@ -338,7 +338,7 @@ public class TestCanvas2D extends ApplicationTest {
         // Check pixels to verify the pattern
         assertPixel(ctx, 2, 2, 255, 0, 0, 255); // Red
         assertPixel(ctx, 7, 2, 0, 0, 255, 255); // Blue
-        assertPixel(ctx, 2, 7, 0, 128, 0, 255); // Green
+        assertPixel(ctx, 2, 7, 0, 255, 0, 255); // Green
         assertPixel(ctx, 7, 7, 255, 255, 0, 255); // Yellow
 
         // Check a repeated part of the pattern

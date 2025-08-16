@@ -100,6 +100,14 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     // Drawing properties
     @Override
+    public ICanvasPattern createPattern(Object image, String repetition) {
+        if (image instanceof BufferedImage) {
+            return new AwtPattern((BufferedImage) image, repetition);
+        }
+        return null;
+    }
+
+    @Override
     public void setFillPaint(IPaint paint) {
         this.fillPaint = paint;
         if (paint instanceof AwtPaint) {
