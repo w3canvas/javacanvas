@@ -47,8 +47,10 @@ The following features have an implementation in the codebase but lack specific,
   - **Status**: FAILING
   - **Description**: The `drawImage()` method is not fully implemented and causes tests to fail. It does not correctly handle drawing a canvas onto another canvas. The nine-argument version of `drawImage` is not correctly implemented in `CoreCanvasRenderingContext2D`.
 - **createPattern()**:
-    - **Status**: FAILING
+    - **Status**: IN PROGRESS
     - **Description**: The `createPattern()` method does not correctly handle the `repetition` parameter. This causes the `testPattern` test to fail.
+    - **AWT Backend**: The AWT backend has been updated to support all repetition types (`repeat`, `repeat-x`, `repeat-y`, `no-repeat`) by implementing a custom `Paint` class.
+    - **JavaFX Backend**: The JavaFX backend is more challenging. The `javafx.scene.paint.ImagePattern` class does not support repetition control. The initial plan was to create a temporary canvas, draw the pattern with the correct repetition, and then use a snapshot of that canvas to create an `ImagePattern`. However, this approach is blocked by an unreliable `read_file` tool that returns inconsistent versions of the source files, making it impossible to proceed with the implementation.
 
 ### 1.4. Not Implemented
 - (None at the moment, all major features have at least a partial implementation)
