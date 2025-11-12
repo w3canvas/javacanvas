@@ -606,6 +606,14 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
                 double startAngle = Math.toDegrees(Math.atan2(uy, ux));
                 double extent = Math.toDegrees(angle(ux, uy, vx, vy));
 
+                // Adjust sweep direction based on sweepFlag
+                // sweepFlag=true means clockwise (positive), sweepFlag=false means counter-clockwise (negative)
+                if (!sweepFlag && extent > 0) {
+                    extent -= 360;
+                } else if (sweepFlag && extent < 0) {
+                    extent += 360;
+                }
+
                 awtPath.append(new java.awt.geom.Arc2D.Double(cx - radiusX, cy - radiusY, 2 * radiusX, 2 * radiusY, startAngle, extent, java.awt.geom.Arc2D.OPEN), true);
 
             } else if (element instanceof ClosePath) {
