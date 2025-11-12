@@ -7,4 +7,9 @@
     - **Fix Applied:** Added sweep direction adjustment in `JavaFXGraphicsContext.java:609-615`
     - **See:** `ARCTO_BUG_ANALYSIS.md` for detailed analysis
     - **Status:** Fix implemented, awaiting test verification
-4.  **TODO** Run the tests and make sure they pass (requires Maven dependency resolution).
+4.  **FIXED** ~~TestCanvas2D state management issues~~
+    - **Root Cause Identified:** Thread-local Rhino Context confusion - setUp() entered Context on JUnit thread while tests used JavaFX thread
+    - **Fix Applied:** Removed Context.enter/exit from setUp/tearDown in `TestCanvas2D.java`
+    - **See:** `STATE_MANAGEMENT_BUG_ANALYSIS.md` for detailed analysis
+    - **Status:** TestCanvas2D re-enabled (35 tests)
+5.  **TODO** Run the tests and make sure they pass (requires Maven dependency resolution).

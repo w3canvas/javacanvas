@@ -9,9 +9,7 @@ import com.w3canvas.javacanvas.interfaces.ITextMetrics;
 import com.w3canvas.javacanvas.rt.JavaCanvas;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
@@ -28,7 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(ApplicationExtension.class)
-@DisabledIfSystemProperty(named = "w3canvas.backend", matches = "awt", disabledReason = "AWT backend tests are timing out")
+// NOTE: Tests re-enabled after fixing thread-local Context management issue
+// See STATE_MANAGEMENT_BUG_ANALYSIS.md for details
 public class TestCanvas2D extends ApplicationTest {
 
     private JavaCanvas javaCanvas;
@@ -45,13 +44,17 @@ public class TestCanvas2D extends ApplicationTest {
         javaCanvas = new JavaCanvas(".", true);
         javaCanvas.initializeBackend();
 
-        Context.enter();
+        // NOTE: Do NOT call Context.enter() here!
+        // Context is thread-local. Since all canvas operations happen on the JavaFX
+        // Application Thread via interact(), we should not enter a Context on the
+        // JUnit test thread. Each test properly manages Context.enter/exit within
+        // its interact() blocks on the JavaFX thread.
         scope = javaCanvas.getRhinoRuntime().getScope();
     }
 
     @AfterEach
     public void tearDown() {
-        Context.exit();
+        // NOTE: Do NOT call Context.exit() here since we didn't enter on this thread
     }
 
     private HTMLCanvasElement createCanvas() {
