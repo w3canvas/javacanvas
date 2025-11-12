@@ -53,6 +53,7 @@ public interface IGraphicsContext {
     void bezierCurveTo(double cp1x, double cp1y, double cp2x, double cp2y, double x, double y);
     void arcTo(double x1, double y1, double x2, double y2, double radius);
     void rect(double x, double y, double w, double h);
+    void roundRect(double x, double y, double w, double h, Object radii);
     void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise);
     void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise);
     void fill();

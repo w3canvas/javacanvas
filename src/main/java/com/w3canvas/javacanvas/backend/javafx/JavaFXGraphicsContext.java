@@ -431,6 +431,13 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void roundRect(double x, double y, double w, double h, Object radii) {
+        // TODO: Implement proper roundRect with corner radius parsing
+        // For now, fall back to regular rect
+        rect(x, y, w, h);
+    }
+
+    @Override
     public void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise) {
         double sweep = endAngle - startAngle;
         if (counterclockwise) {

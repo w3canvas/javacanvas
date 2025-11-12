@@ -30,6 +30,7 @@ public interface ICanvasRenderingContext2D {
 
     ICanvasGradient createLinearGradient(double x0, double y0, double x1, double y1);
     ICanvasGradient createRadialGradient(double x0, double y0, double r0, double x1, double y1, double r1);
+    ICanvasGradient createConicGradient(double startAngle, double x, double y);
     ICanvasPattern createPattern(Object image, String repetition);
 
     double getLineWidth();
@@ -49,9 +50,25 @@ public interface ICanvasRenderingContext2D {
     double getLineDashOffset();
     void setLineDashOffset(double offset);
 
+    // Shadow properties
+    double getShadowBlur();
+    void setShadowBlur(double blur);
+    String getShadowColor();
+    void setShadowColor(String color);
+    double getShadowOffsetX();
+    void setShadowOffsetX(double offsetX);
+    double getShadowOffsetY();
+    void setShadowOffsetY(double offsetY);
+
     void clearRect(double x, double y, double w, double h);
     void fillRect(double x, double y, double w, double h);
     void strokeRect(double x, double y, double w, double h);
+
+    // Image smoothing
+    boolean getImageSmoothingEnabled();
+    void setImageSmoothingEnabled(boolean enabled);
+    String getImageSmoothingQuality();
+    void setImageSmoothingQuality(String quality);
 
     void beginPath();
     void closePath();
@@ -61,6 +78,7 @@ public interface ICanvasRenderingContext2D {
     void bezierCurveTo(double cp1x, double cp1y, double cp2x, double cp2y, double x, double y);
     void arcTo(double x1, double y1, double x2, double y2, double radius);
     void rect(double x, double y, double w, double h);
+    void roundRect(double x, double y, double w, double h, Object radii);
     void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise);
     void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise);
 
@@ -85,6 +103,15 @@ public interface ICanvasRenderingContext2D {
 
     String getTextBaseline();
     void setTextBaseline(String textBaseline);
+
+    String getDirection();
+    void setDirection(String direction);
+
+    double getLetterSpacing();
+    void setLetterSpacing(double spacing);
+
+    double getWordSpacing();
+    void setWordSpacing(double spacing);
 
     void fillText(String text, double x, double y, double maxWidth);
     void strokeText(String text, double x, double y, double maxWidth);

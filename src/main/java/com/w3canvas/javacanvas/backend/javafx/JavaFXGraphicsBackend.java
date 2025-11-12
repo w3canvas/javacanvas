@@ -24,6 +24,13 @@ public class JavaFXGraphicsBackend implements IGraphicsBackend {
     }
 
     @Override
+    public ICanvasGradient createConicGradient(double startAngle, double x, double y) {
+        // TODO: Implement proper conic gradient for JavaFX
+        // For now, return a radial gradient as temporary fallback
+        return new JavaFXRadialGradient(x, y, 0, x, y, 100);
+    }
+
+    @Override
     public ICanvasPattern createPattern(Object image, String repetition) {
         return new JavaFXPattern((javafx.scene.image.Image) image, repetition);
     }

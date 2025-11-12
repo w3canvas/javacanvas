@@ -26,6 +26,21 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     private Object lineDash;
     private double lineDashOffset;
 
+    // Shadow properties
+    private double shadowBlur;
+    private String shadowColor;
+    private double shadowOffsetX;
+    private double shadowOffsetY;
+
+    // Image smoothing
+    private boolean imageSmoothingEnabled;
+    private String imageSmoothingQuality;
+
+    // Modern text properties
+    private String direction;
+    private double letterSpacing;
+    private double wordSpacing;
+
     public CoreCanvasRenderingContext2D(Document document, IGraphicsBackend backend, int width, int height) {
         this.document = document;
         this.backend = backend;
@@ -53,6 +68,22 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         miterLimit = 10.0;
         lineDash = new double[0];
         lineDashOffset = 0.0;
+
+        // Initialize shadow properties
+        shadowBlur = 0.0;
+        shadowColor = "rgba(0, 0, 0, 0)"; // transparent black
+        shadowOffsetX = 0.0;
+        shadowOffsetY = 0.0;
+
+        // Initialize image smoothing
+        imageSmoothingEnabled = true;
+        imageSmoothingQuality = "low";
+
+        // Initialize modern text properties
+        direction = "inherit";
+        letterSpacing = 0.0;
+        wordSpacing = 0.0;
+
         setFont("10px sans-serif");
         setTextAlign("start");
         setTextBaseline("alphabetic");
@@ -158,6 +189,11 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     }
 
     @Override
+    public ICanvasGradient createConicGradient(double startAngle, double x, double y) {
+        return backend.createConicGradient(startAngle, x, y);
+    }
+
+    @Override
     public ICanvasPattern createPattern(Object image, String repetition) {
         return backend.createPattern(image, repetition);
     }
@@ -222,6 +258,71 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         this.lineDashOffset = offset;
     }
 
+    // Shadow properties implementation
+    @Override
+    public double getShadowBlur() {
+        return shadowBlur;
+    }
+
+    @Override
+    public void setShadowBlur(double blur) {
+        this.shadowBlur = Math.max(0, blur); // Ensure non-negative
+    }
+
+    @Override
+    public String getShadowColor() {
+        return shadowColor;
+    }
+
+    @Override
+    public void setShadowColor(String color) {
+        this.shadowColor = color != null ? color : "rgba(0, 0, 0, 0)";
+    }
+
+    @Override
+    public double getShadowOffsetX() {
+        return shadowOffsetX;
+    }
+
+    @Override
+    public void setShadowOffsetX(double offsetX) {
+        this.shadowOffsetX = offsetX;
+    }
+
+    @Override
+    public double getShadowOffsetY() {
+        return shadowOffsetY;
+    }
+
+    @Override
+    public void setShadowOffsetY(double offsetY) {
+        this.shadowOffsetY = offsetY;
+    }
+
+    // Image smoothing implementation
+    @Override
+    public boolean getImageSmoothingEnabled() {
+        return imageSmoothingEnabled;
+    }
+
+    @Override
+    public void setImageSmoothingEnabled(boolean enabled) {
+        this.imageSmoothingEnabled = enabled;
+    }
+
+    @Override
+    public String getImageSmoothingQuality() {
+        return imageSmoothingQuality;
+    }
+
+    @Override
+    public void setImageSmoothingQuality(String quality) {
+        // Validate quality: "low", "medium", "high"
+        if ("low".equals(quality) || "medium".equals(quality) || "high".equals(quality)) {
+            this.imageSmoothingQuality = quality;
+        }
+    }
+
     @Override
     public void clearRect(double x, double y, double w, double h) {
         gc.clearRect(x, y, w, h);
@@ -282,6 +383,11 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public void rect(double x, double y, double w, double h) {
         gc.rect(x, y, w, h);
+    }
+
+    @Override
+    public void roundRect(double x, double y, double w, double h, Object radii) {
+        gc.roundRect(x, y, w, h, radii);
     }
 
     @Override
@@ -472,6 +578,40 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         this.textBaseline = textBaseline;
     }
 
+    // Modern text properties implementation
+    @Override
+    public String getDirection() {
+        return direction;
+    }
+
+    @Override
+    public void setDirection(String direction) {
+        // Validate direction: "ltr", "rtl", "inherit"
+        if ("ltr".equals(direction) || "rtl".equals(direction) || "inherit".equals(direction)) {
+            this.direction = direction;
+        }
+    }
+
+    @Override
+    public double getLetterSpacing() {
+        return letterSpacing;
+    }
+
+    @Override
+    public void setLetterSpacing(double spacing) {
+        this.letterSpacing = spacing;
+    }
+
+    @Override
+    public double getWordSpacing() {
+        return wordSpacing;
+    }
+
+    @Override
+    public void setWordSpacing(double spacing) {
+        this.wordSpacing = spacing;
+    }
+
     @Override
     public void fillText(String text, double x, double y, double maxWidth) {
         applyCurrentState();
@@ -552,6 +692,21 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         private final double lineDashOffset;
         private final Object transform;
 
+        // Shadow properties
+        private final double shadowBlur;
+        private final String shadowColor;
+        private final double shadowOffsetX;
+        private final double shadowOffsetY;
+
+        // Image smoothing
+        private final boolean imageSmoothingEnabled;
+        private final String imageSmoothingQuality;
+
+        // Modern text properties
+        private final String direction;
+        private final double letterSpacing;
+        private final double wordSpacing;
+
         ContextState(CoreCanvasRenderingContext2D ctx) {
             this.fillStyle = ctx.fillStyle;
             this.strokeStyle = ctx.strokeStyle;
@@ -564,6 +719,21 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             this.lineDash = ctx.lineDash;
             this.lineDashOffset = ctx.lineDashOffset;
             this.transform = ctx.gc.getTransform();
+
+            // Save shadow properties
+            this.shadowBlur = ctx.shadowBlur;
+            this.shadowColor = ctx.shadowColor;
+            this.shadowOffsetX = ctx.shadowOffsetX;
+            this.shadowOffsetY = ctx.shadowOffsetY;
+
+            // Save image smoothing
+            this.imageSmoothingEnabled = ctx.imageSmoothingEnabled;
+            this.imageSmoothingQuality = ctx.imageSmoothingQuality;
+
+            // Save modern text properties
+            this.direction = ctx.direction;
+            this.letterSpacing = ctx.letterSpacing;
+            this.wordSpacing = ctx.wordSpacing;
         }
 
         void apply(CoreCanvasRenderingContext2D ctx) {
@@ -578,6 +748,21 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             ctx.lineDash = this.lineDash;
             ctx.lineDashOffset = this.lineDashOffset;
             ctx.gc.setTransform(this.transform);
+
+            // Restore shadow properties
+            ctx.shadowBlur = this.shadowBlur;
+            ctx.shadowColor = this.shadowColor;
+            ctx.shadowOffsetX = this.shadowOffsetX;
+            ctx.shadowOffsetY = this.shadowOffsetY;
+
+            // Restore image smoothing
+            ctx.imageSmoothingEnabled = this.imageSmoothingEnabled;
+            ctx.imageSmoothingQuality = this.imageSmoothingQuality;
+
+            // Restore modern text properties
+            ctx.direction = this.direction;
+            ctx.letterSpacing = this.letterSpacing;
+            ctx.wordSpacing = this.wordSpacing;
         }
     }
 }
