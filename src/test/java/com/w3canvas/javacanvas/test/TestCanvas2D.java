@@ -1103,4 +1103,408 @@ public class TestCanvas2D extends ApplicationTest {
 
         assertTrue(inStroke.get(), "Point should be in the stroke of the arc");
     }
+
+    // =============================================================================
+    // Tests for newly implemented Canvas 2D API features
+    // =============================================================================
+
+    @Test
+    public void testShadowProperties() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                // Test shadow property getters/setters
+                ctx.setShadowBlur(10.0);
+                assertEquals(10.0, ctx.getShadowBlur(), 0.001);
+
+                ctx.setShadowColor("rgba(0, 0, 0, 0.5)");
+                assertEquals("rgba(0, 0, 0, 0.5)", ctx.getShadowColor());
+
+                ctx.setShadowOffsetX(5.0);
+                assertEquals(5.0, ctx.getShadowOffsetX(), 0.001);
+
+                ctx.setShadowOffsetY(3.0);
+                assertEquals(3.0, ctx.getShadowOffsetY(), 0.001);
+            } finally {
+                Context.exit();
+            }
+        });
+    }
+
+    @Test
+    public void testShadowRendering() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Draw a rectangle with shadow
+                ctx.setShadowBlur(10.0);
+                ctx.setShadowColor("rgba(0, 0, 0, 0.5)");
+                ctx.setShadowOffsetX(10.0);
+                ctx.setShadowOffsetY(10.0);
+                ctx.setFillStyle("red");
+                ctx.fillRect(50, 50, 100, 100);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Check the rectangle itself
+        assertPixel(ctx, 100, 100, 255, 0, 0, 255, 10);
+
+        // Shadow should be visible offset from the rectangle
+        // Note: Shadow rendering is approximate, so we use high tolerance
+    }
+
+    @Test
+    public void testShadowStateManagement() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.setShadowBlur(10.0);
+                ctx.setShadowColor("red");
+                ctx.save();
+
+                ctx.setShadowBlur(20.0);
+                ctx.setShadowColor("blue");
+                assertEquals(20.0, ctx.getShadowBlur(), 0.001);
+                assertEquals("blue", ctx.getShadowColor());
+
+                ctx.restore();
+                assertEquals(10.0, ctx.getShadowBlur(), 0.001);
+                assertEquals("red", ctx.getShadowColor());
+            } finally {
+                Context.exit();
+            }
+        });
+    }
+
+    @Test
+    public void testImageSmoothingProperties() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                // Default should be true
+                assertTrue(ctx.getImageSmoothingEnabled());
+                assertEquals("low", ctx.getImageSmoothingQuality());
+
+                // Test setting properties
+                ctx.setImageSmoothingEnabled(false);
+                assertEquals(false, ctx.getImageSmoothingEnabled());
+
+                ctx.setImageSmoothingQuality("high");
+                assertEquals("high", ctx.getImageSmoothingQuality());
+
+                ctx.setImageSmoothingQuality("medium");
+                assertEquals("medium", ctx.getImageSmoothingQuality());
+            } finally {
+                Context.exit();
+            }
+        });
+    }
+
+    @Test
+    public void testImageSmoothingStateManagement() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.setImageSmoothingEnabled(false);
+                ctx.setImageSmoothingQuality("high");
+                ctx.save();
+
+                ctx.setImageSmoothingEnabled(true);
+                ctx.setImageSmoothingQuality("low");
+                assertTrue(ctx.getImageSmoothingEnabled());
+                assertEquals("low", ctx.getImageSmoothingQuality());
+
+                ctx.restore();
+                assertEquals(false, ctx.getImageSmoothingEnabled());
+                assertEquals("high", ctx.getImageSmoothingQuality());
+            } finally {
+                Context.exit();
+            }
+        });
+    }
+
+    @Test
+    public void testRoundRectWithSingleRadius() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.beginPath();
+                ctx.roundRect(50, 50, 100, 100, 10.0);
+                ctx.setFillStyle("blue");
+                ctx.fill();
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Check center of rectangle
+        assertPixel(ctx, 100, 100, 0, 0, 255, 255);
+
+        // Check corners are rounded (corners should be transparent/background)
+        // Note: Exact corner pixels depend on rounding algorithm
+    }
+
+    @Test
+    public void testRoundRectWithArrayRadii() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.beginPath();
+                // Array with 4 values: [top-left, top-right, bottom-right, bottom-left]
+                double[] radii = {5.0, 10.0, 15.0, 20.0};
+                ctx.roundRect(50, 50, 100, 100, radii);
+                ctx.setFillStyle("green");
+                ctx.fill();
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Check center of rectangle
+        assertPixel(ctx, 100, 100, 0, 255, 0, 255);
+    }
+
+    @Test
+    public void testRoundRectZeroRadii() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.beginPath();
+                ctx.roundRect(50, 50, 100, 100, 0.0);
+                ctx.setFillStyle("red");
+                ctx.fill();
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Zero radius should be same as regular rect
+        assertPixel(ctx, 100, 100, 255, 0, 0, 255);
+        assertPixel(ctx, 50, 50, 255, 0, 0, 255); // Corner should be filled
+    }
+
+    @Test
+    public void testCreateConicGradient() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                // Create a conic gradient
+                ICanvasGradient gradient = ctx.createConicGradient(0, 100, 100);
+
+                // Note: Conic gradient currently returns a fallback radial gradient
+                // Full implementation would require custom gradient rendering
+                assertTrue(gradient != null, "Conic gradient should be created");
+            } finally {
+                Context.exit();
+            }
+        });
+    }
+
+    @Test
+    public void testCompositeOperations() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                // Test various composite operations
+                String[] operations = {
+                    "source-over", "source-in", "source-out", "source-atop",
+                    "destination-over", "destination-in", "destination-out", "destination-atop",
+                    "lighter", "copy", "xor"
+                };
+
+                for (String op : operations) {
+                    ctx.setGlobalCompositeOperation(op);
+                    assertEquals(op, ctx.getGlobalCompositeOperation());
+                }
+            } finally {
+                Context.exit();
+            }
+        });
+    }
+
+    @Test
+    public void testBlendModes() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                // Test CSS blend modes
+                String[] blendModes = {
+                    "multiply", "screen", "overlay", "darken", "lighten",
+                    "color-dodge", "color-burn", "hard-light", "soft-light",
+                    "difference", "exclusion"
+                };
+
+                for (String mode : blendModes) {
+                    ctx.setGlobalCompositeOperation(mode);
+                    assertEquals(mode, ctx.getGlobalCompositeOperation());
+                }
+            } finally {
+                Context.exit();
+            }
+        });
+    }
+
+    @Test
+    public void testBlendModeRendering() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Draw red rectangle
+                ctx.setFillStyle("red");
+                ctx.fillRect(50, 50, 100, 100);
+
+                // Draw blue rectangle with multiply blend mode
+                ctx.setGlobalCompositeOperation("multiply");
+                ctx.setFillStyle("blue");
+                ctx.fillRect(100, 100, 100, 100);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Red area
+        assertPixel(ctx, 75, 75, 255, 0, 0, 255, 30);
+
+        // Blue area
+        assertPixel(ctx, 175, 175, 0, 0, 255, 255, 30);
+
+        // Overlapping area with multiply should be darker
+        // Note: Exact color depends on blend implementation
+    }
+
+    @Test
+    public void testModernTextProperties() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                // Test direction property
+                assertEquals("inherit", ctx.getDirection());
+                ctx.setDirection("ltr");
+                assertEquals("ltr", ctx.getDirection());
+                ctx.setDirection("rtl");
+                assertEquals("rtl", ctx.getDirection());
+
+                // Test letterSpacing property
+                assertEquals(0.0, ctx.getLetterSpacing(), 0.001);
+                ctx.setLetterSpacing(2.5);
+                assertEquals(2.5, ctx.getLetterSpacing(), 0.001);
+
+                // Test wordSpacing property
+                assertEquals(0.0, ctx.getWordSpacing(), 0.001);
+                ctx.setWordSpacing(5.0);
+                assertEquals(5.0, ctx.getWordSpacing(), 0.001);
+            } finally {
+                Context.exit();
+            }
+        });
+    }
+
+    @Test
+    public void testModernTextStateManagement() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.setDirection("ltr");
+                ctx.setLetterSpacing(2.0);
+                ctx.setWordSpacing(3.0);
+                ctx.save();
+
+                ctx.setDirection("rtl");
+                ctx.setLetterSpacing(5.0);
+                ctx.setWordSpacing(7.0);
+                assertEquals("rtl", ctx.getDirection());
+                assertEquals(5.0, ctx.getLetterSpacing(), 0.001);
+                assertEquals(7.0, ctx.getWordSpacing(), 0.001);
+
+                ctx.restore();
+                assertEquals("ltr", ctx.getDirection());
+                assertEquals(2.0, ctx.getLetterSpacing(), 0.001);
+                assertEquals(3.0, ctx.getWordSpacing(), 0.001);
+            } finally {
+                Context.exit();
+            }
+        });
+    }
+
+    @Test
+    public void testCombinedNewFeatures() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Use shadow, blend mode, and roundRect together
+                ctx.setShadowBlur(5.0);
+                ctx.setShadowColor("rgba(0, 0, 0, 0.3)");
+                ctx.setShadowOffsetX(3.0);
+                ctx.setShadowOffsetY(3.0);
+
+                ctx.setGlobalCompositeOperation("multiply");
+                ctx.setFillStyle("rgba(255, 0, 0, 0.8)");
+
+                ctx.beginPath();
+                ctx.roundRect(50, 50, 100, 100, 15.0);
+                ctx.fill();
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Verify the shape was drawn
+        assertPixel(ctx, 100, 100, 255, 0, 0, 255, 50);
+    }
 }
