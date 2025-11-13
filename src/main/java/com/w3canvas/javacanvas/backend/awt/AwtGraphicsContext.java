@@ -444,9 +444,124 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void roundRect(double x, double y, double w, double h, Object radii) {
-        // TODO: Implement proper roundRect with corner radius parsing
-        // For now, fall back to regular rect
-        rect(x, y, w, h);
+        double[] cornerRadii = parseRoundRectRadii(radii);
+
+        // Extract individual corner radii (CSS order: TL, TR, BR, BL)
+        double tlRadius = cornerRadii[0];
+        double trRadius = cornerRadii[1];
+        double brRadius = cornerRadii[2];
+        double blRadius = cornerRadii[3];
+
+        // Clamp radii to not exceed half of width or height
+        double maxRadius = Math.min(Math.abs(w) / 2, Math.abs(h) / 2);
+        tlRadius = Math.min(tlRadius, maxRadius);
+        trRadius = Math.min(trRadius, maxRadius);
+        brRadius = Math.min(brRadius, maxRadius);
+        blRadius = Math.min(blRadius, maxRadius);
+
+        // If all radii are zero, just draw a regular rect
+        if (tlRadius == 0 && trRadius == 0 && brRadius == 0 && blRadius == 0) {
+            rect(x, y, w, h);
+            return;
+        }
+
+        // Build the rounded rectangle path manually
+        java.awt.geom.Path2D.Double roundedRect = new java.awt.geom.Path2D.Double();
+
+        // Start at top-left corner (after the radius)
+        roundedRect.moveTo(x + tlRadius, y);
+
+        // Top edge and top-right corner
+        roundedRect.lineTo(x + w - trRadius, y);
+        if (trRadius > 0) {
+            roundedRect.quadTo(x + w, y, x + w, y + trRadius);
+        }
+
+        // Right edge and bottom-right corner
+        roundedRect.lineTo(x + w, y + h - brRadius);
+        if (brRadius > 0) {
+            roundedRect.quadTo(x + w, y + h, x + w - brRadius, y + h);
+        }
+
+        // Bottom edge and bottom-left corner
+        roundedRect.lineTo(x + blRadius, y + h);
+        if (blRadius > 0) {
+            roundedRect.quadTo(x, y + h, x, y + h - blRadius);
+        }
+
+        // Left edge and top-left corner
+        roundedRect.lineTo(x, y + tlRadius);
+        if (tlRadius > 0) {
+            roundedRect.quadTo(x, y, x + tlRadius, y);
+        }
+
+        roundedRect.closePath();
+
+        // Transform and append to path
+        path.append(g2d.getTransform().createTransformedShape(roundedRect), true);
+    }
+
+    /**
+     * Parse roundRect radii parameter according to Canvas 2D spec.
+     * Returns array of 4 corner radii: [top-left, top-right, bottom-right, bottom-left]
+     */
+    private double[] parseRoundRectRadii(Object radii) {
+        if (radii == null) {
+            return new double[]{0, 0, 0, 0};
+        }
+
+        // Handle single number
+        if (radii instanceof Number) {
+            double r = ((Number) radii).doubleValue();
+            return new double[]{r, r, r, r};
+        }
+
+        // Handle arrays (both Java arrays and Rhino NativeArray)
+        double[] values = null;
+
+        if (radii instanceof double[]) {
+            values = (double[]) radii;
+        } else if (radii instanceof Object[]) {
+            Object[] arr = (Object[]) radii;
+            values = new double[arr.length];
+            for (int i = 0; i < arr.length; i++) {
+                if (arr[i] instanceof Number) {
+                    values[i] = ((Number) arr[i]).doubleValue();
+                }
+            }
+        } else if (radii instanceof org.mozilla.javascript.NativeArray) {
+            org.mozilla.javascript.NativeArray arr = (org.mozilla.javascript.NativeArray) radii;
+            int len = (int) arr.getLength();
+            values = new double[len];
+            for (int i = 0; i < len; i++) {
+                Object val = arr.get(i);
+                if (val instanceof Number) {
+                    values[i] = ((Number) val).doubleValue();
+                }
+            }
+        }
+
+        if (values != null && values.length > 0) {
+            // CSS-style corner radius specification
+            switch (values.length) {
+                case 1:
+                    // All corners
+                    return new double[]{values[0], values[0], values[0], values[0]};
+                case 2:
+                    // [top-left & bottom-right, top-right & bottom-left]
+                    return new double[]{values[0], values[1], values[0], values[1]};
+                case 3:
+                    // [top-left, top-right & bottom-left, bottom-right]
+                    return new double[]{values[0], values[1], values[2], values[1]};
+                case 4:
+                default:
+                    // [top-left, top-right, bottom-right, bottom-left]
+                    return new double[]{values[0], values[1], values[2], values[3]};
+            }
+        }
+
+        // Default: no rounding
+        return new double[]{0, 0, 0, 0};
     }
 
     @Override
