@@ -32,6 +32,16 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     private IPaint fillPaint;
     private IPaint strokePaint;
 
+    // Shadow properties
+    private double shadowBlur = 0;
+    private String shadowColor = "rgba(0, 0, 0, 0)";
+    private double shadowOffsetX = 0;
+    private double shadowOffsetY = 0;
+
+    // Image smoothing
+    private boolean imageSmoothingEnabled = true;
+    private String imageSmoothingQuality = "low";
+
     public JavaFXGraphicsContext(GraphicsContext gc) {
         this.gc = gc;
         this.path = new Path();
@@ -672,5 +682,88 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     @Override
     public IShape getPath() {
         return new JavaFXShape(new Path(path.getElements()));
+    }
+
+    // Shadow property setters
+    @Override
+    public void setShadowBlur(double blur) {
+        this.shadowBlur = Math.max(0, blur);
+        applyShadowEffect();
+    }
+
+    @Override
+    public void setShadowColor(String color) {
+        this.shadowColor = color != null ? color : "rgba(0, 0, 0, 0)";
+        applyShadowEffect();
+    }
+
+    @Override
+    public void setShadowOffsetX(double offsetX) {
+        this.shadowOffsetX = offsetX;
+        applyShadowEffect();
+    }
+
+    @Override
+    public void setShadowOffsetY(double offsetY) {
+        this.shadowOffsetY = offsetY;
+        applyShadowEffect();
+    }
+
+    // Image smoothing setters
+    @Override
+    public void setImageSmoothingEnabled(boolean enabled) {
+        this.imageSmoothingEnabled = enabled;
+        gc.setImageSmoothing(enabled);
+    }
+
+    @Override
+    public void setImageSmoothingQuality(String quality) {
+        this.imageSmoothingQuality = quality;
+        // JavaFX doesn't have a direct quality setting, but we store it for consistency
+    }
+
+    private void applyShadowEffect() {
+        boolean hasShadow = (shadowBlur > 0 || shadowOffsetX != 0 || shadowOffsetY != 0)
+                          && shadowColor != null && !shadowColor.equals("rgba(0, 0, 0, 0)");
+
+        if (hasShadow) {
+            // Set shadow effect on JavaFX GraphicsContext
+            javafx.scene.effect.DropShadow shadow = new javafx.scene.effect.DropShadow();
+            shadow.setRadius(shadowBlur);
+            shadow.setOffsetX(shadowOffsetX);
+            shadow.setOffsetY(shadowOffsetY);
+
+            // Parse color
+            Color shadowCol = parseColor(shadowColor);
+            shadow.setColor(shadowCol);
+
+            gc.setEffect(shadow);
+        } else {
+            gc.setEffect(null);
+        }
+    }
+
+    private Color parseColor(String color) {
+        try {
+            if (color.startsWith("rgba(")) {
+                String[] parts = color.substring(5, color.length() - 1).split(",");
+                double r = Double.parseDouble(parts[0].trim()) / 255.0;
+                double g = Double.parseDouble(parts[1].trim()) / 255.0;
+                double b = Double.parseDouble(parts[2].trim()) / 255.0;
+                double a = Double.parseDouble(parts[3].trim());
+                return new Color(r, g, b, a);
+            } else if (color.startsWith("rgb(")) {
+                String[] parts = color.substring(4, color.length() - 1).split(",");
+                double r = Double.parseDouble(parts[0].trim()) / 255.0;
+                double g = Double.parseDouble(parts[1].trim()) / 255.0;
+                double b = Double.parseDouble(parts[2].trim()) / 255.0;
+                return new Color(r, g, b, 1.0);
+            } else if (color.startsWith("#")) {
+                return Color.web(color);
+            }
+        } catch (Exception e) {
+            // Fallback
+        }
+        return Color.BLACK;
     }
 }

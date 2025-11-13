@@ -27,6 +27,16 @@ public interface IGraphicsContext {
     void setTextAlign(String textAlign);
     void setTextBaseline(String textBaseline);
 
+    // Shadow properties
+    void setShadowBlur(double blur);
+    void setShadowColor(String color);
+    void setShadowOffsetX(double offsetX);
+    void setShadowOffsetY(double offsetY);
+
+    // Image smoothing
+    void setImageSmoothingEnabled(boolean enabled);
+    void setImageSmoothingQuality(String quality);
+
     // Drawing operations
     void clearRect(double x, double y, double w, double h);
     void draw(IShape shape);

@@ -406,6 +406,16 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             gc.setComposite(composite);
         }
         gc.setGlobalAlpha(this.globalAlpha);
+
+        // Apply shadow properties
+        gc.setShadowBlur(this.shadowBlur);
+        gc.setShadowColor(this.shadowColor);
+        gc.setShadowOffsetX(this.shadowOffsetX);
+        gc.setShadowOffsetY(this.shadowOffsetY);
+
+        // Apply image smoothing
+        gc.setImageSmoothingEnabled(this.imageSmoothingEnabled);
+        gc.setImageSmoothingQuality(this.imageSmoothingQuality);
     }
 
     @Override

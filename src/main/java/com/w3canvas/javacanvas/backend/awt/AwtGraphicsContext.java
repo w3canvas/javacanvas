@@ -27,6 +27,16 @@ public class AwtGraphicsContext implements IGraphicsContext {
     private IPaint fillPaint;
     private IPaint strokePaint;
 
+    // Shadow properties
+    private double shadowBlur = 0;
+    private String shadowColor = "rgba(0, 0, 0, 0)";
+    private double shadowOffsetX = 0;
+    private double shadowOffsetY = 0;
+
+    // Image smoothing
+    private boolean imageSmoothingEnabled = true;
+    private String imageSmoothingQuality = "low";
+
     public AwtGraphicsContext(Graphics2D g2d, AwtCanvasSurface surface) {
         this.g2d = g2d;
         this.surface = surface;
@@ -476,11 +486,17 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fill() {
+        // Apply shadow first
+        applyShadow(this.path, true);
+        // Then draw the actual shape
         g2d.fill(this.path);
     }
 
     @Override
     public void stroke() {
+        // Apply shadow first
+        applyShadow(this.path, false);
+        // Then draw the actual shape
         g2d.draw(this.path);
     }
 
@@ -502,5 +518,138 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public double[] getLastPoint() {
         return lastPoint;
+    }
+
+    // Shadow property setters
+    @Override
+    public void setShadowBlur(double blur) {
+        this.shadowBlur = Math.max(0, blur);
+    }
+
+    @Override
+    public void setShadowColor(String color) {
+        this.shadowColor = color != null ? color : "rgba(0, 0, 0, 0)";
+    }
+
+    @Override
+    public void setShadowOffsetX(double offsetX) {
+        this.shadowOffsetX = offsetX;
+    }
+
+    @Override
+    public void setShadowOffsetY(double offsetY) {
+        this.shadowOffsetY = offsetY;
+    }
+
+    // Image smoothing setters
+    @Override
+    public void setImageSmoothingEnabled(boolean enabled) {
+        this.imageSmoothingEnabled = enabled;
+        updateImageSmoothingHints();
+    }
+
+    @Override
+    public void setImageSmoothingQuality(String quality) {
+        this.imageSmoothingQuality = quality;
+        updateImageSmoothingHints();
+    }
+
+    private void updateImageSmoothingHints() {
+        if (!imageSmoothingEnabled) {
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        } else {
+            if ("low".equals(imageSmoothingQuality)) {
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            } else if ("medium".equals(imageSmoothingQuality) || "high".equals(imageSmoothingQuality)) {
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            }
+        }
+    }
+
+    // Helper method to apply shadow effect
+    private void applyShadow(Shape shape, boolean isFill) {
+        // Check if shadow is active (non-zero offset or blur, and non-transparent color)
+        boolean hasShadow = (shadowBlur > 0 || shadowOffsetX != 0 || shadowOffsetY != 0)
+                          && shadowColor != null && !shadowColor.equals("rgba(0, 0, 0, 0)");
+
+        if (!hasShadow) {
+            return;
+        }
+
+        // Parse shadow color
+        java.awt.Color shadowCol = parseColor(shadowColor);
+        if (shadowCol.getAlpha() == 0) {
+            return; // Fully transparent shadow
+        }
+
+        // Save current state
+        Paint oldPaint = g2d.getPaint();
+        Composite oldComposite = g2d.getComposite();
+
+        // Create transformed shape for shadow
+        AffineTransform shadowTransform = AffineTransform.getTranslateInstance(shadowOffsetX, shadowOffsetY);
+        Shape shadowShape = shadowTransform.createTransformedShape(shape);
+
+        // Apply shadow with blur approximation
+        if (shadowBlur > 0) {
+            // Simple blur approximation: draw multiple times with decreasing opacity
+            int blurSteps = Math.min((int) Math.ceil(shadowBlur / 2), 5);
+            float baseAlpha = shadowCol.getAlpha() / 255.0f;
+
+            for (int i = 0; i < blurSteps; i++) {
+                float alpha = baseAlpha * (1.0f - (float) i / blurSteps) / blurSteps;
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+                g2d.setPaint(new java.awt.Color(shadowCol.getRed(), shadowCol.getGreen(), shadowCol.getBlue()));
+
+                double spread = i * shadowBlur / blurSteps;
+                AffineTransform blurTransform = AffineTransform.getTranslateInstance(
+                    shadowOffsetX - spread / 2, shadowOffsetY - spread / 2
+                );
+                Shape blurredShape = blurTransform.createTransformedShape(shape);
+
+                if (isFill) {
+                    g2d.fill(blurredShape);
+                } else {
+                    g2d.draw(blurredShape);
+                }
+            }
+        } else {
+            // No blur, just draw shadow once
+            g2d.setPaint(shadowCol);
+            if (isFill) {
+                g2d.fill(shadowShape);
+            } else {
+                g2d.draw(shadowShape);
+            }
+        }
+
+        // Restore state
+        g2d.setPaint(oldPaint);
+        g2d.setComposite(oldComposite);
+    }
+
+    private java.awt.Color parseColor(String color) {
+        try {
+            // Use existing ColorParser if available, otherwise parse basic colors
+            if (color.startsWith("rgba(")) {
+                String[] parts = color.substring(5, color.length() - 1).split(",");
+                int r = Integer.parseInt(parts[0].trim());
+                int g = Integer.parseInt(parts[1].trim());
+                int b = Integer.parseInt(parts[2].trim());
+                float a = Float.parseFloat(parts[3].trim());
+                return new java.awt.Color(r, g, b, (int) (a * 255));
+            } else if (color.startsWith("rgb(")) {
+                String[] parts = color.substring(4, color.length() - 1).split(",");
+                int r = Integer.parseInt(parts[0].trim());
+                int g = Integer.parseInt(parts[1].trim());
+                int b = Integer.parseInt(parts[2].trim());
+                return new java.awt.Color(r, g, b);
+            } else if (color.startsWith("#")) {
+                return java.awt.Color.decode(color);
+            }
+        } catch (Exception e) {
+            // Fallback to black
+        }
+        return java.awt.Color.BLACK;
     }
 }
