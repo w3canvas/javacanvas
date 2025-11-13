@@ -140,6 +140,11 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     @Override
+    public ICanvasGradient createConicGradient(double startAngle, double x, double y) {
+        return core.createConicGradient(startAngle, x, y);
+    }
+
+    @Override
     public ICanvasPattern createPattern(Object image, String repetition) {
         if (image instanceof HTMLCanvasElement) {
             HTMLCanvasElement canvas = (HTMLCanvasElement) image;
@@ -217,6 +222,68 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         core.setLineDashOffset(offset);
     }
 
+    // Shadow properties implementation
+    @Override
+    public double getShadowBlur() {
+        return core.getShadowBlur();
+    }
+
+    @Override
+    public void setShadowBlur(double blur) {
+        core.setShadowBlur(blur);
+    }
+
+    @Override
+    public String getShadowColor() {
+        return core.getShadowColor();
+    }
+
+    @Override
+    public void setShadowColor(String color) {
+        core.setShadowColor(color);
+    }
+
+    @Override
+    public double getShadowOffsetX() {
+        return core.getShadowOffsetX();
+    }
+
+    @Override
+    public void setShadowOffsetX(double offsetX) {
+        core.setShadowOffsetX(offsetX);
+    }
+
+    @Override
+    public double getShadowOffsetY() {
+        return core.getShadowOffsetY();
+    }
+
+    @Override
+    public void setShadowOffsetY(double offsetY) {
+        core.setShadowOffsetY(offsetY);
+    }
+
+    // Image smoothing implementation
+    @Override
+    public boolean getImageSmoothingEnabled() {
+        return core.getImageSmoothingEnabled();
+    }
+
+    @Override
+    public void setImageSmoothingEnabled(boolean enabled) {
+        core.setImageSmoothingEnabled(enabled);
+    }
+
+    @Override
+    public String getImageSmoothingQuality() {
+        return core.getImageSmoothingQuality();
+    }
+
+    @Override
+    public void setImageSmoothingQuality(String quality) {
+        core.setImageSmoothingQuality(quality);
+    }
+
     @Override
     public void clearRect(double x, double y, double w, double h) {
         core.clearRect(x, y, w, h);
@@ -273,6 +340,11 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     @Override
     public void rect(double x, double y, double w, double h) {
         core.rect(x, y, w, h);
+    }
+
+    @Override
+    public void roundRect(double x, double y, double w, double h, Object radii) {
+        core.roundRect(x, y, w, h, radii);
     }
 
     @Override
@@ -363,6 +435,37 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     @Override
     public void setTextBaseline(String textBaseline) {
         core.setTextBaseline(textBaseline);
+    }
+
+    // Modern text properties implementation
+    @Override
+    public String getDirection() {
+        return core.getDirection();
+    }
+
+    @Override
+    public void setDirection(String direction) {
+        core.setDirection(direction);
+    }
+
+    @Override
+    public double getLetterSpacing() {
+        return core.getLetterSpacing();
+    }
+
+    @Override
+    public void setLetterSpacing(double spacing) {
+        core.setLetterSpacing(spacing);
+    }
+
+    @Override
+    public double getWordSpacing() {
+        return core.getWordSpacing();
+    }
+
+    @Override
+    public void setWordSpacing(double spacing) {
+        core.setWordSpacing(spacing);
     }
 
     @Override
@@ -515,6 +618,13 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         return rhinoGradient;
     }
 
+    public RhinoCanvasGradient jsFunction_createConicGradient(Double startAngle, Double x, Double y) {
+        ICanvasGradient backendGradient = createConicGradient(startAngle, x, y);
+        RhinoCanvasGradient rhinoGradient = (RhinoCanvasGradient) Context.getCurrentContext().newObject(getParentScope(), "RhinoCanvasGradient");
+        rhinoGradient.init(backendGradient);
+        return rhinoGradient;
+    }
+
     public RhinoCanvasPattern jsFunction_createPattern(Image image, String repetition) {
         ICanvasPattern backendPattern = createPattern(image, repetition);
         RhinoCanvasPattern rhinoPattern = (RhinoCanvasPattern) Context.getCurrentContext().newObject(getParentScope(), "RhinoCanvasPattern");
@@ -627,6 +737,10 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         rect(x, y, w, h);
     }
 
+    public void jsFunction_roundRect(Double x, Double y, Double w, Double h, Object radii) {
+        roundRect(x, y, w, h, radii);
+    }
+
     public void jsFunction_arc(Double x, Double y, Double radius, Double startAngle, Double endAngle, boolean counterclockwise) {
         arc(x, y, radius, startAngle, endAngle, counterclockwise);
     }
@@ -706,6 +820,81 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     @Override
     public void jsSet_textBaseline(String textBaseline) {
         setTextBaseline(textBaseline);
+    }
+
+    // Shadow properties JavaScript bindings
+    public Double jsGet_shadowBlur() {
+        return getShadowBlur();
+    }
+
+    public void jsSet_shadowBlur(Double blur) {
+        setShadowBlur(blur);
+    }
+
+    public String jsGet_shadowColor() {
+        return getShadowColor();
+    }
+
+    public void jsSet_shadowColor(String color) {
+        setShadowColor(color);
+    }
+
+    public Double jsGet_shadowOffsetX() {
+        return getShadowOffsetX();
+    }
+
+    public void jsSet_shadowOffsetX(Double offsetX) {
+        setShadowOffsetX(offsetX);
+    }
+
+    public Double jsGet_shadowOffsetY() {
+        return getShadowOffsetY();
+    }
+
+    public void jsSet_shadowOffsetY(Double offsetY) {
+        setShadowOffsetY(offsetY);
+    }
+
+    // Image smoothing JavaScript bindings
+    public Boolean jsGet_imageSmoothingEnabled() {
+        return getImageSmoothingEnabled();
+    }
+
+    public void jsSet_imageSmoothingEnabled(Boolean enabled) {
+        setImageSmoothingEnabled(enabled);
+    }
+
+    public String jsGet_imageSmoothingQuality() {
+        return getImageSmoothingQuality();
+    }
+
+    public void jsSet_imageSmoothingQuality(String quality) {
+        setImageSmoothingQuality(quality);
+    }
+
+    // Modern text properties JavaScript bindings
+    public String jsGet_direction() {
+        return getDirection();
+    }
+
+    public void jsSet_direction(String direction) {
+        setDirection(direction);
+    }
+
+    public Double jsGet_letterSpacing() {
+        return getLetterSpacing();
+    }
+
+    public void jsSet_letterSpacing(Double spacing) {
+        setLetterSpacing(spacing);
+    }
+
+    public Double jsGet_wordSpacing() {
+        return getWordSpacing();
+    }
+
+    public void jsSet_wordSpacing(Double spacing) {
+        setWordSpacing(spacing);
     }
 
     public ImageData jsFunction_createImageData(int width, int height) {
