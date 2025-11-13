@@ -32,6 +32,16 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     private IPaint fillPaint;
     private IPaint strokePaint;
 
+    // Shadow properties
+    private double shadowBlur = 0;
+    private String shadowColor = "rgba(0, 0, 0, 0)";
+    private double shadowOffsetX = 0;
+    private double shadowOffsetY = 0;
+
+    // Image smoothing
+    private boolean imageSmoothingEnabled = true;
+    private String imageSmoothingQuality = "low";
+
     public JavaFXGraphicsContext(GraphicsContext gc) {
         this.gc = gc;
         this.path = new Path();
@@ -431,6 +441,144 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void roundRect(double x, double y, double w, double h, Object radii) {
+        double[] cornerRadii = parseRoundRectRadii(radii);
+
+        // Extract individual corner radii (CSS order: TL, TR, BR, BL)
+        double tlRadius = cornerRadii[0];
+        double trRadius = cornerRadii[1];
+        double brRadius = cornerRadii[2];
+        double blRadius = cornerRadii[3];
+
+        // Clamp radii to not exceed half of width or height
+        double maxRadius = Math.min(Math.abs(w) / 2, Math.abs(h) / 2);
+        tlRadius = Math.min(tlRadius, maxRadius);
+        trRadius = Math.min(trRadius, maxRadius);
+        brRadius = Math.min(brRadius, maxRadius);
+        blRadius = Math.min(blRadius, maxRadius);
+
+        // If all radii are zero, just draw a regular rect
+        if (tlRadius == 0 && trRadius == 0 && brRadius == 0 && blRadius == 0) {
+            rect(x, y, w, h);
+            return;
+        }
+
+        // Build the rounded rectangle path using JavaFX path elements
+        // Start at top-left corner (after the radius)
+        path.getElements().add(new javafx.scene.shape.MoveTo(x + tlRadius, y));
+
+        // Top edge and top-right corner
+        path.getElements().add(new javafx.scene.shape.LineTo(x + w - trRadius, y));
+        if (trRadius > 0) {
+            path.getElements().add(new javafx.scene.shape.QuadCurveTo(x + w, y, x + w, y + trRadius));
+        }
+
+        // Right edge and bottom-right corner
+        path.getElements().add(new javafx.scene.shape.LineTo(x + w, y + h - brRadius));
+        if (brRadius > 0) {
+            path.getElements().add(new javafx.scene.shape.QuadCurveTo(x + w, y + h, x + w - brRadius, y + h));
+        }
+
+        // Bottom edge and bottom-left corner
+        path.getElements().add(new javafx.scene.shape.LineTo(x + blRadius, y + h));
+        if (blRadius > 0) {
+            path.getElements().add(new javafx.scene.shape.QuadCurveTo(x, y + h, x, y + h - blRadius));
+        }
+
+        // Left edge and top-left corner
+        path.getElements().add(new javafx.scene.shape.LineTo(x, y + tlRadius));
+        if (tlRadius > 0) {
+            path.getElements().add(new javafx.scene.shape.QuadCurveTo(x, y, x + tlRadius, y));
+        }
+
+        path.getElements().add(new javafx.scene.shape.ClosePath());
+
+        // Also add to GraphicsContext for immediate rendering
+        gc.beginPath();
+        gc.moveTo(x + tlRadius, y);
+        gc.lineTo(x + w - trRadius, y);
+        if (trRadius > 0) {
+            gc.quadraticCurveTo(x + w, y, x + w, y + trRadius);
+        }
+        gc.lineTo(x + w, y + h - brRadius);
+        if (brRadius > 0) {
+            gc.quadraticCurveTo(x + w, y + h, x + w - brRadius, y + h);
+        }
+        gc.lineTo(x + blRadius, y + h);
+        if (blRadius > 0) {
+            gc.quadraticCurveTo(x, y + h, x, y + h - blRadius);
+        }
+        gc.lineTo(x, y + tlRadius);
+        if (tlRadius > 0) {
+            gc.quadraticCurveTo(x, y, x + tlRadius, y);
+        }
+        gc.closePath();
+    }
+
+    /**
+     * Parse roundRect radii parameter according to Canvas 2D spec.
+     * Returns array of 4 corner radii: [top-left, top-right, bottom-right, bottom-left]
+     */
+    private double[] parseRoundRectRadii(Object radii) {
+        if (radii == null) {
+            return new double[]{0, 0, 0, 0};
+        }
+
+        // Handle single number
+        if (radii instanceof Number) {
+            double r = ((Number) radii).doubleValue();
+            return new double[]{r, r, r, r};
+        }
+
+        // Handle arrays (both Java arrays and Rhino NativeArray)
+        double[] values = null;
+
+        if (radii instanceof double[]) {
+            values = (double[]) radii;
+        } else if (radii instanceof Object[]) {
+            Object[] arr = (Object[]) radii;
+            values = new double[arr.length];
+            for (int i = 0; i < arr.length; i++) {
+                if (arr[i] instanceof Number) {
+                    values[i] = ((Number) arr[i]).doubleValue();
+                }
+            }
+        } else if (radii instanceof org.mozilla.javascript.NativeArray) {
+            org.mozilla.javascript.NativeArray arr = (org.mozilla.javascript.NativeArray) radii;
+            int len = (int) arr.getLength();
+            values = new double[len];
+            for (int i = 0; i < len; i++) {
+                Object val = arr.get(i);
+                if (val instanceof Number) {
+                    values[i] = ((Number) val).doubleValue();
+                }
+            }
+        }
+
+        if (values != null && values.length > 0) {
+            // CSS-style corner radius specification
+            switch (values.length) {
+                case 1:
+                    // All corners
+                    return new double[]{values[0], values[0], values[0], values[0]};
+                case 2:
+                    // [top-left & bottom-right, top-right & bottom-left]
+                    return new double[]{values[0], values[1], values[0], values[1]};
+                case 3:
+                    // [top-left, top-right & bottom-left, bottom-right]
+                    return new double[]{values[0], values[1], values[2], values[1]};
+                case 4:
+                default:
+                    // [top-left, top-right, bottom-right, bottom-left]
+                    return new double[]{values[0], values[1], values[2], values[3]};
+            }
+        }
+
+        // Default: no rounding
+        return new double[]{0, 0, 0, 0};
+    }
+
+    @Override
     public void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise) {
         double sweep = endAngle - startAngle;
         if (counterclockwise) {
@@ -606,6 +754,14 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
                 double startAngle = Math.toDegrees(Math.atan2(uy, ux));
                 double extent = Math.toDegrees(angle(ux, uy, vx, vy));
 
+                // Adjust sweep direction based on sweepFlag
+                // sweepFlag=true means clockwise (positive), sweepFlag=false means counter-clockwise (negative)
+                if (!sweepFlag && extent > 0) {
+                    extent -= 360;
+                } else if (sweepFlag && extent < 0) {
+                    extent += 360;
+                }
+
                 awtPath.append(new java.awt.geom.Arc2D.Double(cx - radiusX, cy - radiusY, 2 * radiusX, 2 * radiusY, startAngle, extent, java.awt.geom.Arc2D.OPEN), true);
 
             } else if (element instanceof ClosePath) {
@@ -657,5 +813,88 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     @Override
     public IShape getPath() {
         return new JavaFXShape(new Path(path.getElements()));
+    }
+
+    // Shadow property setters
+    @Override
+    public void setShadowBlur(double blur) {
+        this.shadowBlur = Math.max(0, blur);
+        applyShadowEffect();
+    }
+
+    @Override
+    public void setShadowColor(String color) {
+        this.shadowColor = color != null ? color : "rgba(0, 0, 0, 0)";
+        applyShadowEffect();
+    }
+
+    @Override
+    public void setShadowOffsetX(double offsetX) {
+        this.shadowOffsetX = offsetX;
+        applyShadowEffect();
+    }
+
+    @Override
+    public void setShadowOffsetY(double offsetY) {
+        this.shadowOffsetY = offsetY;
+        applyShadowEffect();
+    }
+
+    // Image smoothing setters
+    @Override
+    public void setImageSmoothingEnabled(boolean enabled) {
+        this.imageSmoothingEnabled = enabled;
+        gc.setImageSmoothing(enabled);
+    }
+
+    @Override
+    public void setImageSmoothingQuality(String quality) {
+        this.imageSmoothingQuality = quality;
+        // JavaFX doesn't have a direct quality setting, but we store it for consistency
+    }
+
+    private void applyShadowEffect() {
+        boolean hasShadow = (shadowBlur > 0 || shadowOffsetX != 0 || shadowOffsetY != 0)
+                          && shadowColor != null && !shadowColor.equals("rgba(0, 0, 0, 0)");
+
+        if (hasShadow) {
+            // Set shadow effect on JavaFX GraphicsContext
+            javafx.scene.effect.DropShadow shadow = new javafx.scene.effect.DropShadow();
+            shadow.setRadius(shadowBlur);
+            shadow.setOffsetX(shadowOffsetX);
+            shadow.setOffsetY(shadowOffsetY);
+
+            // Parse color
+            Color shadowCol = parseColor(shadowColor);
+            shadow.setColor(shadowCol);
+
+            gc.setEffect(shadow);
+        } else {
+            gc.setEffect(null);
+        }
+    }
+
+    private Color parseColor(String color) {
+        try {
+            if (color.startsWith("rgba(")) {
+                String[] parts = color.substring(5, color.length() - 1).split(",");
+                double r = Double.parseDouble(parts[0].trim()) / 255.0;
+                double g = Double.parseDouble(parts[1].trim()) / 255.0;
+                double b = Double.parseDouble(parts[2].trim()) / 255.0;
+                double a = Double.parseDouble(parts[3].trim());
+                return new Color(r, g, b, a);
+            } else if (color.startsWith("rgb(")) {
+                String[] parts = color.substring(4, color.length() - 1).split(",");
+                double r = Double.parseDouble(parts[0].trim()) / 255.0;
+                double g = Double.parseDouble(parts[1].trim()) / 255.0;
+                double b = Double.parseDouble(parts[2].trim()) / 255.0;
+                return new Color(r, g, b, 1.0);
+            } else if (color.startsWith("#")) {
+                return Color.web(color);
+            }
+        } catch (Exception e) {
+            // Fallback
+        }
+        return Color.BLACK;
     }
 }

@@ -30,7 +30,21 @@ The test suite has been refactored to be more robust and maintainable. The statu
 *   **`TestJavaFX`**: **Passing**. This is a key test that verifies the JavaFX backend's drawing capabilities. It has been converted to a full TestFX test.
 *   **`TestCSSParser`**: **Passing**. This is a simple unit test for the CSS color parser.
 *   **`TestCanvas`**: **Passing**. This is a smoke test that verifies that the application can be initialized in headless mode without crashing.
+*   **`TestCanvas2D`**: **Re-enabled (35 tests)**. This comprehensive test suite was previously disabled due to state-sharing issues. The root cause was identified as thread-local Rhino Context confusion between JUnit and JavaFX Application threads. Fixed by removing unnecessary Context.enter/exit calls from setUp/tearDown. See `STATE_MANAGEMENT_BUG_ANALYSIS.md` for details.
 *   **`TestWorker`**: **Disabled**. This test is disabled because the application's `Worker` implementation is incomplete. It is missing a required `OffscreenCanvas` class, which is likely part of the missing JavaScript source files.
-*   **`TestCanvas2D`**: **Disabled**. These tests are disabled due to a persistent state-sharing issue between test methods. Despite significant refactoring to ensure test isolation, the tests continue to interfere with each other, causing assertion failures. This points to a deeper issue in the application's state management that is beyond the scope of the initial headless testing refactoring.
 
 The old test scripts (`test.sh`, `test-javafx.sh`) have been removed and replaced by the consolidated `./run-tests.sh` script.
+
+## Test Coverage
+
+Test coverage reporting has been added using JaCoCo. After running tests, coverage reports are available at:
+
+```
+target/site/jacoco/index.html
+```
+
+To generate coverage reports:
+
+```bash
+mvn clean test
+```

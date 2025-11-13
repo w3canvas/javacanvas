@@ -27,6 +27,16 @@ public class AwtGraphicsContext implements IGraphicsContext {
     private IPaint fillPaint;
     private IPaint strokePaint;
 
+    // Shadow properties
+    private double shadowBlur = 0;
+    private String shadowColor = "rgba(0, 0, 0, 0)";
+    private double shadowOffsetX = 0;
+    private double shadowOffsetY = 0;
+
+    // Image smoothing
+    private boolean imageSmoothingEnabled = true;
+    private String imageSmoothingQuality = "low";
+
     public AwtGraphicsContext(Graphics2D g2d, AwtCanvasSurface surface) {
         this.g2d = g2d;
         this.surface = surface;
@@ -433,6 +443,128 @@ public class AwtGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void roundRect(double x, double y, double w, double h, Object radii) {
+        double[] cornerRadii = parseRoundRectRadii(radii);
+
+        // Extract individual corner radii (CSS order: TL, TR, BR, BL)
+        double tlRadius = cornerRadii[0];
+        double trRadius = cornerRadii[1];
+        double brRadius = cornerRadii[2];
+        double blRadius = cornerRadii[3];
+
+        // Clamp radii to not exceed half of width or height
+        double maxRadius = Math.min(Math.abs(w) / 2, Math.abs(h) / 2);
+        tlRadius = Math.min(tlRadius, maxRadius);
+        trRadius = Math.min(trRadius, maxRadius);
+        brRadius = Math.min(brRadius, maxRadius);
+        blRadius = Math.min(blRadius, maxRadius);
+
+        // If all radii are zero, just draw a regular rect
+        if (tlRadius == 0 && trRadius == 0 && brRadius == 0 && blRadius == 0) {
+            rect(x, y, w, h);
+            return;
+        }
+
+        // Build the rounded rectangle path manually
+        java.awt.geom.Path2D.Double roundedRect = new java.awt.geom.Path2D.Double();
+
+        // Start at top-left corner (after the radius)
+        roundedRect.moveTo(x + tlRadius, y);
+
+        // Top edge and top-right corner
+        roundedRect.lineTo(x + w - trRadius, y);
+        if (trRadius > 0) {
+            roundedRect.quadTo(x + w, y, x + w, y + trRadius);
+        }
+
+        // Right edge and bottom-right corner
+        roundedRect.lineTo(x + w, y + h - brRadius);
+        if (brRadius > 0) {
+            roundedRect.quadTo(x + w, y + h, x + w - brRadius, y + h);
+        }
+
+        // Bottom edge and bottom-left corner
+        roundedRect.lineTo(x + blRadius, y + h);
+        if (blRadius > 0) {
+            roundedRect.quadTo(x, y + h, x, y + h - blRadius);
+        }
+
+        // Left edge and top-left corner
+        roundedRect.lineTo(x, y + tlRadius);
+        if (tlRadius > 0) {
+            roundedRect.quadTo(x, y, x + tlRadius, y);
+        }
+
+        roundedRect.closePath();
+
+        // Transform and append to path
+        path.append(g2d.getTransform().createTransformedShape(roundedRect), true);
+    }
+
+    /**
+     * Parse roundRect radii parameter according to Canvas 2D spec.
+     * Returns array of 4 corner radii: [top-left, top-right, bottom-right, bottom-left]
+     */
+    private double[] parseRoundRectRadii(Object radii) {
+        if (radii == null) {
+            return new double[]{0, 0, 0, 0};
+        }
+
+        // Handle single number
+        if (radii instanceof Number) {
+            double r = ((Number) radii).doubleValue();
+            return new double[]{r, r, r, r};
+        }
+
+        // Handle arrays (both Java arrays and Rhino NativeArray)
+        double[] values = null;
+
+        if (radii instanceof double[]) {
+            values = (double[]) radii;
+        } else if (radii instanceof Object[]) {
+            Object[] arr = (Object[]) radii;
+            values = new double[arr.length];
+            for (int i = 0; i < arr.length; i++) {
+                if (arr[i] instanceof Number) {
+                    values[i] = ((Number) arr[i]).doubleValue();
+                }
+            }
+        } else if (radii instanceof org.mozilla.javascript.NativeArray) {
+            org.mozilla.javascript.NativeArray arr = (org.mozilla.javascript.NativeArray) radii;
+            int len = (int) arr.getLength();
+            values = new double[len];
+            for (int i = 0; i < len; i++) {
+                Object val = arr.get(i);
+                if (val instanceof Number) {
+                    values[i] = ((Number) val).doubleValue();
+                }
+            }
+        }
+
+        if (values != null && values.length > 0) {
+            // CSS-style corner radius specification
+            switch (values.length) {
+                case 1:
+                    // All corners
+                    return new double[]{values[0], values[0], values[0], values[0]};
+                case 2:
+                    // [top-left & bottom-right, top-right & bottom-left]
+                    return new double[]{values[0], values[1], values[0], values[1]};
+                case 3:
+                    // [top-left, top-right & bottom-left, bottom-right]
+                    return new double[]{values[0], values[1], values[2], values[1]};
+                case 4:
+                default:
+                    // [top-left, top-right, bottom-right, bottom-left]
+                    return new double[]{values[0], values[1], values[2], values[3]};
+            }
+        }
+
+        // Default: no rounding
+        return new double[]{0, 0, 0, 0};
+    }
+
+    @Override
     public void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise) {
         double ang = endAngle - startAngle;
         if (counterclockwise) {
@@ -469,11 +601,17 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fill() {
+        // Apply shadow first
+        applyShadow(this.path, true);
+        // Then draw the actual shape
         g2d.fill(this.path);
     }
 
     @Override
     public void stroke() {
+        // Apply shadow first
+        applyShadow(this.path, false);
+        // Then draw the actual shape
         g2d.draw(this.path);
     }
 
@@ -495,5 +633,138 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public double[] getLastPoint() {
         return lastPoint;
+    }
+
+    // Shadow property setters
+    @Override
+    public void setShadowBlur(double blur) {
+        this.shadowBlur = Math.max(0, blur);
+    }
+
+    @Override
+    public void setShadowColor(String color) {
+        this.shadowColor = color != null ? color : "rgba(0, 0, 0, 0)";
+    }
+
+    @Override
+    public void setShadowOffsetX(double offsetX) {
+        this.shadowOffsetX = offsetX;
+    }
+
+    @Override
+    public void setShadowOffsetY(double offsetY) {
+        this.shadowOffsetY = offsetY;
+    }
+
+    // Image smoothing setters
+    @Override
+    public void setImageSmoothingEnabled(boolean enabled) {
+        this.imageSmoothingEnabled = enabled;
+        updateImageSmoothingHints();
+    }
+
+    @Override
+    public void setImageSmoothingQuality(String quality) {
+        this.imageSmoothingQuality = quality;
+        updateImageSmoothingHints();
+    }
+
+    private void updateImageSmoothingHints() {
+        if (!imageSmoothingEnabled) {
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        } else {
+            if ("low".equals(imageSmoothingQuality)) {
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            } else if ("medium".equals(imageSmoothingQuality) || "high".equals(imageSmoothingQuality)) {
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            }
+        }
+    }
+
+    // Helper method to apply shadow effect
+    private void applyShadow(Shape shape, boolean isFill) {
+        // Check if shadow is active (non-zero offset or blur, and non-transparent color)
+        boolean hasShadow = (shadowBlur > 0 || shadowOffsetX != 0 || shadowOffsetY != 0)
+                          && shadowColor != null && !shadowColor.equals("rgba(0, 0, 0, 0)");
+
+        if (!hasShadow) {
+            return;
+        }
+
+        // Parse shadow color
+        java.awt.Color shadowCol = parseColor(shadowColor);
+        if (shadowCol.getAlpha() == 0) {
+            return; // Fully transparent shadow
+        }
+
+        // Save current state
+        Paint oldPaint = g2d.getPaint();
+        Composite oldComposite = g2d.getComposite();
+
+        // Create transformed shape for shadow
+        AffineTransform shadowTransform = AffineTransform.getTranslateInstance(shadowOffsetX, shadowOffsetY);
+        Shape shadowShape = shadowTransform.createTransformedShape(shape);
+
+        // Apply shadow with blur approximation
+        if (shadowBlur > 0) {
+            // Simple blur approximation: draw multiple times with decreasing opacity
+            int blurSteps = Math.min((int) Math.ceil(shadowBlur / 2), 5);
+            float baseAlpha = shadowCol.getAlpha() / 255.0f;
+
+            for (int i = 0; i < blurSteps; i++) {
+                float alpha = baseAlpha * (1.0f - (float) i / blurSteps) / blurSteps;
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+                g2d.setPaint(new java.awt.Color(shadowCol.getRed(), shadowCol.getGreen(), shadowCol.getBlue()));
+
+                double spread = i * shadowBlur / blurSteps;
+                AffineTransform blurTransform = AffineTransform.getTranslateInstance(
+                    shadowOffsetX - spread / 2, shadowOffsetY - spread / 2
+                );
+                Shape blurredShape = blurTransform.createTransformedShape(shape);
+
+                if (isFill) {
+                    g2d.fill(blurredShape);
+                } else {
+                    g2d.draw(blurredShape);
+                }
+            }
+        } else {
+            // No blur, just draw shadow once
+            g2d.setPaint(shadowCol);
+            if (isFill) {
+                g2d.fill(shadowShape);
+            } else {
+                g2d.draw(shadowShape);
+            }
+        }
+
+        // Restore state
+        g2d.setPaint(oldPaint);
+        g2d.setComposite(oldComposite);
+    }
+
+    private java.awt.Color parseColor(String color) {
+        try {
+            // Use existing ColorParser if available, otherwise parse basic colors
+            if (color.startsWith("rgba(")) {
+                String[] parts = color.substring(5, color.length() - 1).split(",");
+                int r = Integer.parseInt(parts[0].trim());
+                int g = Integer.parseInt(parts[1].trim());
+                int b = Integer.parseInt(parts[2].trim());
+                float a = Float.parseFloat(parts[3].trim());
+                return new java.awt.Color(r, g, b, (int) (a * 255));
+            } else if (color.startsWith("rgb(")) {
+                String[] parts = color.substring(4, color.length() - 1).split(",");
+                int r = Integer.parseInt(parts[0].trim());
+                int g = Integer.parseInt(parts[1].trim());
+                int b = Integer.parseInt(parts[2].trim());
+                return new java.awt.Color(r, g, b);
+            } else if (color.startsWith("#")) {
+                return java.awt.Color.decode(color);
+            }
+        } catch (Exception e) {
+            // Fallback to black
+        }
+        return java.awt.Color.BLACK;
     }
 }
