@@ -128,18 +128,26 @@
 
 **Overall:** ~90% feature complete for Canvas 2D API specification
 
-**Test Coverage Summary:**
+**Test Coverage Summary (2025-11-14):**
 - Total tests: 66 (50 Canvas 2D + 16 other test suites)
-- Status: Visual regression testing framework now operational
-- Before fixes: 40/50 passing (80% pass rate)
-- Visual regression reduces effective failures from 10 to 1 (9 tests using golden masters)
-- Expected after golden master generation: ~98% pass rate (65/66 passing)
+- Current status: 55/66 passing (83% pass rate)
+- Visual regression framework operational: 9 tests using golden master comparison
+- Golden masters not yet generated: Tests failing as expected (waiting for -DgenerateGoldenMasters=true)
+- Remaining real bugs: 2 (testFillTextAwt color mismatch, testIsPointInStrokeWithArcTo arc detection)
+- Expected after golden master generation: ~94% pass rate (62/66 passing)
 
-**Key Improvements This Session:**
-- Item 14: TextMetrics fully implemented with all 12 properties
-- Item 17: Visual regression testing framework fully implemented
-- VisualRegressionHelper: Pixel-level comparison with configurable tolerance
-- Bug fixes: Fixed VisualRegressionHelper ARGB pixel handling
+**Key Improvements This Session (2025-11-14):**
+- Item 14 (TextMetrics): Fully implemented with all 12 properties
+  - AWT backend: Font metrics using GlyphVector and LineMetrics APIs
+  - JavaFX backend: Font metrics using Toolkit FontMetrics API
+  - All methods returning proper values instead of placeholders
+- Item 17 (Visual Regression): Framework fully operational
+  - VisualRegressionHelper: Pixel-level comparison with configurable tolerance
+  - Golden master support with -DgenerateGoldenMasters=true flag
+  - 9 tests now using visual regression comparison
+- Bug fixes:
+  - VisualRegressionHelper: Fixed ARGB pixel data handling (was trying to index 4x wrong)
+  - Tests now run without ArrayIndexOutOfBoundsException errors
 
 **Remaining Work:**
 - Generate golden master images for headless environment (Item 17)
