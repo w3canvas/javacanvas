@@ -86,18 +86,9 @@ public class VisualRegressionHelper {
 
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int offset = (y * width + x) * 4;
-                int r = data[offset] & 0xFF;
-                int g = data[offset + 1] & 0xFF;
-                int b = data[offset + 2] & 0xFF;
-                int a = data[offset + 3] & 0xFF;
-
-                int argb = (a << 24) | (r << 16) | (g << 8) | b;
-                image.setRGB(x, y, argb);
-            }
-        }
+        // data contains packed ARGB integers (one per pixel)
+        // setRGB expects the same format
+        image.setRGB(0, 0, width, height, data, 0, width);
 
         return image;
     }
