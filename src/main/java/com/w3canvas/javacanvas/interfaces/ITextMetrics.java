@@ -6,4 +6,11 @@ public interface ITextMetrics {
     double getActualBoundingBoxRight();
     double getActualBoundingBoxAscent();
     double getActualBoundingBoxDescent();
+    double getFontBoundingBoxAscent();
+    double getFontBoundingBoxDescent();
+    double getEmHeightAscent();
+    double getEmHeightDescent();
+    double getHangingBaseline();
+    double getAlphabeticBaseline();
+    double getIdeographicBaseline();
 }

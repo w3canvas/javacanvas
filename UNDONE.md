@@ -78,11 +78,13 @@
     - Priority: Medium
     - Estimate: 10-15 hours
 
-14. **Complete TextMetrics** - Partially implemented
-    - Currently: Only width is accurate
-    - Needed: All bounding box and font metrics properties
-    - Priority: Medium
-    - Estimate: 4-6 hours
+14. **DONE** ~~Complete TextMetrics~~ - FULLY IMPLEMENTED
+    - All 12 properties now supported: width, actualBoundingBoxLeft, actualBoundingBoxRight, actualBoundingBoxAscent, actualBoundingBoxDescent, fontBoundingBoxAscent, fontBoundingBoxDescent, emHeightAscent, emHeightDescent, hangingBaseline, alphabeticBaseline, ideographicBaseline
+    - AWT Backend: Complete font metrics using GlyphVector and LineMetrics APIs
+    - JavaFX Backend: Complete font metrics using Toolkit FontMetrics
+    - JavaScript bindings: All properties accessible via jsGet_ methods
+    - Tests: 3 comprehensive test cases covering all properties and JS bindings
+    - Status: Implementation complete
 
 15. **ImageBitmap** - Not yet implemented
     - ImageBitmap objects and operations

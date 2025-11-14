@@ -422,7 +422,8 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
         // And we add a JavaFX ArcTo path element to our own path object.
         // The sweep flag is determined by the sign of the cross product of the two vectors.
-        boolean sweepFlag = (dx01 * dy12 - dy01 * dx12) < 0;
+        // Positive cross product (left turn) requires sweepFlag=true to select the correct arc center
+        boolean sweepFlag = (dx01 * dy12 - dy01 * dx12) > 0;
         ArcTo arcTo = new ArcTo(radius, radius, 0, t2x, t2y, false, sweepFlag);
         path.getElements().add(arcTo);
 
