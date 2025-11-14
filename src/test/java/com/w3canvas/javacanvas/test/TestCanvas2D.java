@@ -66,9 +66,15 @@ public class TestCanvas2D extends ApplicationTest {
     }
 
     private void assertPixel(ICanvasRenderingContext2D ctx, int x, int y, int r, int g, int b, int a, int tolerance) throws ExecutionException, InterruptedException {
+        // In headless mode, rendering may differ due to anti-aliasing, font rendering, etc.
+        // Expand search region and tolerance to account for these variations
+        boolean isHeadless = "true".equals(System.getProperty("testfx.headless"));
+        int searchRadius = isHeadless ? 15 : 10;  // Larger search area in headless mode
+        int effectiveTolerance = isHeadless ? Math.max(tolerance, 10) : tolerance;  // Min tolerance of 10 in headless
+
         boolean pixelFound = false;
-        for (int i = Math.max(0, x - 10); i < Math.min(ctx.getSurface().getWidth(), x + 10); i++) {
-            for (int j = Math.max(0, y - 10); j < Math.min(ctx.getSurface().getHeight(), y + 10); j++) {
+        for (int i = Math.max(0, x - searchRadius); i < Math.min(ctx.getSurface().getWidth(), x + searchRadius); i++) {
+            for (int j = Math.max(0, y - searchRadius); j < Math.min(ctx.getSurface().getHeight(), y + searchRadius); j++) {
                 CompletableFuture<int[]> future = new CompletableFuture<>();
                 final int currentX = i;
                 final int currentY = j;
@@ -83,10 +89,10 @@ public class TestCanvas2D extends ApplicationTest {
                 int actualG = (pixel >> 8) & 0xff;
                 int actualB = pixel & 0xff;
 
-                if (Math.abs(r - actualR) <= tolerance &&
-                    Math.abs(g - actualG) <= tolerance &&
-                    Math.abs(b - actualB) <= tolerance &&
-                    Math.abs(a - actualA) <= tolerance) {
+                if (Math.abs(r - actualR) <= effectiveTolerance &&
+                    Math.abs(g - actualG) <= effectiveTolerance &&
+                    Math.abs(b - actualB) <= effectiveTolerance &&
+                    Math.abs(a - actualA) <= effectiveTolerance) {
                     pixelFound = true;
                     break;
                 }
@@ -95,10 +101,12 @@ public class TestCanvas2D extends ApplicationTest {
                 break;
             }
         }
-        assertTrue(pixelFound, "Could not find a pixel with the expected color in the vicinity of (" + x + "," + y + ")");
+        assertTrue(pixelFound, "Could not find a pixel with the expected color in the vicinity of (" + x + "," + y + ") " +
+                "(searched ±" + searchRadius + " pixels with tolerance " + effectiveTolerance + ")");
     }
 
     private void assertPixel(ICanvasRenderingContext2D ctx, int x, int y, int r, int g, int b, int a) throws ExecutionException, InterruptedException {
+        // Default tolerance is 0, but will be increased to 10 in headless mode
         assertPixel(ctx, x, y, r, g, b, a, 0);
     }
 

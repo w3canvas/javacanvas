@@ -80,7 +80,12 @@ public class JavaFXPattern implements ICanvasPattern, IPaint {
         }
 
         WritableImage snapshot = new WritableImage((int) boundsWidth, (int) boundsHeight);
-        tempCanvas.snapshot(null, snapshot);
+
+        // Use SnapshotParameters for consistent rendering
+        javafx.scene.SnapshotParameters params = new javafx.scene.SnapshotParameters();
+        params.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        tempCanvas.snapshot(params, snapshot);
+
         return new ImagePattern(snapshot, 0, 0, boundsWidth, boundsHeight, false);
     }
 }
