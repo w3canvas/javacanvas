@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static com.w3canvas.javacanvas.test.VisualRegressionHelper.compareToGoldenMaster;
 
 @ExtendWith(ApplicationExtension.class)
 // NOTE: Tests re-enabled after fixing thread-local Context management issue
@@ -440,9 +441,10 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
-        // Check a pixel on the arc
-        // Increased tolerance for headless arc rendering algorithm differences
-        assertPixel(ctx, 100, 25, 0, 0, 255, 255, 30);
+        // Use visual regression testing for arc rendering
+        // Headless environments render arcs differently than GUI environments
+        assertTrue(compareToGoldenMaster(ctx, "testArc", 5.0, 30),
+                  "Arc rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -467,9 +469,9 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
-        // Check a pixel on the arc
-        // Increased tolerance for headless arcTo rendering differences
-        assertPixel(ctx, 100, 30, 0, 128, 0, 255, 30);
+        // Use visual regression testing for arcTo rendering
+        assertTrue(compareToGoldenMaster(ctx, "testArcTo", 5.0, 30),
+                  "ArcTo rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -494,9 +496,9 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
-        // Check a pixel inside the filled shape
-        // Increased tolerance for headless arcTo fill rendering
-        assertPixel(ctx, 100, 50, 128, 0, 128, 255, 25);
+        // Use visual regression testing for filled arcTo rendering
+        assertTrue(compareToGoldenMaster(ctx, "testArcToFill", 5.0, 30),
+                  "Filled arcTo rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -672,8 +674,9 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
-        // Increased tolerance for transform accumulation and floating-point rounding
-        assertPixel(ctx, 135, 135, 0, 0, 255, 255, 20);
+        // Use visual regression testing for transformed shapes
+        assertTrue(compareToGoldenMaster(ctx, "testTransformations", 5.0, 25),
+                  "Transformed shapes should match golden master within 5% tolerance");
     }
 
     @Test
@@ -695,8 +698,9 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
-        // Increased tolerance for transform matrix rounding differences
-        assertPixel(ctx, 75, 75, 255, 0, 0, 255, 20);
+        // Use visual regression testing for setTransform
+        assertTrue(compareToGoldenMaster(ctx, "testSetTransform", 5.0, 25),
+                  "SetTransform rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -742,9 +746,9 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
-        // Increased tolerance for headless ellipse rendering algorithm differences
-        assertPixel(ctx, 200, 200, 128, 0, 128, 255, 25);
-        assertPixel(ctx, 100, 100, 0, 0, 0, 0, 10);
+        // Use visual regression testing for ellipse rendering
+        assertTrue(compareToGoldenMaster(ctx, "testEllipse", 5.0, 30),
+                  "Ellipse rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -769,9 +773,9 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
-        // Increased tolerance for headless arc clipping differences
-        assertPixel(ctx, 200, 200, 0, 0, 255, 255, 25);
-        assertPixel(ctx, 100, 100, 0, 0, 0, 0, 10);
+        // Use visual regression testing for clipping
+        assertTrue(compareToGoldenMaster(ctx, "testClip", 5.0, 30),
+                  "Clipped rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -1302,9 +1306,10 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
-        // Check center of rectangle
-        // Increased tolerance for headless roundRect rendering (uses arcs internally)
-        assertPixel(ctx, 100, 100, 0, 255, 0, 255, 25);
+        // Use visual regression testing for roundRect with array radii
+        // RoundRect uses arcs internally which render differently in headless mode
+        assertTrue(compareToGoldenMaster(ctx, "testRoundRectWithArrayRadii", 5.0, 30),
+                  "RoundRect rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -1423,15 +1428,10 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
-        // Red area
-        // Increased tolerance for blend mode implementation differences in headless mode
-        assertPixel(ctx, 75, 75, 255, 0, 0, 255, 50);
-
-        // Blue area
-        assertPixel(ctx, 175, 175, 0, 0, 255, 255, 50);
-
-        // Overlapping area with multiply should be darker
-        // Note: Exact color depends on blend implementation
+        // Use visual regression testing for blend mode rendering
+        // Blend modes may have different implementations in headless vs GUI
+        assertTrue(compareToGoldenMaster(ctx, "testBlendModeRendering", 8.0, 50),
+                  "Blend mode rendering should match golden master within 8% tolerance");
     }
 
     @Test
