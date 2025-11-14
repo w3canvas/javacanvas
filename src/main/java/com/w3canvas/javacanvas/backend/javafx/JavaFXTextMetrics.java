@@ -29,19 +29,65 @@ public class JavaFXTextMetrics implements ITextMetrics {
         return width;
     }
 
+    @Override
     public double getActualBoundingBoxLeft() {
         return actualBoundingBoxLeft;
     }
 
+    @Override
     public double getActualBoundingBoxRight() {
         return actualBoundingBoxRight;
     }
 
+    @Override
     public double getActualBoundingBoxAscent() {
         return actualBoundingBoxAscent;
     }
 
+    @Override
     public double getActualBoundingBoxDescent() {
         return actualBoundingBoxDescent;
+    }
+
+    @Override
+    public double getFontBoundingBoxAscent() {
+        // TODO: Implement this properly
+        return 0;
+    }
+
+    @Override
+    public double getFontBoundingBoxDescent() {
+        // TODO: Implement this properly
+        return 0;
+    }
+
+    @Override
+    public double getEmHeightAscent() {
+        // TODO: Implement this properly
+        return 0;
+    }
+
+    @Override
+    public double getEmHeightDescent() {
+        // TODO: Implement this properly
+        return 0;
+    }
+
+    @Override
+    public double getHangingBaseline() {
+        // TODO: Implement this properly
+        return 0;
+    }
+
+    @Override
+    public double getAlphabeticBaseline() {
+        // TODO: Implement this properly
+        return 0;
+    }
+
+    @Override
+    public double getIdeographicBaseline() {
+        // TODO: Implement this properly
+        return 0;
     }
 }
