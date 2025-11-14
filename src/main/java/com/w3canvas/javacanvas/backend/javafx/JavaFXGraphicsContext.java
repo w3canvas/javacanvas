@@ -756,11 +756,11 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
                 double extent = Math.toDegrees(angle(ux, uy, vx, vy));
 
                 // Adjust sweep direction based on sweepFlag
-                // sweepFlag=true means clockwise (positive), sweepFlag=false means counter-clockwise (negative)
-                if (!sweepFlag && extent > 0) {
-                    extent -= 360;
-                } else if (sweepFlag && extent < 0) {
-                    extent += 360;
+                // SVG/Canvas: sweepFlag=true means clockwise, sweepFlag=false means counter-clockwise
+                // AWT Arc2D: positive extent is counter-clockwise, negative extent is clockwise
+                // So for clockwise (sweepFlag=true), we need negative extent
+                if (sweepFlag) {
+                    extent = -extent;
                 }
 
                 awtPath.append(new java.awt.geom.Arc2D.Double(cx - radiusX, cy - radiusY, 2 * radiusX, 2 * radiusY, startAngle, extent, java.awt.geom.Arc2D.OPEN), true);
