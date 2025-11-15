@@ -206,6 +206,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public void setLineWidth(double lw) {
         this.lineWidth = lw;
+        gc.setLineWidth(lw);
     }
 
     @Override
