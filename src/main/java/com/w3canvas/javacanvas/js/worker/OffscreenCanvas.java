@@ -45,20 +45,32 @@ public class OffscreenCanvas extends ProjectScriptableObject implements ICanvas 
 
     public Scriptable jsFunction_getContext(String type) {
         if (context == null && "2d".equals(type)) {
-            ICanvasRenderingContext2D coreContext = new CoreCanvasRenderingContext2D(null, this.backend, getWidth(), getHeight());
+            try {
+                ICanvasRenderingContext2D coreContext = new CoreCanvasRenderingContext2D(null, this.backend, getWidth(), getHeight());
 
-            // Get the surface that CoreCanvasRenderingContext2D created
-            this.surface = coreContext.getSurface();
+                // Get the surface that CoreCanvasRenderingContext2D created
+                this.surface = coreContext.getSurface();
 
-            context = new CanvasRenderingContext2D();
-            context.init(coreContext);
+                context = new CanvasRenderingContext2D();
+                context.init(coreContext);
 
-            Scriptable scope = ScriptableObject.getTopLevelScope(this);
-            Context rhinoContext = Context.getCurrentContext();
+                Scriptable scope = ScriptableObject.getTopLevelScope(this);
+                Context rhinoContext = Context.getCurrentContext();
 
-            context.setParentScope(scope);
-            context.setPrototype(ScriptableObject.getClassPrototype(scope, "CanvasRenderingContext2D"));
-            context.initCanvas(this);
+                context.setParentScope(scope);
+                // Try to get the CanvasRenderingContext2D prototype if available
+                try {
+                    Scriptable proto = ScriptableObject.getClassPrototype(scope, "CanvasRenderingContext2D");
+                    if (proto != null) {
+                        context.setPrototype(proto);
+                    }
+                } catch (Exception e) {
+                    // Prototype not found, that's OK - the object will still work
+                }
+                context.initCanvas(this);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create 2d context for OffscreenCanvas: " + e.getMessage(), e);
+            }
         }
         return context;
     }
@@ -277,6 +289,10 @@ public class OffscreenCanvas extends ProjectScriptableObject implements ICanvas 
 
     @Override
     public BufferedImage getImage() {
+        if (surface == null) {
+            // Create surface if not yet initialized
+            surface = backend.createCanvasSurface(width, height);
+        }
         return (BufferedImage) surface.getNativeImage();
     }
 

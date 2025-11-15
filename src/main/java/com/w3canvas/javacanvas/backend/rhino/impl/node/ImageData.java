@@ -19,16 +19,25 @@ public class ImageData extends ProjectScriptableObject implements IImageData
 
     public Integer jsGet_width()
     {
+        if (core == null) {
+            throw new RuntimeException("ImageData not properly initialized - core is null");
+        }
         return core.getWidth();
     }
 
     public Integer jsGet_height()
     {
+        if (core == null) {
+            throw new RuntimeException("ImageData not properly initialized - core is null");
+        }
         return core.getHeight();
     }
 
     public ICanvasPixelArray jsGet_data()
     {
+        if (core == null) {
+            throw new RuntimeException("ImageData not properly initialized - core is null");
+        }
         return core.getData();
     }
 
