@@ -108,6 +108,8 @@ public class Worker extends ProjectScriptableObject {
                 ScriptableObject.defineClass(workerScope, com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData.class);
                 ScriptableObject.defineClass(workerScope, com.w3canvas.javacanvas.backend.rhino.impl.node.TextMetrics.class);
                 ScriptableObject.defineClass(workerScope, com.w3canvas.javacanvas.backend.rhino.impl.node.DOMMatrix.class);
+                ScriptableObject.defineClass(workerScope, com.w3canvas.javacanvas.backend.rhino.impl.node.Blob.class);
+                ScriptableObject.defineClass(workerScope, com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap.class);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

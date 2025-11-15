@@ -767,27 +767,29 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
     }
 
-    public void jsFunction_fill() {
-        fill();
-    }
-
-    public void jsFunction_fill(Object path) {
-        if (path instanceof RhinoPath2D) {
-            fill((RhinoPath2D) path);
-        } else if (path instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
-            fill((com.w3canvas.javacanvas.interfaces.IPath2D) path);
+    public void jsFunction_fill(Object pathArg) {
+        // Support both fill() with no args (current path) and fill(path)
+        if (pathArg == null || pathArg == Context.getUndefinedValue() || pathArg == Scriptable.NOT_FOUND) {
+            fill();
+        } else if (pathArg instanceof RhinoPath2D) {
+            fill((RhinoPath2D) pathArg);
+        } else if (pathArg instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
+            fill((com.w3canvas.javacanvas.interfaces.IPath2D) pathArg);
+        } else {
+            fill();  // Fallback to current path
         }
     }
 
-    public void jsFunction_stroke() {
-        stroke();
-    }
-
-    public void jsFunction_stroke(Object path) {
-        if (path instanceof RhinoPath2D) {
-            stroke((RhinoPath2D) path);
-        } else if (path instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
-            stroke((com.w3canvas.javacanvas.interfaces.IPath2D) path);
+    public void jsFunction_stroke(Object pathArg) {
+        // Support both stroke() with no args (current path) and stroke(path)
+        if (pathArg == null || pathArg == Context.getUndefinedValue() || pathArg == Scriptable.NOT_FOUND) {
+            stroke();
+        } else if (pathArg instanceof RhinoPath2D) {
+            stroke((RhinoPath2D) pathArg);
+        } else if (pathArg instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
+            stroke((com.w3canvas.javacanvas.interfaces.IPath2D) pathArg);
+        } else {
+            stroke();  // Fallback to current path
         }
     }
 
@@ -795,13 +797,9 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         clip();
     }
 
-    public boolean jsFunction_isPointInPath(Double x, Double y) {
-        return isPointInPath(x, y);
-    }
-
     public boolean jsFunction_isPointInPath(Object pathOrX, Object yOrUndefined, Object zOrUndefined) {
         // Handle both signatures:
-        // isPointInPath(x, y) - already handled above
+        // isPointInPath(x, y)
         // isPointInPath(path, x, y)
         if (pathOrX instanceof RhinoPath2D || pathOrX instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
             // isPointInPath(path, x, y)
@@ -816,7 +814,7 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
             double y = Context.toNumber(zOrUndefined);
             return isPointInPath(path, x, y);
         } else {
-            // Default case, handled by the other overload
+            // isPointInPath(x, y)
             double x = Context.toNumber(pathOrX);
             double y = Context.toNumber(yOrUndefined);
             return isPointInPath(x, y);

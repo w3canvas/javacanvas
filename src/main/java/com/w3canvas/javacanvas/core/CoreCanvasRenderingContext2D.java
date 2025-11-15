@@ -42,6 +42,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     private double letterSpacing;
     private double wordSpacing;
 
+    // Filter property
+    private String filter;
+
     public CoreCanvasRenderingContext2D(Document document, IGraphicsBackend backend, int width, int height) {
         this.document = document;
         this.backend = backend;
@@ -84,6 +87,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         direction = "inherit";
         letterSpacing = 0.0;
         wordSpacing = 0.0;
+
+        // Initialize filter
+        filter = "none";
 
         setFont("10px sans-serif");
         setTextAlign("start");
@@ -418,6 +424,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         // Apply image smoothing
         gc.setImageSmoothingEnabled(this.imageSmoothingEnabled);
         gc.setImageSmoothingQuality(this.imageSmoothingQuality);
+
+        // Apply filter
+        gc.setFilter(this.filter);
     }
 
     @Override
@@ -537,6 +546,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             return ctx.getSurface().getNativeImage();
         } else if (image instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.Image) {
             return ((com.w3canvas.javacanvas.backend.rhino.impl.node.Image) image).getImage();
+        } else if (image instanceof IImageBitmap) {
+            return ((IImageBitmap) image).getNativeImage();
         }
         return null;
     }
@@ -546,6 +557,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             return ((com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) image).getWidth();
         } else if (image instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.Image) {
             return ((com.w3canvas.javacanvas.backend.rhino.impl.node.Image) image).getRealWidth();
+        } else if (image instanceof IImageBitmap) {
+            return ((IImageBitmap) image).getWidth();
         }
         return 0;
     }
@@ -555,6 +568,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             return ((com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) image).getHeight();
         } else if (image instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.Image) {
             return ((com.w3canvas.javacanvas.backend.rhino.impl.node.Image) image).getRealHeight();
+        } else if (image instanceof IImageBitmap) {
+            return ((IImageBitmap) image).getHeight();
         }
         return 0;
     }
@@ -741,11 +756,16 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public String getFilter() {
-        return "none";
+        return filter;
     }
 
     @Override
     public void setFilter(String filter) {
+        if (filter == null || filter.trim().isEmpty()) {
+            this.filter = "none";
+        } else {
+            this.filter = filter;
+        }
     }
 
     private static class ContextState {
@@ -776,6 +796,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         private final double letterSpacing;
         private final double wordSpacing;
 
+        // Filter property
+        private final String filter;
+
         ContextState(CoreCanvasRenderingContext2D ctx) {
             this.fillStyle = ctx.fillStyle;
             this.strokeStyle = ctx.strokeStyle;
@@ -803,6 +826,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             this.direction = ctx.direction;
             this.letterSpacing = ctx.letterSpacing;
             this.wordSpacing = ctx.wordSpacing;
+
+            // Save filter property
+            this.filter = ctx.filter;
         }
 
         void apply(CoreCanvasRenderingContext2D ctx) {
@@ -832,6 +858,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             ctx.direction = this.direction;
             ctx.letterSpacing = this.letterSpacing;
             ctx.wordSpacing = this.wordSpacing;
+
+            // Restore filter property
+            ctx.filter = this.filter;
         }
     }
 }

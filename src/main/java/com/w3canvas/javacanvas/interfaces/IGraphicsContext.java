@@ -37,6 +37,10 @@ public interface IGraphicsContext {
     void setImageSmoothingEnabled(boolean enabled);
     void setImageSmoothingQuality(String quality);
 
+    // Filter
+    void setFilter(String filter);
+    String getFilter();
+
     // Drawing operations
     void clearRect(double x, double y, double w, double h);
     void draw(IShape shape);
