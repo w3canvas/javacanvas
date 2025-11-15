@@ -312,7 +312,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public ITextMetrics measureText(String text) {
-        return new AwtTextMetrics(g2d.getFontMetrics().stringWidth(text));
+        return new AwtTextMetrics(text, g2d.getFont(), g2d);
     }
 
     @Override

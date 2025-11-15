@@ -89,9 +89,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public ITextMetrics measureText(String text) {
-        Text t = new Text(text);
-        t.setFont(gc.getFont());
-        return new com.w3canvas.javacanvas.core.TextMetrics(t.getLayoutBounds().getWidth());
+        return new JavaFXTextMetrics(gc.getFont(), text);
     }
 
     @Override
