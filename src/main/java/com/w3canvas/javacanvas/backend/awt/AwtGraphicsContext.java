@@ -22,7 +22,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     private final Graphics2D g2d;
     private final AwtCanvasSurface surface;
-    private GeneralPath path;
+    private java.awt.geom.Path2D.Double path;
     private double[] lastPoint = new double[2];
     private IPaint fillPaint;
     private IPaint strokePaint;
@@ -66,7 +66,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
             this.g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
         }
 
-        this.path = new GeneralPath();
+        this.path = new java.awt.geom.Path2D.Double();
         this.fillPaint = new AwtPaint(java.awt.Color.BLACK);
         this.strokePaint = new AwtPaint(java.awt.Color.BLACK);
     }
@@ -341,7 +341,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
     // Path methods
     @Override
     public void beginPath() {
-        path = new GeneralPath();
+        path = new java.awt.geom.Path2D.Double();
     }
 
     @Override
@@ -464,7 +464,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void rect(double x, double y, double w, double h) {
-        path.append(g2d.getTransform().createTransformedShape(new java.awt.geom.Rectangle2D.Double(x, y, w, h)), true);
+        // Use false for connect parameter - rect() creates a new subpath, not connected to existing path
+        path.append(g2d.getTransform().createTransformedShape(new java.awt.geom.Rectangle2D.Double(x, y, w, h)), false);
     }
 
     @Override
