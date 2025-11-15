@@ -1527,44 +1527,211 @@ public class TestCanvas2D extends ApplicationTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Path2D not yet implemented")
     public void testPath2DBasicShape() throws ExecutionException, InterruptedException {
-        // TODO: Implement when Path2D is available
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Create a Path2D with a rectangle
+                Object path = Context.getCurrentContext().evaluateString(
+                    javaCanvas.getRhinoRuntime().getScope(),
+                    "var p = new Path2D(); p.rect(50, 50, 100, 100); p;",
+                    "test", 1, null
+                );
+
+                ctx.setFillStyle("red");
+                ctx.fill((com.w3canvas.javacanvas.interfaces.IPath2D) path);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Check pixels inside the rectangle
+        assertPixel(ctx, 100, 100, 255, 0, 0, 255);
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Path2D not yet implemented")
     public void testPath2DWithStroke() throws ExecutionException, InterruptedException {
-        // TODO: Implement when Path2D is available
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Create a Path2D with lines
+                Object path = Context.getCurrentContext().evaluateString(
+                    javaCanvas.getRhinoRuntime().getScope(),
+                    "var p = new Path2D(); p.moveTo(50, 50); p.lineTo(150, 50); p.lineTo(150, 150); p.closePath(); p;",
+                    "test", 1, null
+                );
+
+                ctx.setStrokeStyle("blue");
+                ctx.setLineWidth(3);
+                ctx.stroke((com.w3canvas.javacanvas.interfaces.IPath2D) path);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Check a pixel on the stroked line
+        assertPixel(ctx, 100, 50, 0, 0, 255, 255);
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Path2D not yet implemented")
     public void testPath2DCopyConstructor() throws ExecutionException, InterruptedException {
-        // TODO: Implement when Path2D is available
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Create a Path2D and copy it
+                Object path2 = Context.getCurrentContext().evaluateString(
+                    javaCanvas.getRhinoRuntime().getScope(),
+                    "var p1 = new Path2D(); p1.rect(50, 50, 100, 100); var p2 = new Path2D(p1); p2;",
+                    "test", 1, null
+                );
+
+                ctx.setFillStyle("green");
+                ctx.fill((com.w3canvas.javacanvas.interfaces.IPath2D) path2);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Check pixels inside the copied rectangle
+        assertPixel(ctx, 100, 100, 0, 255, 0, 255);
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Path2D not yet implemented")
     public void testPath2DAddPath() throws ExecutionException, InterruptedException {
-        // TODO: Implement when Path2D is available
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Create two paths and combine them
+                Object combinedPath = Context.getCurrentContext().evaluateString(
+                    javaCanvas.getRhinoRuntime().getScope(),
+                    "var p1 = new Path2D(); p1.rect(50, 50, 50, 50); " +
+                    "var p2 = new Path2D(); p2.rect(150, 150, 50, 50); " +
+                    "var combined = new Path2D(); combined.addPath(p1); combined.addPath(p2); combined;",
+                    "test", 1, null
+                );
+
+                ctx.setFillStyle("purple");
+                ctx.fill((com.w3canvas.javacanvas.interfaces.IPath2D) combinedPath);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Check pixels in both rectangles
+        assertPixel(ctx, 75, 75, 128, 0, 128, 255);
+        assertPixel(ctx, 175, 175, 128, 0, 128, 255);
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Path2D not yet implemented")
     public void testPath2DIsPointInPath() throws ExecutionException, InterruptedException {
-        // TODO: Implement when Path2D is available
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                // Test isPointInPath with Path2D
+                Object result = Context.getCurrentContext().evaluateString(
+                    javaCanvas.getRhinoRuntime().getScope(),
+                    "var canvas = document.createElement('canvas'); " +
+                    "var ctx = canvas.getContext('2d'); " +
+                    "var p = new Path2D(); p.rect(50, 50, 100, 100); " +
+                    "var inside = ctx.isPointInPath(p, 75, 75); " +
+                    "var outside = ctx.isPointInPath(p, 200, 200); " +
+                    "inside && !outside;",
+                    "test", 1, null
+                );
+
+                assertTrue((Boolean) result, "isPointInPath should return true for point inside and false for point outside");
+            } finally {
+                Context.exit();
+            }
+        });
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Path2D not yet implemented")
     public void testPath2DComplexShape() throws ExecutionException, InterruptedException {
-        // TODO: Implement when Path2D is available
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Create a complex path with multiple types of curves
+                Object path = Context.getCurrentContext().evaluateString(
+                    javaCanvas.getRhinoRuntime().getScope(),
+                    "var p = new Path2D(); " +
+                    "p.moveTo(50, 50); " +
+                    "p.lineTo(150, 50); " +
+                    "p.quadraticCurveTo(200, 75, 150, 100); " +
+                    "p.bezierCurveTo(100, 120, 80, 120, 50, 100); " +
+                    "p.closePath(); p;",
+                    "test", 1, null
+                );
+
+                ctx.setFillStyle("orange");
+                ctx.fill((com.w3canvas.javacanvas.interfaces.IPath2D) path);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Check a pixel that should be filled
+        assertPixel(ctx, 100, 75, 255, 165, 0, 255);
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Path2D not yet implemented")
     public void testPath2DWithTransforms() throws ExecutionException, InterruptedException {
-        // TODO: Implement when Path2D is available
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Create a path and apply transforms before filling
+                Object path = Context.getCurrentContext().evaluateString(
+                    javaCanvas.getRhinoRuntime().getScope(),
+                    "var p = new Path2D(); p.rect(0, 0, 50, 50); p;",
+                    "test", 1, null
+                );
+
+                ctx.save();
+                ctx.translate(100, 100);
+                ctx.rotate(Math.PI / 4); // 45 degrees
+                ctx.setFillStyle("red");
+                ctx.fill((com.w3canvas.javacanvas.interfaces.IPath2D) path);
+                ctx.restore();
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Check that the transformed rectangle was drawn
+        // With rotation, we expect red pixels around the center
+        assertPixel(ctx, 100, 100, 255, 0, 0, 255);
     }
 }

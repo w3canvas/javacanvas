@@ -10,6 +10,7 @@ import com.w3canvas.javacanvas.backend.rhino.impl.gradient.CanvasGradient;
 import com.w3canvas.javacanvas.backend.rhino.impl.gradient.RhinoCanvasGradient;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoCanvasPattern;
 import com.w3canvas.javacanvas.interfaces.ICanvasGradient;
+import com.w3canvas.javacanvas.interfaces.IPath2D;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import com.w3canvas.javacanvas.interfaces.ICanvasPattern;
@@ -364,8 +365,20 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     @Override
+    public void fill(IPath2D path) {
+        core.fill(path);
+        canvas.dirty();
+    }
+
+    @Override
     public void stroke() {
         core.stroke();
+        canvas.dirty();
+    }
+
+    @Override
+    public void stroke(IPath2D path) {
+        core.stroke(path);
         canvas.dirty();
     }
 
@@ -377,6 +390,11 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     @Override
     public boolean isPointInPath(double x, double y) {
         return core.isPointInPath(x, y);
+    }
+
+    @Override
+    public boolean isPointInPath(IPath2D path, double x, double y) {
+        return core.isPointInPath(path, x, y);
     }
 
     @Override
@@ -753,8 +771,24 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         fill();
     }
 
+    public void jsFunction_fill(Object path) {
+        if (path instanceof RhinoPath2D) {
+            fill((RhinoPath2D) path);
+        } else if (path instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
+            fill((com.w3canvas.javacanvas.interfaces.IPath2D) path);
+        }
+    }
+
     public void jsFunction_stroke() {
         stroke();
+    }
+
+    public void jsFunction_stroke(Object path) {
+        if (path instanceof RhinoPath2D) {
+            stroke((RhinoPath2D) path);
+        } else if (path instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
+            stroke((com.w3canvas.javacanvas.interfaces.IPath2D) path);
+        }
     }
 
     public void jsFunction_clip() {
@@ -763,6 +797,30 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
 
     public boolean jsFunction_isPointInPath(Double x, Double y) {
         return isPointInPath(x, y);
+    }
+
+    public boolean jsFunction_isPointInPath(Object pathOrX, Object yOrUndefined, Object zOrUndefined) {
+        // Handle both signatures:
+        // isPointInPath(x, y) - already handled above
+        // isPointInPath(path, x, y)
+        if (pathOrX instanceof RhinoPath2D || pathOrX instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
+            // isPointInPath(path, x, y)
+            com.w3canvas.javacanvas.interfaces.IPath2D path = null;
+            if (pathOrX instanceof RhinoPath2D) {
+                path = (RhinoPath2D) pathOrX;
+            } else if (pathOrX instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
+                path = (com.w3canvas.javacanvas.interfaces.IPath2D) pathOrX;
+            }
+
+            double x = Context.toNumber(yOrUndefined);
+            double y = Context.toNumber(zOrUndefined);
+            return isPointInPath(path, x, y);
+        } else {
+            // Default case, handled by the other overload
+            double x = Context.toNumber(pathOrX);
+            double y = Context.toNumber(yOrUndefined);
+            return isPointInPath(x, y);
+        }
     }
 
     public boolean jsFunction_isPointInStroke(Double x, Double y) {

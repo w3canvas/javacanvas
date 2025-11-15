@@ -83,10 +83,13 @@ public interface ICanvasRenderingContext2D {
     void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise);
 
     void fill();
+    void fill(IPath2D path);
     void stroke();
+    void stroke(IPath2D path);
     void clip();
 
     boolean isPointInPath(double x, double y);
+    boolean isPointInPath(IPath2D path, double x, double y);
     boolean isPointInStroke(double x, double y);
 
     void drawImage(Object image, double dx, double dy);
