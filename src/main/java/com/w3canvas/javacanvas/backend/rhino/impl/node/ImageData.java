@@ -17,7 +17,12 @@ public class ImageData extends ProjectScriptableObject implements IImageData
         this.core = core;
     }
 
-    public Integer jsGet_width()
+    @Override
+    public String getClassName() {
+        return "ImageData";
+    }
+
+    public int jsGet_width()
     {
         if (core == null) {
             throw new RuntimeException("ImageData not properly initialized - core is null");
@@ -25,7 +30,7 @@ public class ImageData extends ProjectScriptableObject implements IImageData
         return core.getWidth();
     }
 
-    public Integer jsGet_height()
+    public int jsGet_height()
     {
         if (core == null) {
             throw new RuntimeException("ImageData not properly initialized - core is null");

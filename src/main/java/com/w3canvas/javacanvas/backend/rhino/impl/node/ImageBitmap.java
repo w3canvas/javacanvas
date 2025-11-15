@@ -26,12 +26,17 @@ public class ImageBitmap extends ProjectScriptableObject implements IImageBitmap
         this.core = core;
     }
 
+    @Override
+    public String getClassName() {
+        return "ImageBitmap";
+    }
+
     /**
      * JavaScript getter for the width property.
      *
      * @return the width of the bitmap in pixels, or 0 if closed
      */
-    public Integer jsGet_width() {
+    public int jsGet_width() {
         return core.getWidth();
     }
 
@@ -40,7 +45,7 @@ public class ImageBitmap extends ProjectScriptableObject implements IImageBitmap
      *
      * @return the height of the bitmap in pixels, or 0 if closed
      */
-    public Integer jsGet_height() {
+    public int jsGet_height() {
         return core.getHeight();
     }
 

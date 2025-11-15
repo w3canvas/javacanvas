@@ -208,9 +208,14 @@
 - ✅ AwtBackendSmokeTest.testFillTextAwt: Fixed pixel assertion to handle anti-aliasing
   - Changed from exact pixel match to tolerance-based search in rendering area
   - Test now passing (2/2 tests in AwtBackendSmokeTest)
-- ✅ TestOffscreenCanvas: Added ImageData class registration to test setup
-  - Registered com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData
-  - Required for getImageData() to work properly in JavaScript
+- ✅ TestOffscreenCanvas: Fixed all 10 tests - ROOT CAUSE FOUND
+  - **Root Cause:** CanvasRenderingContext2D was not registered in RhinoRuntime.java
+  - **Fix:** Added ScriptableObject.defineClass() for CanvasRenderingContext2D
+  - **Additional Fixes:**
+    - Added jsFunction_toString() and jsFunction_valueOf() to ProjectScriptableObject
+    - Added getClassName() override to CanvasRenderingContext2D
+    - This was exactly the "simple API surface area" issue the user identified
+  - Result: ALL 10 OffscreenCanvas tests now passing (100%)
 - ✅ OffscreenCanvas.getImage(): Added null check for surface initialization
   - Prevents NullPointerException when surface accessed before getContext()
   - Automatically creates surface if needed
@@ -220,20 +225,16 @@
   - Graceful handling of missing CanvasRenderingContext2D prototype
   - Better exception messages for debugging
 
-**Test Status Summary:**
+**Test Status Summary (Updated 2025-11-15 Evening):**
 - ✅ AwtBackendSmokeTest: 2/2 passing (100%)
 - ✅ TestCSSFilters: 18/18 passing (100%)
 - ✅ TestFilterIntegration: 10/10 passing (100%)
-- ⚠️ TestOffscreenCanvas: 3/10 passing (7 tests with deep Rhino/JavaScript binding issues)
-- ⚠️ Path2D tests: Require JavaFX thread - hang in headless test environment
+- ✅ TestOffscreenCanvas: 10/10 passing (100%) - FIXED!
+- ⚠️ Path2D tests: Tests no longer hang (threading issue fixed), some pixel assertions need adjustment
 
 **Remaining Known Issues:**
-- 7 OffscreenCanvas tests fail with "TypeError: Cannot find default value for object"
-  - This is a deep Rhino JavaScript engine binding issue
-  - Implementation is correct and functional
-  - Tests work for basic operations (creation, getContext) but fail on complex interactions
-  - Would require extensive Rhino binding debugging to resolve
-- Path2D tests hang in JavaFX environment (JavaFX Application Thread synchronization)
-  - Implementation is complete and correct
-  - Tests require GUI thread which isn't available in headless CI environment
+- Path2D tests: Minor pixel assertion failures in some tests (rendering differences)
+  - Tests now run to completion without hanging
+  - 4 tests passing, 3 tests with pixel color mismatches
+  - These are similar to the visual regression issues in other tests
 - Upgrade conic gradients from fallback to true conic implementation (optional enhancement)
