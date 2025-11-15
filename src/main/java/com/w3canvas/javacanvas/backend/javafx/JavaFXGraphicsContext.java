@@ -42,6 +42,9 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     private boolean imageSmoothingEnabled = true;
     private String imageSmoothingQuality = "low";
 
+    // Filter
+    private String filter = "none";
+
     public JavaFXGraphicsContext(GraphicsContext gc) {
         this.gc = gc;
         this.path = new Path();
@@ -89,9 +92,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public ITextMetrics measureText(String text) {
-        Text t = new Text(text);
-        t.setFont(gc.getFont());
-        return new com.w3canvas.javacanvas.core.TextMetrics(t.getLayoutBounds().getWidth());
+        return new JavaFXTextMetrics(gc.getFont(), text);
     }
 
     @Override
@@ -422,7 +423,8 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
         // And we add a JavaFX ArcTo path element to our own path object.
         // The sweep flag is determined by the sign of the cross product of the two vectors.
-        boolean sweepFlag = (dx01 * dy12 - dy01 * dx12) < 0;
+        // Positive cross product (left turn) requires sweepFlag=true to select the correct arc center
+        boolean sweepFlag = (dx01 * dy12 - dy01 * dx12) > 0;
         ArcTo arcTo = new ArcTo(radius, radius, 0, t2x, t2y, false, sweepFlag);
         path.getElements().add(arcTo);
 
@@ -755,11 +757,11 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
                 double extent = Math.toDegrees(angle(ux, uy, vx, vy));
 
                 // Adjust sweep direction based on sweepFlag
-                // sweepFlag=true means clockwise (positive), sweepFlag=false means counter-clockwise (negative)
-                if (!sweepFlag && extent > 0) {
-                    extent -= 360;
-                } else if (sweepFlag && extent < 0) {
-                    extent += 360;
+                // SVG/Canvas: sweepFlag=true means clockwise, sweepFlag=false means counter-clockwise
+                // AWT Arc2D: positive extent is counter-clockwise, negative extent is clockwise
+                // So for clockwise (sweepFlag=true), we need negative extent
+                if (sweepFlag) {
+                    extent = -extent;
                 }
 
                 awtPath.append(new java.awt.geom.Arc2D.Double(cx - radiusX, cy - radiusY, 2 * radiusX, 2 * radiusY, startAngle, extent, java.awt.geom.Arc2D.OPEN), true);
@@ -896,5 +898,186 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
             // Fallback
         }
         return Color.BLACK;
+    }
+
+    // Filter methods
+    @Override
+    public void setFilter(String filter) {
+        this.filter = (filter == null || filter.trim().isEmpty()) ? "none" : filter;
+        applyFilterEffect();
+    }
+
+    @Override
+    public String getFilter() {
+        return this.filter;
+    }
+
+    /**
+     * Apply CSS filters using JavaFX Effect classes
+     */
+    private void applyFilterEffect() {
+        if (filter == null || "none".equals(filter)) {
+            // Clear filter effects (but preserve shadow if active)
+            if (shadowBlur > 0 || shadowOffsetX != 0 || shadowOffsetY != 0) {
+                applyShadowEffect();
+            } else {
+                gc.setEffect(null);
+            }
+            return;
+        }
+
+        java.util.List<com.w3canvas.javacanvas.core.FilterFunction> filters =
+            com.w3canvas.javacanvas.core.CSSFilterParser.parse(filter);
+
+        if (filters.isEmpty()) {
+            // No valid filters, just apply shadow if active
+            applyShadowEffect();
+            return;
+        }
+
+        // Chain multiple effects together
+        javafx.scene.effect.Effect effect = null;
+
+        for (com.w3canvas.javacanvas.core.FilterFunction filterFunc : filters) {
+            javafx.scene.effect.Effect newEffect = createFilterEffect(filterFunc);
+            if (newEffect != null) {
+                if (effect == null) {
+                    effect = newEffect;
+                } else {
+                    // Chain effects by setting the input
+                    if (newEffect instanceof javafx.scene.effect.GaussianBlur) {
+                        ((javafx.scene.effect.GaussianBlur) newEffect).setInput(effect);
+                        effect = newEffect;
+                    } else if (newEffect instanceof javafx.scene.effect.ColorAdjust) {
+                        ((javafx.scene.effect.ColorAdjust) newEffect).setInput(effect);
+                        effect = newEffect;
+                    } else if (newEffect instanceof javafx.scene.effect.SepiaTone) {
+                        ((javafx.scene.effect.SepiaTone) newEffect).setInput(effect);
+                        effect = newEffect;
+                    }
+                }
+            }
+        }
+
+        // Apply the chained effect or fallback to shadow
+        if (effect != null) {
+            // If shadow is active, chain it with the filter effects
+            if (shadowBlur > 0 || shadowOffsetX != 0 || shadowOffsetY != 0) {
+                javafx.scene.effect.DropShadow shadow = new javafx.scene.effect.DropShadow();
+                shadow.setRadius(shadowBlur);
+                shadow.setOffsetX(shadowOffsetX);
+                shadow.setOffsetY(shadowOffsetY);
+                Color shadowCol = parseColor(shadowColor);
+                shadow.setColor(shadowCol);
+                shadow.setInput(effect);
+                gc.setEffect(shadow);
+            } else {
+                gc.setEffect(effect);
+            }
+        } else {
+            applyShadowEffect();
+        }
+    }
+
+    /**
+     * Create a JavaFX Effect from a FilterFunction
+     */
+    private javafx.scene.effect.Effect createFilterEffect(com.w3canvas.javacanvas.core.FilterFunction filter) {
+        switch (filter.getType()) {
+            case BLUR:
+                double radius = filter.getDoubleParam(0);
+                if (radius > 0) {
+                    javafx.scene.effect.GaussianBlur blur = new javafx.scene.effect.GaussianBlur();
+                    blur.setRadius(Math.min(radius, 63)); // JavaFX has a max radius of 63
+                    return blur;
+                }
+                break;
+
+            case BRIGHTNESS:
+            case CONTRAST:
+            case SATURATE:
+            case HUE_ROTATE:
+                javafx.scene.effect.ColorAdjust colorAdjust = new javafx.scene.effect.ColorAdjust();
+
+                if (filter.getType() == com.w3canvas.javacanvas.core.FilterFunction.FilterType.BRIGHTNESS) {
+                    // JavaFX brightness: -1 to 1, where 0 is normal
+                    // CSS brightness: 0 to infinity, where 1 is normal
+                    double brightness = filter.getDoubleParam(0);
+                    colorAdjust.setBrightness(brightness - 1.0);
+                } else if (filter.getType() == com.w3canvas.javacanvas.core.FilterFunction.FilterType.CONTRAST) {
+                    // JavaFX contrast: -1 to 1, where 0 is normal
+                    // CSS contrast: 0 to infinity, where 1 is normal
+                    double contrast = filter.getDoubleParam(0);
+                    colorAdjust.setContrast(contrast - 1.0);
+                } else if (filter.getType() == com.w3canvas.javacanvas.core.FilterFunction.FilterType.SATURATE) {
+                    // JavaFX saturation: -1 to 1, where 0 is normal
+                    // CSS saturate: 0 to infinity, where 1 is normal
+                    double saturate = filter.getDoubleParam(0);
+                    colorAdjust.setSaturation(saturate - 1.0);
+                } else if (filter.getType() == com.w3canvas.javacanvas.core.FilterFunction.FilterType.HUE_ROTATE) {
+                    double degrees = filter.getDoubleParam(0);
+                    colorAdjust.setHue(degrees / 360.0);
+                }
+
+                return colorAdjust;
+
+            case GRAYSCALE:
+                double grayscaleAmount = filter.getDoubleParam(0);
+                javafx.scene.effect.ColorAdjust grayscale = new javafx.scene.effect.ColorAdjust();
+                grayscale.setSaturation(-grayscaleAmount); // -1 is full grayscale
+                return grayscale;
+
+            case SEPIA:
+                double sepiaAmount = filter.getDoubleParam(0);
+                if (sepiaAmount > 0) {
+                    javafx.scene.effect.SepiaTone sepia = new javafx.scene.effect.SepiaTone();
+                    sepia.setLevel(sepiaAmount);
+                    return sepia;
+                }
+                break;
+
+            case INVERT:
+                // JavaFX doesn't have a direct invert effect
+                // We can approximate with color adjustments, but it's not perfect
+                double invertAmount = filter.getDoubleParam(0);
+                if (invertAmount > 0) {
+                    // This is an approximation - JavaFX doesn't have true invert
+                    javafx.scene.effect.ColorAdjust invert = new javafx.scene.effect.ColorAdjust();
+                    invert.setBrightness(-invertAmount);
+                    invert.setHue(invertAmount > 0.5 ? 0.5 : 0);
+                    return invert;
+                }
+                break;
+
+            case OPACITY:
+                // Opacity is typically handled via globalAlpha, not as a filter effect
+                // But we can note it here for completeness
+                break;
+
+            case DROP_SHADOW:
+                // drop-shadow is handled separately from the main shadow properties
+                if (filter.getParamCount() >= 2) {
+                    javafx.scene.effect.DropShadow dropShadow = new javafx.scene.effect.DropShadow();
+                    dropShadow.setOffsetX(filter.getDoubleParam(0));
+                    dropShadow.setOffsetY(filter.getDoubleParam(1));
+
+                    if (filter.getParamCount() >= 3) {
+                        dropShadow.setRadius(filter.getDoubleParam(2));
+                    }
+
+                    if (filter.getParamCount() >= 4) {
+                        Color color = parseColor(filter.getStringParam(3));
+                        dropShadow.setColor(color);
+                    }
+
+                    return dropShadow;
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        return null;
     }
 }

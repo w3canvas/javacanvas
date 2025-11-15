@@ -32,6 +32,13 @@
                         <testfx.headless>true</testfx.headless>
                         <prism.order>sw</prism.order>
                         <prism.text>t2k</prism.text>
+                        <!-- Additional Prism settings for consistent headless rendering -->
+                        <prism.allowhidpi>false</prism.allowhidpi>
+                        <prism.subpixeltext>false</prism.subpixeltext>
+                        <prism.lcdtext>false</prism.lcdtext>
+                        <prism.fontsmoothing>false</prism.fontsmoothing>
+                        <prism.forceGPU>false</prism.forceGPU>
+                        <prism.vsync>false</prism.vsync>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

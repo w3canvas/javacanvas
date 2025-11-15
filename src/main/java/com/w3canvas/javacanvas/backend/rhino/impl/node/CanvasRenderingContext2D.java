@@ -10,6 +10,7 @@ import com.w3canvas.javacanvas.backend.rhino.impl.gradient.CanvasGradient;
 import com.w3canvas.javacanvas.backend.rhino.impl.gradient.RhinoCanvasGradient;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoCanvasPattern;
 import com.w3canvas.javacanvas.interfaces.ICanvasGradient;
+import com.w3canvas.javacanvas.interfaces.IPath2D;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import com.w3canvas.javacanvas.interfaces.ICanvasPattern;
@@ -364,8 +365,20 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     @Override
+    public void fill(IPath2D path) {
+        core.fill(path);
+        canvas.dirty();
+    }
+
+    @Override
     public void stroke() {
         core.stroke();
+        canvas.dirty();
+    }
+
+    @Override
+    public void stroke(IPath2D path) {
+        core.stroke(path);
         canvas.dirty();
     }
 
@@ -377,6 +390,11 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     @Override
     public boolean isPointInPath(double x, double y) {
         return core.isPointInPath(x, y);
+    }
+
+    @Override
+    public boolean isPointInPath(IPath2D path, double x, double y) {
+        return core.isPointInPath(path, x, y);
     }
 
     @Override
@@ -749,20 +767,58 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
     }
 
-    public void jsFunction_fill() {
-        fill();
+    public void jsFunction_fill(Object pathArg) {
+        // Support both fill() with no args (current path) and fill(path)
+        if (pathArg == null || pathArg == Context.getUndefinedValue() || pathArg == Scriptable.NOT_FOUND) {
+            fill();
+        } else if (pathArg instanceof RhinoPath2D) {
+            fill((RhinoPath2D) pathArg);
+        } else if (pathArg instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
+            fill((com.w3canvas.javacanvas.interfaces.IPath2D) pathArg);
+        } else {
+            fill();  // Fallback to current path
+        }
     }
 
-    public void jsFunction_stroke() {
-        stroke();
+    public void jsFunction_stroke(Object pathArg) {
+        // Support both stroke() with no args (current path) and stroke(path)
+        if (pathArg == null || pathArg == Context.getUndefinedValue() || pathArg == Scriptable.NOT_FOUND) {
+            stroke();
+        } else if (pathArg instanceof RhinoPath2D) {
+            stroke((RhinoPath2D) pathArg);
+        } else if (pathArg instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
+            stroke((com.w3canvas.javacanvas.interfaces.IPath2D) pathArg);
+        } else {
+            stroke();  // Fallback to current path
+        }
     }
 
     public void jsFunction_clip() {
         clip();
     }
 
-    public boolean jsFunction_isPointInPath(Double x, Double y) {
-        return isPointInPath(x, y);
+    public boolean jsFunction_isPointInPath(Object pathOrX, Object yOrUndefined, Object zOrUndefined) {
+        // Handle both signatures:
+        // isPointInPath(x, y)
+        // isPointInPath(path, x, y)
+        if (pathOrX instanceof RhinoPath2D || pathOrX instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
+            // isPointInPath(path, x, y)
+            com.w3canvas.javacanvas.interfaces.IPath2D path = null;
+            if (pathOrX instanceof RhinoPath2D) {
+                path = (RhinoPath2D) pathOrX;
+            } else if (pathOrX instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
+                path = (com.w3canvas.javacanvas.interfaces.IPath2D) pathOrX;
+            }
+
+            double x = Context.toNumber(yOrUndefined);
+            double y = Context.toNumber(zOrUndefined);
+            return isPointInPath(path, x, y);
+        } else {
+            // isPointInPath(x, y)
+            double x = Context.toNumber(pathOrX);
+            double y = Context.toNumber(yOrUndefined);
+            return isPointInPath(x, y);
+        }
     }
 
     public boolean jsFunction_isPointInStroke(Double x, Double y) {

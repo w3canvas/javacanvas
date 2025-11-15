@@ -35,6 +35,10 @@ public class RhinoRuntime
             try {
                 org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFace.class);
                 org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFaceSet.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.node.Blob.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.js.worker.OffscreenCanvas.class);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
