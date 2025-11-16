@@ -1620,7 +1620,7 @@ public class TestCanvas2D extends ApplicationTest {
 
         interact(() -> {
             Context.enter();
-            try {
+            try{
                 ctx.clearRect(0, 0, 400, 400);
                 ctx.setFillStyle("purple");
                 ctx.fill(combinedPath);
@@ -1631,7 +1631,7 @@ public class TestCanvas2D extends ApplicationTest {
 
         // Check pixels in both rectangles
         assertPixel(ctx, 75, 75, 128, 0, 128, 255);
-        // TODO: Fix - second rectangle not being filled (see UNDONE.md)
+        // TODO: Complex Path2D multi-subpath rendering edge case - both rectangles are in path but second not rendering
         // assertPixel(ctx, 175, 175, 128, 0, 128, 255);
     }
 
