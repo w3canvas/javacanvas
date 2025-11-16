@@ -130,4 +130,8 @@ public interface ICanvasRenderingContext2D {
     void setFilter(String filter);
 
     void reset();
+
+    // Focus management
+    void drawFocusIfNeeded(Object element);
+    void drawFocusIfNeeded(IPath2D path, Object element);
 }

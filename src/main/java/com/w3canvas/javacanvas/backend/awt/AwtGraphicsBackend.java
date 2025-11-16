@@ -25,9 +25,7 @@ public class AwtGraphicsBackend implements IGraphicsBackend {
 
     @Override
     public ICanvasGradient createConicGradient(double startAngle, double x, double y) {
-        // TODO: Implement proper conic gradient for AWT
-        // For now, return a radial gradient as temporary fallback
-        return new AwtRadialGradient(x, y, 0, x, y, 100, this);
+        return new AwtConicGradient(startAngle, x, y, this);
     }
 
     @Override

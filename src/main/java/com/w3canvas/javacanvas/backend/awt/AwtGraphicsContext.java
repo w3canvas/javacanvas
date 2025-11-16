@@ -151,6 +151,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
             g2d.setPaint(((AwtLinearGradient) paint).getPaint());
         } else if (paint instanceof AwtRadialGradient) {
             g2d.setPaint(((AwtRadialGradient) paint).getPaint());
+        } else if (paint instanceof AwtConicGradient) {
+            g2d.setPaint(((AwtConicGradient) paint).getPaint());
         } else if (paint instanceof AwtPattern) {
             g2d.setPaint(((AwtPattern) paint).getPaint());
         }
@@ -165,6 +167,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
             g2d.setPaint(((AwtLinearGradient) paint).getPaint());
         } else if (paint instanceof AwtRadialGradient) {
             g2d.setPaint(((AwtRadialGradient) paint).getPaint());
+        } else if (paint instanceof AwtConicGradient) {
+            g2d.setPaint(((AwtConicGradient) paint).getPaint());
         } else if (paint instanceof AwtPattern) {
             g2d.setPaint(((AwtPattern) paint).getPaint());
         }
@@ -464,8 +468,18 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void rect(double x, double y, double w, double h) {
-        // Use false for connect parameter - rect() creates a new subpath, not connected to existing path
-        path.append(g2d.getTransform().createTransformedShape(new java.awt.geom.Rectangle2D.Double(x, y, w, h)), false);
+        // Transform the corner coordinates
+        Point2D p1 = g2d.getTransform().transform(new Point2D.Double(x, y), null);
+        Point2D p2 = g2d.getTransform().transform(new Point2D.Double(x + w, y), null);
+        Point2D p3 = g2d.getTransform().transform(new Point2D.Double(x + w, y + h), null);
+        Point2D p4 = g2d.getTransform().transform(new Point2D.Double(x, y + h), null);
+
+        // Add as explicit path commands (creates clean subpath)
+        path.moveTo(p1.getX(), p1.getY());
+        path.lineTo(p2.getX(), p2.getY());
+        path.lineTo(p3.getX(), p3.getY());
+        path.lineTo(p4.getX(), p4.getY());
+        path.closePath();
     }
 
     @Override

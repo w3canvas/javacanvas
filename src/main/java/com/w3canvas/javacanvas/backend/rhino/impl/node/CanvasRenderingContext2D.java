@@ -1000,4 +1000,31 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     public void jsSet_filter(String filter) {
         setFilter(filter);
     }
+
+    // Canvas back-reference property
+    public Object jsGet_canvas() {
+        return this.canvas;
+    }
+
+    // Font kerning property (read-only, always "auto" - Java handles kerning automatically)
+    public String jsGet_fontKerning() {
+        return "auto";
+    }
+
+    // Focus management
+    public void jsFunction_drawFocusIfNeeded(Object element) {
+        core.drawFocusIfNeeded(element);
+    }
+
+    public void jsFunction_drawFocusIfNeeded(Object pathOrElement, Object element) {
+        // Check if first argument is a Path2D
+        if (pathOrElement instanceof IPath2D) {
+            core.drawFocusIfNeeded((IPath2D) pathOrElement, element);
+        } else if (pathOrElement instanceof RhinoPath2D) {
+            core.drawFocusIfNeeded(((RhinoPath2D) pathOrElement).getCorePath(), element);
+        } else {
+            // First argument is the element
+            core.drawFocusIfNeeded(pathOrElement);
+        }
+    }
 }
