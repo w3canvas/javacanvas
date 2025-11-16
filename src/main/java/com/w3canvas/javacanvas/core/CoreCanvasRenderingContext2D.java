@@ -790,6 +790,66 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         }
     }
 
+    @Override
+    public void drawFocusIfNeeded(Object element) {
+        // Draw focus ring around current path if element has focus
+        // For now, implement a simplified version that checks if element has focus
+        // and draws a focus ring using system colors
+        if (element != null && hasElementFocus(element)) {
+            // Save current state
+            save();
+
+            // Set focus ring style (typically a dashed line in system accent color)
+            gc.setLineWidth(2.0);
+            gc.setLineDash(new double[]{2, 2});
+            gc.setStrokePaint(ColorParser.parse("#0078D4", backend)); // System accent color approximation
+
+            // Stroke the current path
+            gc.stroke();
+
+            // Restore state
+            restore();
+        }
+    }
+
+    @Override
+    public void drawFocusIfNeeded(IPath2D path, Object element) {
+        // Draw focus ring around specified path if element has focus
+        if (element != null && hasElementFocus(element) && path != null) {
+            // Save current state
+            save();
+
+            // Set focus ring style
+            gc.setLineWidth(2.0);
+            gc.setLineDash(new double[]{2, 2});
+            gc.setStrokePaint(ColorParser.parse("#0078D4", backend)); // System accent color approximation
+
+            // Stroke the specified path
+            stroke(path);
+
+            // Restore state
+            restore();
+        }
+    }
+
+    /**
+     * Check if an element has focus.
+     * This is a simplified implementation - in a full implementation,
+     * this would check the DOM focus state.
+     */
+    private boolean hasElementFocus(Object element) {
+        // For Rhino objects, try to check if they have a 'focused' property
+        if (element instanceof org.mozilla.javascript.ScriptableObject) {
+            org.mozilla.javascript.ScriptableObject scriptable = (org.mozilla.javascript.ScriptableObject) element;
+            Object focused = scriptable.get("focused", scriptable);
+            if (focused != org.mozilla.javascript.Scriptable.NOT_FOUND) {
+                return Boolean.TRUE.equals(focused);
+            }
+        }
+        // Default: assume not focused
+        return false;
+    }
+
     private static class ContextState {
         private final Object fillStyle;
         private final Object strokeStyle;

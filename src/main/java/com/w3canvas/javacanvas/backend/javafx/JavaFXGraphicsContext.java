@@ -146,6 +146,8 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
             gc.setFill((Paint) ((JavaFXLinearGradient) paint).getPaint());
         } else if (paint instanceof JavaFXRadialGradient) {
             gc.setFill((Paint) ((JavaFXRadialGradient) paint).getPaint());
+        } else if (paint instanceof JavaFXConicGradient) {
+            gc.setFill((Paint) ((JavaFXConicGradient) paint).getPaint());
         } else if (paint instanceof JavaFXPattern) {
             JavaFXPattern pattern = (JavaFXPattern) paint;
             double width = gc.getCanvas().getWidth();
@@ -163,6 +165,8 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
             gc.setStroke((Paint) ((JavaFXLinearGradient) paint).getPaint());
         } else if (paint instanceof JavaFXRadialGradient) {
             gc.setStroke((Paint) ((JavaFXRadialGradient) paint).getPaint());
+        } else if (paint instanceof JavaFXConicGradient) {
+            gc.setStroke((Paint) ((JavaFXConicGradient) paint).getPaint());
         } else if (paint instanceof JavaFXPattern) {
             JavaFXPattern pattern = (JavaFXPattern) paint;
             double width = gc.getCanvas().getWidth();

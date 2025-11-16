@@ -151,6 +151,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
             g2d.setPaint(((AwtLinearGradient) paint).getPaint());
         } else if (paint instanceof AwtRadialGradient) {
             g2d.setPaint(((AwtRadialGradient) paint).getPaint());
+        } else if (paint instanceof AwtConicGradient) {
+            g2d.setPaint(((AwtConicGradient) paint).getPaint());
         } else if (paint instanceof AwtPattern) {
             g2d.setPaint(((AwtPattern) paint).getPaint());
         }
@@ -165,6 +167,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
             g2d.setPaint(((AwtLinearGradient) paint).getPaint());
         } else if (paint instanceof AwtRadialGradient) {
             g2d.setPaint(((AwtRadialGradient) paint).getPaint());
+        } else if (paint instanceof AwtConicGradient) {
+            g2d.setPaint(((AwtConicGradient) paint).getPaint());
         } else if (paint instanceof AwtPattern) {
             g2d.setPaint(((AwtPattern) paint).getPaint());
         }

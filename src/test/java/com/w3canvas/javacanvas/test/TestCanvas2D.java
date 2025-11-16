@@ -1346,8 +1346,7 @@ public class TestCanvas2D extends ApplicationTest {
                 // Create a conic gradient
                 ICanvasGradient gradient = ctx.createConicGradient(0, 100, 100);
 
-                // Note: Conic gradient currently returns a fallback radial gradient
-                // Full implementation would require custom gradient rendering
+                // Conic gradient is now fully implemented using custom Paint/Pattern
                 assertTrue(gradient != null, "Conic gradient should be created");
             } finally {
                 Context.exit();
