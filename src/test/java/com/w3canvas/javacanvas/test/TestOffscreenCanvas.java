@@ -32,14 +32,8 @@ public class TestOffscreenCanvas {
 
         Context rhinoContext = Context.enter();
         try {
-            // Register OffscreenCanvas, Blob, and ImageBitmap classes
-            // Note: CanvasRenderingContext2D is already registered by RhinoRuntime
-            ScriptableObject.defineClass(runtime.getScope(),
-                com.w3canvas.javacanvas.js.worker.OffscreenCanvas.class);
-            ScriptableObject.defineClass(runtime.getScope(),
-                com.w3canvas.javacanvas.backend.rhino.impl.node.Blob.class);
-            ScriptableObject.defineClass(runtime.getScope(),
-                com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap.class);
+            // Note: OffscreenCanvas, Blob, ImageBitmap, ImageData, and CanvasRenderingContext2D
+            // are already registered by RhinoRuntime
             ScriptableObject.putProperty(runtime.getScope(), "console",
                 new com.w3canvas.javacanvas.utils.ScriptLogger());
         } catch (Exception e) {

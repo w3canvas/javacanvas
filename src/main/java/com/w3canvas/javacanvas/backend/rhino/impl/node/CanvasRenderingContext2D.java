@@ -5,6 +5,7 @@ import java.awt.geom.AffineTransform;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 
 import com.w3canvas.javacanvas.backend.rhino.impl.gradient.CanvasGradient;
 import com.w3canvas.javacanvas.backend.rhino.impl.gradient.RhinoCanvasGradient;
@@ -30,6 +31,11 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
 
     // Default constructor for Rhino
     public CanvasRenderingContext2D() {
+    }
+
+    @Override
+    public String getClassName() {
+        return "CanvasRenderingContext2D";
     }
 
     public void init(ICanvasRenderingContext2D core) {
