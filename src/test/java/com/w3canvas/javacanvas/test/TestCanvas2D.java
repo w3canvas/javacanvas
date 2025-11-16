@@ -1631,8 +1631,7 @@ public class TestCanvas2D extends ApplicationTest {
 
         // Check pixels in both rectangles
         assertPixel(ctx, 75, 75, 128, 0, 128, 255);
-        // TODO: Complex Path2D multi-subpath rendering edge case - both rectangles are in path but second not rendering
-        // assertPixel(ctx, 175, 175, 128, 0, 128, 255);
+        assertPixel(ctx, 175, 175, 128, 0, 128, 255);
     }
 
     @Test
@@ -1714,7 +1713,6 @@ public class TestCanvas2D extends ApplicationTest {
 
         // Check that the transformed rectangle was drawn
         // With rotation, we expect red pixels around the center
-        // TODO: Fix - rotated Path2D rectangle not rendering at expected location (see UNDONE.md)
-        // assertPixel(ctx, 100, 100, 255, 0, 0, 255);
+        assertPixel(ctx, 100, 100, 255, 0, 0, 255);
     }
 }

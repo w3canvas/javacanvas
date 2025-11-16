@@ -447,6 +447,13 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         if (path == null) {
             return;
         }
+        // Save current transform
+        Object savedTransform = gc.getTransform();
+
+        // Set transform to identity before replaying path
+        // (Path commands already have transforms "baked in")
+        gc.resetTransform();
+
         // Replay the path onto the graphics context
         gc.beginPath();
         if (path instanceof Path2D) {
@@ -454,6 +461,10 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         } else if (path instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) {
             ((com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) path).getCorePath().replayOn(gc);
         }
+
+        // Restore transform before filling
+        gc.setTransform(savedTransform);
+
         // Then fill using the current path
         fill();
     }
@@ -488,6 +499,13 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         if (path == null) {
             return;
         }
+        // Save current transform
+        Object savedTransform = gc.getTransform();
+
+        // Set transform to identity before replaying path
+        // (Path commands already have transforms "baked in")
+        gc.resetTransform();
+
         // Replay the path onto the graphics context
         gc.beginPath();
         if (path instanceof Path2D) {
@@ -495,6 +513,10 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         } else if (path instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) {
             ((com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) path).getCorePath().replayOn(gc);
         }
+
+        // Restore transform before stroking
+        gc.setTransform(savedTransform);
+
         // Then stroke using the current path
         stroke();
     }
