@@ -85,6 +85,84 @@ public class RhinoRuntime
                     return null;
                 }
             });
+
+            defineProperty("createImageBitmap", new Callable()
+            {
+                public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args)
+                {
+                    if (args.length == 0) {
+                        throw new IllegalArgumentException("createImageBitmap requires at least 1 argument");
+                    }
+
+                    Object source = args[0];
+
+                    // Create core ImageBitmap from various source types
+                    com.w3canvas.javacanvas.core.ImageBitmap coreImageBitmap = null;
+
+                    try {
+                        if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.Image) {
+                            // HTMLImageElement
+                            coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(
+                                (com.w3canvas.javacanvas.backend.rhino.impl.node.Image) source);
+                        } else if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) {
+                            // HTMLCanvasElement
+                            coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(
+                                (com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) source);
+                        } else if (source instanceof com.w3canvas.javacanvas.js.worker.OffscreenCanvas) {
+                            // OffscreenCanvas - get BufferedImage
+                            java.awt.image.BufferedImage img =
+                                ((com.w3canvas.javacanvas.js.worker.OffscreenCanvas) source).getImage();
+                            coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(img);
+                        } else if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) {
+                            // ImageData - unwrap to core
+                            com.w3canvas.javacanvas.interfaces.IImageData coreImageData =
+                                ((com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) source);
+                            coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(coreImageData);
+                        } else if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap) {
+                            // ImageBitmap - create copy
+                            com.w3canvas.javacanvas.interfaces.IImageBitmap sourceImageBitmap =
+                                (com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap) source;
+                            coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(sourceImageBitmap);
+                        } else if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.Blob) {
+                            // Blob - decode image from blob data
+                            com.w3canvas.javacanvas.backend.rhino.impl.node.Blob blob =
+                                (com.w3canvas.javacanvas.backend.rhino.impl.node.Blob) source;
+                            byte[] data = blob.getData();
+                            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(data);
+                            java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(bais);
+                            if (img == null) {
+                                throw new IllegalArgumentException("Failed to decode image from Blob");
+                            }
+                            coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(img);
+                        } else {
+                            throw new IllegalArgumentException(
+                                "createImageBitmap: unsupported source type: " +
+                                (source != null ? source.getClass().getName() : "null"));
+                        }
+
+                        // Create Rhino wrapper
+                        com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap rhinoImageBitmap =
+                            new com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap();
+                        rhinoImageBitmap.init(coreImageBitmap);
+
+                        // Set up scope and prototype
+                        rhinoImageBitmap.setParentScope(scope);
+                        try {
+                            Scriptable proto = org.mozilla.javascript.ScriptableObject.getClassPrototype(
+                                scope, "ImageBitmap");
+                            if (proto != null) {
+                                rhinoImageBitmap.setPrototype(proto);
+                            }
+                        } catch (Exception e) {
+                            // Prototype not found, object will still work
+                        }
+
+                        return rhinoImageBitmap;
+                    } catch (Exception e) {
+                        throw new RuntimeException("createImageBitmap failed: " + e.getMessage(), e);
+                    }
+                }
+            });
         }
         catch (Exception e)
         {

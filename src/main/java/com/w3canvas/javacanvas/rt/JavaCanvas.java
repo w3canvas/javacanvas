@@ -168,6 +168,8 @@ public class JavaCanvas {
             ScriptableObject.defineClass(runtime.getScope(), StyleHolder.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), JSMouseEvent.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), com.w3canvas.javacanvas.js.worker.Worker.class, false, true);
+            ScriptableObject.defineClass(runtime.getScope(), com.w3canvas.javacanvas.js.worker.SharedWorker.class, false, true);
+            ScriptableObject.defineClass(runtime.getScope(), com.w3canvas.javacanvas.js.worker.MessagePort.class, false, true);
 
             runtime.defineProperty("log", new ScriptLogger());
             runtime.defineProperty("console", new ScriptLogger());
