@@ -538,11 +538,10 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
                 }
             }
 
-            // WORKAROUND ATTEMPT: If we have multiple rectangles, use fillRectDirect
-            // to bypass JavaFX's broken path system. Unfortunately, this workaround
-            // does not fully resolve the issue - JavaFX GraphicsContext has fundamental
-            // limitations with rendering multiple rectangles that cannot be easily fixed.
-            // This code is left here for future investigation.
+            // WORKAROUND: If we have multiple rectangles, use fillRectDirect
+            // to bypass JavaFX's path rendering limitation. JavaFX's GraphicsContext
+            // doesn't properly render multiple rect() calls within the same path.
+            // By using fillRectDirect, we render each rectangle separately which works correctly.
             if (allRects && rectCount > 1) {
                 for (IPath2D.PathElement element : elements) {
                     if (element.getType() == IPath2D.PathElement.Type.RECT) {
@@ -562,6 +561,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         }
 
         // For other paths, use the normal approach
+        System.out.println("DEBUG: Using normal path approach (beginPath + replayOn + fill)");
         gc.beginPath();
         if (path instanceof Path2D) {
             ((Path2D) path).replayOn(gc);

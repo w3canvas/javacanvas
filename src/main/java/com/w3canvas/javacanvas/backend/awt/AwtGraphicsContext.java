@@ -317,7 +317,24 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public void drawImage(Object img, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh) {
         if (img instanceof BufferedImage) {
-            g2d.drawImage((BufferedImage) img, dx, dy, dx + dw, dy + dh, sx, sy, sx + sw, sy + sh, null);
+            BufferedImage buffImg = (BufferedImage) img;
+            System.out.println("[DEBUG AwtGraphicsContext.drawImage] Drawing BufferedImage " + buffImg.getWidth() + "x" + buffImg.getHeight() +
+                             " from src(" + sx + "," + sy + "," + sw + "," + sh + ") to dst(" + dx + "," + dy + "," + dw + "," + dh + ")");
+
+            // Check source image pixel
+            if (buffImg.getWidth() > 0 && buffImg.getHeight() > 0) {
+                int checkX = Math.min(buffImg.getWidth() / 2, buffImg.getWidth() - 1);
+                int checkY = Math.min(buffImg.getHeight() / 2, buffImg.getHeight() - 1);
+                int rgb = buffImg.getRGB(checkX, checkY);
+                int a = (rgb >> 24) & 0xff;
+                int r = (rgb >> 16) & 0xff;
+                int g = (rgb >> 8) & 0xff;
+                int b = rgb & 0xff;
+                System.out.println("[DEBUG AwtGraphicsContext.drawImage] Source image pixel (" + checkX + "," + checkY + ") ARGB=(" + a + "," + r + "," + g + "," + b + ")");
+            }
+
+            g2d.drawImage(buffImg, dx, dy, dx + dw, dy + dh, sx, sy, sx + sw, sy + sh, null);
+            System.out.println("[DEBUG AwtGraphicsContext.drawImage] drawImage completed");
         }
     }
 
