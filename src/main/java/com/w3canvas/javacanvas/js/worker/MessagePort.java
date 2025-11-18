@@ -51,10 +51,8 @@ public class MessagePort extends ProjectScriptableObject {
         if (otherPort != null) {
             try {
                 otherPort.messageQueue.put(data);
-                // Auto-start message processing if not started
-                if (!otherPort.started) {
-                    otherPort.jsFunction_start();
-                }
+                // Don't auto-start the other port - it should be started explicitly
+                // by calling start() or setting onmessage
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
