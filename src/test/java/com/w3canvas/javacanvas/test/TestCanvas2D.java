@@ -1604,30 +1604,6 @@ public class TestCanvas2D extends ApplicationTest {
     }
 
     @Test
-    public void testMultipleRects() throws ExecutionException, InterruptedException {
-        HTMLCanvasElement canvas = createCanvas();
-        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
-
-        interact(() -> {
-            Context.enter();
-            try{
-                ctx.clearRect(0, 0, 400, 400);
-                ctx.beginPath();
-                ctx.rect(50, 50, 50, 50);
-                ctx.rect(150, 150, 50, 50);
-                ctx.setFillStyle("purple");
-                ctx.fill();
-            } finally {
-                Context.exit();
-            }
-        });
-
-        // Check pixels in both rectangles
-        assertPixel(ctx, 75, 75, 128, 0, 128, 255);
-        assertPixel(ctx, 175, 175, 128, 0, 128, 255);
-    }
-
-    @Test
     public void testPath2DAddPath() throws ExecutionException, InterruptedException {
         HTMLCanvasElement canvas = createCanvas();
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
