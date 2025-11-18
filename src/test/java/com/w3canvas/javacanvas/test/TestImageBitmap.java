@@ -61,6 +61,7 @@ public class TestImageBitmap extends ApplicationTest {
         javaCanvas.getDocument().addElement("canvas", canvas);
         ScriptableObject.putProperty(scope, "canvas", canvas);
         ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+        ScriptableObject.putProperty(scope, "ctx", ctx);
     }
 
     @AfterEach

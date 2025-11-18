@@ -448,17 +448,15 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             return;
         }
 
-        System.out.println("DEBUG: fill(IPath2D) - path elements count: " +
-            (path.getElements() != null ? path.getElements().size() : "null"));
+        // Apply current state (including fill style, global alpha, etc.)
+        applyCurrentState();
+        if (fillStyle instanceof String) {
+            gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
+        } else if (fillStyle instanceof IPaint) {
+            gc.setFillPaint((IPaint) fillStyle);
+        }
 
-        // Save current transform
-        Object savedTransform = gc.getTransform();
-
-        // Set transform to identity before replaying path
-        // (Path commands already have transforms "baked in")
-        gc.resetTransform();
-
-        // Replay the path onto the graphics context
+        // Begin a new path and replay the Path2D elements
         gc.beginPath();
         if (path instanceof Path2D) {
             ((Path2D) path).replayOn(gc);
@@ -466,11 +464,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             ((com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) path).getCorePath().replayOn(gc);
         }
 
-        // Restore transform before filling
-        gc.setTransform(savedTransform);
-
-        // Then fill using the current path
-        fill();
+        // Fill the path with the current transform applied
+        gc.fill();
     }
 
     @Override

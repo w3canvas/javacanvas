@@ -102,9 +102,11 @@ public class SharedWorker extends ProjectScriptableObject {
         private final RhinoRuntime mainRuntime;
         private final String scriptUrl;
         private final List<MessagePort> connections = new ArrayList<>();
+        private final List<MessagePort> pendingConnections = new ArrayList<>();
         private RhinoRuntime workerRuntime;
         private Scriptable workerScope;
         private Context workerContext;
+        private volatile boolean scriptLoaded = false;
 
         public SharedWorkerThread(RhinoRuntime mainRuntime, String scriptUrl) {
             this.mainRuntime = mainRuntime;
@@ -115,8 +117,13 @@ public class SharedWorker extends ProjectScriptableObject {
         public void addConnection(MessagePort port) {
             synchronized (connections) {
                 connections.add(port);
-                // Dispatch connect event to the worker
-                dispatchConnectEvent(port);
+                if (scriptLoaded) {
+                    // Script already loaded, dispatch immediately
+                    dispatchConnectEvent(port);
+                } else {
+                    // Queue for later dispatch after script loads
+                    pendingConnections.add(port);
+                }
             }
         }
 
@@ -285,6 +292,15 @@ public class SharedWorker extends ProjectScriptableObject {
                 }
 
                 workerRuntime.exec(reader, scriptUrl);
+
+                // Script loaded successfully, dispatch any pending connections
+                scriptLoaded = true;
+                synchronized (connections) {
+                    for (MessagePort port : pendingConnections) {
+                        dispatchConnectEvent(port);
+                    }
+                    pendingConnections.clear();
+                }
 
                 // Keep the worker alive (until interrupted)
                 while (!Thread.currentThread().isInterrupted()) {
