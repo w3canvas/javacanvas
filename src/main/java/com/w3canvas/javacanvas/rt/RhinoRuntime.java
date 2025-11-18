@@ -108,12 +108,9 @@ public class RhinoRuntime
                                 (com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) source);
                         } else if (source instanceof com.w3canvas.javacanvas.js.worker.OffscreenCanvas) {
                             // OffscreenCanvas - get BufferedImage
-                            System.out.println("[DEBUG createImageBitmap] Creating from OffscreenCanvas");
                             java.awt.image.BufferedImage img =
                                 ((com.w3canvas.javacanvas.js.worker.OffscreenCanvas) source).getImage();
-                            System.out.println("[DEBUG createImageBitmap] Got BufferedImage from OffscreenCanvas");
                             coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(img);
-                            System.out.println("[DEBUG createImageBitmap] Created core ImageBitmap");
                         } else if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) {
                             // ImageData - unwrap to core
                             com.w3canvas.javacanvas.interfaces.IImageData coreImageData =

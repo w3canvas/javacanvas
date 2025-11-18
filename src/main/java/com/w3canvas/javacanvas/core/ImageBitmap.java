@@ -31,35 +31,11 @@ public class ImageBitmap implements IImageBitmap {
         this.width = image.getWidth();
         this.height = image.getHeight();
 
-        // Debug: Check source image pixel values
-        if (width > 0 && height > 0) {
-            int centerX = width / 2;
-            int centerY = height / 2;
-            int rgb = image.getRGB(centerX, centerY);
-            int a = (rgb >> 24) & 0xff;
-            int r = (rgb >> 16) & 0xff;
-            int green = (rgb >> 8) & 0xff;
-            int b = rgb & 0xff;
-            System.out.println("[DEBUG ImageBitmap constructor] Source image center pixel (" + centerX + "," + centerY + ") ARGB=(" + a + "," + r + "," + green + "," + b + ")");
-        }
-
         // Create a copy of the image to ensure immutability
         this.image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = this.image.createGraphics();
         g.drawImage(image, 0, 0, null);
         g.dispose();
-
-        // Debug: Check copied image pixel values
-        if (width > 0 && height > 0) {
-            int centerX = width / 2;
-            int centerY = height / 2;
-            int rgb = this.image.getRGB(centerX, centerY);
-            int a = (rgb >> 24) & 0xff;
-            int r = (rgb >> 16) & 0xff;
-            int green = (rgb >> 8) & 0xff;
-            int b = rgb & 0xff;
-            System.out.println("[DEBUG ImageBitmap constructor] Copied image center pixel (" + centerX + "," + centerY + ") ARGB=(" + a + "," + r + "," + green + "," + b + ")");
-        }
 
         this.closed = false;
     }
@@ -165,16 +141,6 @@ public class ImageBitmap implements IImageBitmap {
 
     @Override
     public Object getNativeImage() {
-        if (!closed && image != null && image.getWidth() > 0 && image.getHeight() > 0) {
-            int centerX = image.getWidth() / 2;
-            int centerY = image.getHeight() / 2;
-            int rgb = image.getRGB(centerX, centerY);
-            int a = (rgb >> 24) & 0xff;
-            int r = (rgb >> 16) & 0xff;
-            int g = (rgb >> 8) & 0xff;
-            int b = rgb & 0xff;
-            System.out.println("[DEBUG ImageBitmap.getNativeImage] Returning image, center pixel (" + centerX + "," + centerY + ") ARGB=(" + a + "," + r + "," + g + "," + b + ")");
-        }
         return closed ? null : image;
     }
 }

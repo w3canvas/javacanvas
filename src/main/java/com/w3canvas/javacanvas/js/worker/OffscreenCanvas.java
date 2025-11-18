@@ -289,7 +289,6 @@ public class OffscreenCanvas extends ProjectScriptableObject implements ICanvas 
 
     @Override
     public BufferedImage getImage() {
-        System.out.println("[DEBUG OffscreenCanvas.getImage] Called for " + width + "x" + height + " canvas");
         if (surface == null) {
             // Create surface if not yet initialized
             surface = backend.createCanvasSurface(width, height);
@@ -300,24 +299,10 @@ public class OffscreenCanvas extends ProjectScriptableObject implements ICanvas 
             ICanvasSurface contextSurface = context.getSurface();
             if (contextSurface != null && contextSurface.getNativeImage() != null) {
                 resultImage = (BufferedImage) contextSurface.getNativeImage();
-                System.out.println("[DEBUG OffscreenCanvas.getImage] Got image from context surface");
             }
         }
         if (resultImage == null) {
             resultImage = (BufferedImage) surface.getNativeImage();
-            System.out.println("[DEBUG OffscreenCanvas.getImage] Got image from direct surface");
-        }
-
-        // Debug: Check pixel values
-        if (resultImage != null && resultImage.getWidth() > 0 && resultImage.getHeight() > 0) {
-            int centerX = resultImage.getWidth() / 2;
-            int centerY = resultImage.getHeight() / 2;
-            int rgb = resultImage.getRGB(centerX, centerY);
-            int a = (rgb >> 24) & 0xff;
-            int r = (rgb >> 16) & 0xff;
-            int g = (rgb >> 8) & 0xff;
-            int b = rgb & 0xff;
-            System.out.println("[DEBUG OffscreenCanvas.getImage] Returning image, center pixel (" + centerX + "," + centerY + ") ARGB=(" + a + "," + r + "," + g + "," + b + ")");
         }
 
         return resultImage;
