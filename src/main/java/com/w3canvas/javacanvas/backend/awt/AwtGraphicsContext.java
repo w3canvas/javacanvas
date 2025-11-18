@@ -281,6 +281,12 @@ public class AwtGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void fillRectDirect(double x, double y, double w, double h) {
+        // Use AWT's native fillRect method
+        g2d.fillRect((int) x, (int) y, (int) w, (int) h);
+    }
+
+    @Override
     public void draw(IShape shape) {
         if (shape instanceof AwtShape) {
             g2d.draw(((AwtShape) shape).getShape());

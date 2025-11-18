@@ -503,14 +503,15 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             }
 
             // If we have multiple rectangles and only rect/moveTo/closePath elements,
-            // use fillRect() for each rectangle
+            // use fillRectDirect to bypass the path system
             if (allRects && rectCount > 1) {
-                System.out.println("DEBUG: Using fillRect workaround for " + rectCount + " rectangles");
+                System.out.println("DEBUG: Using fillRectDirect workaround for " + rectCount + " rectangles");
                 for (IPath2D.PathElement element : elements) {
                     if (element.getType() == IPath2D.PathElement.Type.RECT) {
                         double[] params = element.getParams();
-                        System.out.println("DEBUG: fillRect(" + params[0] + ", " + params[1] + ", " + params[2] + ", " + params[3] + ")");
-                        fillRect(params[0], params[1], params[2], params[3]);
+                        System.out.println("DEBUG: fillRectDirect(" + params[0] + ", " + params[1] + ", " + params[2] + ", " + params[3] + ")");
+                        // Use direct fillRect method to bypass JavaFX's broken path system
+                        gc.fillRectDirect(params[0], params[1], params[2], params[3]);
                     }
                 }
                 return;

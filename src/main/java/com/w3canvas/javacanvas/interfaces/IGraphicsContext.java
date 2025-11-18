@@ -43,6 +43,7 @@ public interface IGraphicsContext {
 
     // Drawing operations
     void clearRect(double x, double y, double w, double h);
+    void fillRectDirect(double x, double y, double w, double h); // Direct fill without path system
     void draw(IShape shape);
     void fill(IShape shape);
     void drawImage(Object img, int x, int y);

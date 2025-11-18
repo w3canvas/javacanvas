@@ -300,6 +300,14 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void fillRectDirect(double x, double y, double w, double h) {
+        // Use JavaFX's native fillRect method which bypasses the path system
+        // This is needed because JavaFX's path system doesn't properly handle
+        // multiple rect() calls within the same path
+        gc.fillRect(x, y, w, h);
+    }
+
+    @Override
     public void draw(IShape shape) {
         gc.stroke();
     }
