@@ -50,7 +50,6 @@ public class JavaFXConicGradient implements ICanvasGradient, IPaint {
         Collections.sort(stops);
     }
 
-    @Override
     public Object getPaint() {
         if (stops.isEmpty()) {
             return Color.TRANSPARENT;

@@ -409,6 +409,16 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     @Override
+    public void drawFocusIfNeeded(Object element) {
+        core.drawFocusIfNeeded(element);
+    }
+
+    @Override
+    public void drawFocusIfNeeded(IPath2D path, Object element) {
+        core.drawFocusIfNeeded(path, element);
+    }
+
+    @Override
     public void drawImage(Object image, double dx, double dy) {
         core.drawImage(image, dx, dy);
         canvas.dirty();
@@ -1012,18 +1022,18 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     // Focus management
-    public void jsFunction_drawFocusIfNeeded(Object element) {
-        core.drawFocusIfNeeded(element);
-    }
-
     public void jsFunction_drawFocusIfNeeded(Object pathOrElement, Object element) {
+        // If element is undefined (JavaScript called with one arg), first arg is the element
+        if (element == null || element == org.mozilla.javascript.Undefined.instance) {
+            core.drawFocusIfNeeded(pathOrElement);
+        }
         // Check if first argument is a Path2D
-        if (pathOrElement instanceof IPath2D) {
+        else if (pathOrElement instanceof IPath2D) {
             core.drawFocusIfNeeded((IPath2D) pathOrElement, element);
         } else if (pathOrElement instanceof RhinoPath2D) {
             core.drawFocusIfNeeded(((RhinoPath2D) pathOrElement).getCorePath(), element);
         } else {
-            // First argument is the element
+            // First argument is the element (two args but first is not a path)
             core.drawFocusIfNeeded(pathOrElement);
         }
     }
