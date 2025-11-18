@@ -46,6 +46,14 @@ public class ImageData extends ProjectScriptableObject implements IImageData
         return core.getData();
     }
 
+    public String jsGet_colorSpace()
+    {
+        if (core == null) {
+            throw new RuntimeException("ImageData not properly initialized - core is null");
+        }
+        return core.getColorSpace();
+    }
+
     @Override
     public int getWidth() {
         return core.getWidth();
@@ -59,5 +67,10 @@ public class ImageData extends ProjectScriptableObject implements IImageData
     @Override
     public ICanvasPixelArray getData() {
         return core.getData();
+    }
+
+    @Override
+    public String getColorSpace() {
+        return core.getColorSpace();
     }
 }

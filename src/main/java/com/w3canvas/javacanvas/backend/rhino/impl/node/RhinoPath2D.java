@@ -72,6 +72,10 @@ public class RhinoPath2D extends ProjectScriptableObject implements IPath2D {
         corePath.rect(x, y, w, h);
     }
 
+    public void jsFunction_roundRect(double x, double y, double w, double h, Object radii) {
+        corePath.roundRect(x, y, w, h, radii);
+    }
+
     public void jsFunction_arc(double x, double y, double radius, double startAngle, double endAngle, Object counterclockwise) {
         boolean ccw = false;
         if (counterclockwise != null && counterclockwise != Context.getUndefinedValue()) {
@@ -131,6 +135,11 @@ public class RhinoPath2D extends ProjectScriptableObject implements IPath2D {
     @Override
     public void rect(double x, double y, double w, double h) {
         corePath.rect(x, y, w, h);
+    }
+
+    @Override
+    public void roundRect(double x, double y, double w, double h, Object radii) {
+        corePath.roundRect(x, y, w, h, radii);
     }
 
     @Override

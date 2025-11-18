@@ -371,8 +371,20 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     @Override
+    public void fill(String fillRule) {
+        core.fill(fillRule);
+        canvas.dirty();
+    }
+
+    @Override
     public void fill(IPath2D path) {
         core.fill(path);
+        canvas.dirty();
+    }
+
+    @Override
+    public void fill(IPath2D path, String fillRule) {
+        core.fill(path, fillRule);
         canvas.dirty();
     }
 
@@ -394,6 +406,21 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     @Override
+    public void clip(String fillRule) {
+        core.clip(fillRule);
+    }
+
+    @Override
+    public void clip(IPath2D path) {
+        core.clip(path);
+    }
+
+    @Override
+    public void clip(IPath2D path, String fillRule) {
+        core.clip(path, fillRule);
+    }
+
+    @Override
     public boolean isPointInPath(double x, double y) {
         return core.isPointInPath(x, y);
     }
@@ -406,6 +433,11 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     @Override
     public boolean isPointInStroke(double x, double y) {
         return core.isPointInStroke(x, y);
+    }
+
+    @Override
+    public boolean isPointInStroke(IPath2D path, double x, double y) {
+        return core.isPointInStroke(path, x, y);
     }
 
     @Override

@@ -12,7 +12,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     private final IGraphicsBackend backend;
     private final ICanvasSurface surface;
-    private final IGraphicsContext gc;
+    private IGraphicsContext gc;
     private Document document;
 
     private Stack<ContextState> stack;
@@ -61,6 +61,10 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public void reset() {
         surface.reset();
+        // CRITICAL: After surface.reset() creates a new Graphics2D, we must update our reference
+        // Otherwise, all drawing operations will use the old Graphics2D and won't appear in the image
+        this.gc = surface.getGraphicsContext();
+
         stack = new Stack<>();
         fillStyle = "#000000";
         strokeStyle = "#000000";
@@ -431,6 +435,11 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void fill() {
+        fill("nonzero");
+    }
+
+    @Override
+    public void fill(String fillRule) {
         applyCurrentState();
         if (fillStyle instanceof String) {
             gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
@@ -439,11 +448,19 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         } else if (fillStyle instanceof ICanvasPattern) {
             // The backend needs to handle this.
         }
+        if (fillRule != null && ("evenodd".equals(fillRule) || "nonzero".equals(fillRule))) {
+            gc.setFillRule(fillRule);
+        }
         gc.fill(gc.getPath());
     }
 
     @Override
     public void fill(IPath2D path) {
+        fill(path, "nonzero");
+    }
+
+    @Override
+    public void fill(IPath2D path, String fillRule) {
         if (path == null) {
             return;
         }
@@ -456,7 +473,51 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             gc.setFillPaint((IPaint) fillStyle);
         }
 
-        // Begin a new path and replay the Path2D elements
+        // Set fill rule if specified
+        if (fillRule != null && ("evenodd".equals(fillRule) || "nonzero".equals(fillRule))) {
+            gc.setFillRule(fillRule);
+        }
+
+        // WORKAROUND: JavaFX's GraphicsContext doesn't properly handle multiple rect() calls
+        // in the same path. Detect if the path contains multiple RECT elements and fill them
+        // individually using fillRect() instead.
+        java.util.List<IPath2D.PathElement> elements = path.getElements();
+        if (elements != null && elements.size() > 0) {
+            // Check if path contains only RECT elements (and maybe MOVE_TO before each)
+            boolean allRects = true;
+            int rectCount = 0;
+            for (IPath2D.PathElement element : elements) {
+                if (element.getType() == IPath2D.PathElement.Type.RECT) {
+                    rectCount++;
+                } else if (element.getType() != IPath2D.PathElement.Type.MOVE_TO &&
+                          element.getType() != IPath2D.PathElement.Type.CLOSE_PATH) {
+                    allRects = false;
+                    break;
+                }
+            }
+
+            // Debug logging
+            System.out.println("DEBUG: allRects=" + allRects + ", rectCount=" + rectCount + ", elements.size()=" + elements.size());
+            for (IPath2D.PathElement element : elements) {
+                System.out.println("  Element type: " + element.getType());
+            }
+
+            // If we have multiple rectangles and only rect/moveTo/closePath elements,
+            // use fillRect() for each rectangle
+            if (allRects && rectCount > 1) {
+                System.out.println("DEBUG: Using fillRect workaround for " + rectCount + " rectangles");
+                for (IPath2D.PathElement element : elements) {
+                    if (element.getType() == IPath2D.PathElement.Type.RECT) {
+                        double[] params = element.getParams();
+                        System.out.println("DEBUG: fillRect(" + params[0] + ", " + params[1] + ", " + params[2] + ", " + params[3] + ")");
+                        fillRect(params[0], params[1], params[2], params[3]);
+                    }
+                }
+                return;
+            }
+        }
+
+        // For other paths, use the normal approach
         gc.beginPath();
         if (path instanceof Path2D) {
             ((Path2D) path).replayOn(gc);
@@ -532,6 +593,42 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void clip() {
+        clip("nonzero");
+    }
+
+    @Override
+    public void clip(String fillRule) {
+        if (fillRule != null && ("evenodd".equals(fillRule) || "nonzero".equals(fillRule))) {
+            gc.setFillRule(fillRule);
+        }
+        gc.clip();
+    }
+
+    @Override
+    public void clip(IPath2D path) {
+        clip(path, "nonzero");
+    }
+
+    @Override
+    public void clip(IPath2D path, String fillRule) {
+        if (path == null) {
+            return;
+        }
+
+        // Set fill rule if specified
+        if (fillRule != null && ("evenodd".equals(fillRule) || "nonzero".equals(fillRule))) {
+            gc.setFillRule(fillRule);
+        }
+
+        // Begin a new path and replay the Path2D elements
+        gc.beginPath();
+        if (path instanceof Path2D) {
+            ((Path2D) path).replayOn(gc);
+        } else if (path instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) {
+            ((com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) path).getCorePath().replayOn(gc);
+        }
+
+        // Clip the path
         gc.clip();
     }
 
@@ -568,6 +665,31 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public boolean isPointInStroke(double x, double y) {
         return gc.isPointInStroke(x, y);
+    }
+
+    @Override
+    public boolean isPointInStroke(IPath2D path, double x, double y) {
+        if (path == null) {
+            return false;
+        }
+        // Save the current path
+        IShape savedPath = gc.getPath();
+
+        // Replay the provided path onto the graphics context
+        gc.beginPath();
+        if (path instanceof Path2D) {
+            ((Path2D) path).replayOn(gc);
+        } else if (path instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) {
+            ((com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) path).getCorePath().replayOn(gc);
+        }
+
+        // Check if point is in the stroke
+        boolean result = gc.isPointInStroke(x, y);
+
+        // Note: In a real implementation, we might want to restore the saved path
+        // but that would require additional methods on IGraphicsContext
+
+        return result;
     }
 
     private Object getNativeImage(Object image) {

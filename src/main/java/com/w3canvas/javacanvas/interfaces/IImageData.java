@@ -4,4 +4,5 @@ public interface IImageData {
     int getWidth();
     int getHeight();
     ICanvasPixelArray getData();
+    String getColorSpace();
 }

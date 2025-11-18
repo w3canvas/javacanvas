@@ -40,6 +40,9 @@ public class AwtGraphicsContext implements IGraphicsContext {
     // Filter
     private String filter = "none";
 
+    // Fill rule
+    private String fillRule = "nonzero";
+
     public AwtGraphicsContext(Graphics2D g2d, AwtCanvasSurface surface) {
         this.g2d = g2d;
         this.surface = surface;
@@ -641,10 +644,26 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fill() {
+        fill(this.fillRule);
+    }
+
+    @Override
+    public void fill(String fillRule) {
+        // Set the winding rule on the path based on the fillRule
+        if ("evenodd".equals(fillRule)) {
+            this.path.setWindingRule(java.awt.geom.Path2D.WIND_EVEN_ODD);
+        } else {
+            this.path.setWindingRule(java.awt.geom.Path2D.WIND_NON_ZERO);
+        }
         // Apply shadow first
         applyShadow(this.path, true);
         // Then draw the actual shape
         g2d.fill(this.path);
+    }
+
+    @Override
+    public void setFillRule(String fillRule) {
+        this.fillRule = fillRule != null ? fillRule : "nonzero";
     }
 
     @Override

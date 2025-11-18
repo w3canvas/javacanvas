@@ -7,11 +7,17 @@ public class ImageData implements IImageData {
     private final int width;
     private final int height;
     private final ICanvasPixelArray data;
+    private final String colorSpace;
 
     public ImageData(int width, int height, ICanvasPixelArray data) {
+        this(width, height, data, "srgb");
+    }
+
+    public ImageData(int width, int height, ICanvasPixelArray data, String colorSpace) {
         this.width = width;
         this.height = height;
         this.data = data;
+        this.colorSpace = colorSpace != null ? colorSpace : "srgb";
     }
 
     @Override
@@ -27,5 +33,10 @@ public class ImageData implements IImageData {
     @Override
     public ICanvasPixelArray getData() {
         return data;
+    }
+
+    @Override
+    public String getColorSpace() {
+        return colorSpace;
     }
 }

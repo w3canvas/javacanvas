@@ -350,11 +350,16 @@ public class Node extends ProjectScriptableObject implements EventTarget, INodeU
 	}
 
 	public String getNodeName() {
-		throw new RuntimeException("getNodeName() : unimplemented method");
+		// Default implementation for base Node class
+		// Subclasses should override this to return their specific node name
+		return "#node";
 	}
 
 	public Integer jsGet_nodeType() {
-		throw new RuntimeException("jsGet_nodeType() : unimplemented method");
+		// Default to ELEMENT_NODE (1) as most nodes are elements
+		// Subclasses can override for specific types:
+		// ELEMENT_NODE = 1, TEXT_NODE = 3, DOCUMENT_NODE = 9
+		return 1;
 	}
 
 	private String getStyleValue(String attr, Integer defaultVal) {

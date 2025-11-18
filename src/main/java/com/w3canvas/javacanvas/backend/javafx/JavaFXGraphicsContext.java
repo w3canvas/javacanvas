@@ -45,6 +45,9 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     // Filter
     private String filter = "none";
 
+    // Fill rule
+    private String fillRule = "nonzero";
+
     public JavaFXGraphicsContext(GraphicsContext gc) {
         this.gc = gc;
         this.path = new Path();
@@ -654,7 +657,25 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fill() {
+        fill(this.fillRule);
+    }
+
+    @Override
+    public void fill(String fillRule) {
+        // Set the fill rule on the path based on the fillRule parameter
+        if (path != null) {
+            if ("evenodd".equals(fillRule)) {
+                path.setFillRule(javafx.scene.shape.FillRule.EVEN_ODD);
+            } else {
+                path.setFillRule(javafx.scene.shape.FillRule.NON_ZERO);
+            }
+        }
         gc.fill();
+    }
+
+    @Override
+    public void setFillRule(String fillRule) {
+        this.fillRule = fillRule != null ? fillRule : "nonzero";
     }
 
     @Override

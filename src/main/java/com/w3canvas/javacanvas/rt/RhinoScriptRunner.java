@@ -26,6 +26,11 @@ class RhinoScriptRunner implements ContextAction, Runnable
     {
         try
         {
+            // If no context provided, enter a new one
+            if (cx == null) {
+                cx = Context.enter();
+            }
+
             cx.putThreadLocal("runtime", runtime);
 
             if (script instanceof String)
