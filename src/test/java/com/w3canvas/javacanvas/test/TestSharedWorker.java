@@ -180,10 +180,16 @@ public class TestSharedWorker extends ApplicationTest {
         sleep(1, TimeUnit.SECONDS);
 
         Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
-        Boolean messageReceived = (Boolean) scope.get("messageReceived", scope);
+        Object messageReceivedObj = scope.get("messageReceived", scope);
+
+        // Handle Rhino's NOT_FOUND tag when property doesn't exist
+        Boolean messageReceived = false;
+        if (messageReceivedObj != Scriptable.NOT_FOUND && messageReceivedObj instanceof Boolean) {
+            messageReceived = (Boolean) messageReceivedObj;
+        }
 
         // The worker should echo back the message
-        assertTrue(messageReceived != null && messageReceived,
+        assertTrue(messageReceived,
             "Should receive message through MessagePort");
     }
 

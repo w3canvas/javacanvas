@@ -121,6 +121,16 @@ public class JavaCanvas {
         }
     }
 
+    /**
+     * Executes JavaScript code directly (not from a file).
+     *
+     * @param code the JavaScript code to execute
+     * @return the result of the script execution
+     */
+    public Object executeCode(String code) {
+        return runtime.exec(code);
+    }
+
     public void init(Container contentPane) {
         initializeBackend(contentPane);
     }
