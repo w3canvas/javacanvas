@@ -5,6 +5,7 @@ import com.w3canvas.javacanvas.backend.rhino.impl.node.Document;
 import com.w3canvas.javacanvas.interfaces.*;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
+import java.awt.image.BufferedImage;
 import java.util.Stack;
 import com.w3canvas.javacanvas.core.Path2D;
 
@@ -561,7 +562,6 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         }
 
         // For other paths, use the normal approach
-        System.out.println("DEBUG: Using normal path approach (beginPath + replayOn + fill)");
         gc.beginPath();
         if (path instanceof Path2D) {
             ((Path2D) path).replayOn(gc);
@@ -745,6 +745,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             return ((com.w3canvas.javacanvas.backend.rhino.impl.node.Image) image).getImage();
         } else if (image instanceof IImageBitmap) {
             return ((IImageBitmap) image).getNativeImage();
+        } else if (image instanceof BufferedImage) {
+            // Handle BufferedImage directly (e.g., from ImageBitmap.getNativeImage())
+            return image;
         }
         return null;
     }
@@ -756,6 +759,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             return ((com.w3canvas.javacanvas.backend.rhino.impl.node.Image) image).getRealWidth();
         } else if (image instanceof IImageBitmap) {
             return ((IImageBitmap) image).getWidth();
+        } else if (image instanceof BufferedImage) {
+            return ((BufferedImage) image).getWidth();
         }
         return 0;
     }
@@ -767,6 +772,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             return ((com.w3canvas.javacanvas.backend.rhino.impl.node.Image) image).getRealHeight();
         } else if (image instanceof IImageBitmap) {
             return ((IImageBitmap) image).getHeight();
+        } else if (image instanceof BufferedImage) {
+            return ((BufferedImage) image).getHeight();
         }
         return 0;
     }
@@ -787,9 +794,19 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void drawImage(Object image, double sx, double sy, double sWidth, double sHeight, double dx, double dy, double dWidth, double dHeight) {
+        System.out.println("[DEBUG CoreCanvasRenderingContext2D.drawImage] Called with image type: " +
+            (image != null ? image.getClass().getName() : "null"));
         Object nativeImage = getNativeImage(image);
+        System.out.println("[DEBUG CoreCanvasRenderingContext2D.drawImage] nativeImage: " +
+            (nativeImage != null ? nativeImage.getClass().getName() : "null"));
         if (nativeImage != null) {
+            System.out.println("[DEBUG CoreCanvasRenderingContext2D.drawImage] Calling gc.drawImage with params: " +
+                "sx=" + (int)sx + ", sy=" + (int)sy + ", sWidth=" + (int)sWidth + ", sHeight=" + (int)sHeight +
+                ", dx=" + (int)dx + ", dy=" + (int)dy + ", dWidth=" + (int)dWidth + ", dHeight=" + (int)dHeight);
             gc.drawImage(nativeImage, (int) sx, (int) sy, (int) sWidth, (int) sHeight, (int) dx, (int) dy, (int) dWidth, (int) dHeight);
+            System.out.println("[DEBUG CoreCanvasRenderingContext2D.drawImage] gc.drawImage returned");
+        } else {
+            System.out.println("[DEBUG CoreCanvasRenderingContext2D.drawImage] nativeImage is null, skipping draw");
         }
     }
 
