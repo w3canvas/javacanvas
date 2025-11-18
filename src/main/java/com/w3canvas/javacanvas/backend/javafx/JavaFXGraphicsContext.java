@@ -438,7 +438,19 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void rect(double x, double y, double w, double h) {
-        gc.rect(x, y, w, h);
+        // According to Canvas 2D spec, rect() should:
+        // 1. Create a new subpath with point (x, y)
+        // 2. Add points (x+w, y), (x+w, y+h), (x, y+h)
+        // 3. Close the subpath
+        //
+        // We implement this using moveTo/lineTo/closePath instead of JavaFX's gc.rect()
+        // because JavaFX's rect() doesn't properly support multiple rects in one path
+        gc.moveTo(x, y);
+        gc.lineTo(x + w, y);
+        gc.lineTo(x + w, y + h);
+        gc.lineTo(x, y + h);
+        gc.closePath();
+
         path.getElements().add(new javafx.scene.shape.MoveTo(x, y));
         path.getElements().add(new javafx.scene.shape.LineTo(x + w, y));
         path.getElements().add(new javafx.scene.shape.LineTo(x + w, y + h));

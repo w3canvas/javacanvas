@@ -62,22 +62,21 @@ public class SharedWorker extends ProjectScriptableObject {
         // Entangle the ports
         port.entangle(workerPort);
 
-        // Set up scopes and prototypes
-        Scriptable scope = ScriptableObject.getTopLevelScope(this);
-        port.setParentScope(scope);
-        workerPort.setParentScope(scope);
+        // Set up scope and prototype for main thread's port
+        Scriptable mainScope = ScriptableObject.getTopLevelScope(this);
+        port.setParentScope(mainScope);
 
         try {
-            Scriptable proto = ScriptableObject.getClassPrototype(scope, "MessagePort");
+            Scriptable proto = ScriptableObject.getClassPrototype(mainScope, "MessagePort");
             if (proto != null) {
                 port.setPrototype(proto);
-                workerPort.setPrototype(proto);
             }
         } catch (Exception e) {
-            // Prototype not found, ports will still work
+            // Prototype not found, port will still work
         }
 
         // Notify the worker of the new connection
+        // The worker thread will set up the workerPort's scope
         workerThread.addConnection(workerPort);
     }
 
@@ -129,6 +128,17 @@ public class SharedWorker extends ProjectScriptableObject {
 
         private void dispatchConnectEvent(MessagePort port) {
             if (workerContext != null && workerScope != null) {
+                // Set up the port's scope to the worker scope so onmessage handlers work correctly
+                port.setParentScope(workerScope);
+                try {
+                    Scriptable proto = ScriptableObject.getClassPrototype(workerScope, "MessagePort");
+                    if (proto != null) {
+                        port.setPrototype(proto);
+                    }
+                } catch (Exception e) {
+                    // Prototype not found, port will still work
+                }
+
                 // Get the onconnect handler
                 Object onconnect = workerScope.get("onconnect", workerScope);
                 if (onconnect instanceof Function) {
