@@ -261,7 +261,7 @@ public class Node extends ProjectScriptableObject implements EventTarget, INodeU
 
 	public void jsFunction_removeChild(Node child) {
 		this.document.removeElementById(child.jsGet_id());
-		childNodes.remove(childNodes);
+		childNodes.remove(child);
 	}
 
 	/**
