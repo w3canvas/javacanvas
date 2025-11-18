@@ -1133,4 +1133,13 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
         return result;
     }
+
+    /**
+     * Dispose the underlying Graphics2D to release resources and flush any pending drawing operations.
+     */
+    public void dispose() {
+        if (g2d != null) {
+            g2d.dispose();
+        }
+    }
 }

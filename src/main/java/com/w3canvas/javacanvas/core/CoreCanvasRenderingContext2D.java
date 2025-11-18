@@ -50,12 +50,54 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         this.backend = backend;
         this.surface = backend.createCanvasSurface(width, height);
         this.gc = surface.getGraphicsContext();
-        reset();
+        // Initialize state without calling surface.reset() to avoid disposing the graphics context
+        initializeState();
     }
 
     @Override
     public ICanvasSurface getSurface() {
         return surface;
+    }
+
+    /**
+     * Initialize the rendering context state without resetting the graphics surface.
+     * Used during construction to avoid disposing the graphics context.
+     */
+    private void initializeState() {
+        stack = new Stack<>();
+        fillStyle = "#000000";
+        strokeStyle = "#000000";
+        globalAlpha = 1.0;
+        globalCompositeOperation = "source-over";
+        lineWidth = 1.0;
+        lineJoin = "miter";
+        lineCap = "butt";
+        miterLimit = 10.0;
+        lineDash = new double[0];
+        lineDashOffset = 0.0;
+
+        // Initialize shadow properties
+        shadowBlur = 0.0;
+        shadowColor = "rgba(0, 0, 0, 0)"; // transparent black
+        shadowOffsetX = 0.0;
+        shadowOffsetY = 0.0;
+
+        // Initialize image smoothing
+        imageSmoothingEnabled = true;
+        imageSmoothingQuality = "low";
+
+        // Initialize modern text properties
+        direction = "inherit";
+        letterSpacing = 0.0;
+        wordSpacing = 0.0;
+
+        // Initialize filter
+        filter = "none";
+
+        setFont("10px sans-serif");
+        setTextAlign("start");
+        setTextBaseline("alphabetic");
+        gc.resetTransform();
     }
 
     @Override
