@@ -510,6 +510,12 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
                     if (element.getType() == IPath2D.PathElement.Type.RECT) {
                         double[] params = element.getParams();
                         System.out.println("DEBUG: fillRectDirect(" + params[0] + ", " + params[1] + ", " + params[2] + ", " + params[3] + ")");
+                        // Ensure fill paint is set before each rectangle (in case it gets reset)
+                        if (fillStyle instanceof String) {
+                            gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
+                        } else if (fillStyle instanceof IPaint) {
+                            gc.setFillPaint((IPaint) fillStyle);
+                        }
                         // Use direct fillRect method to bypass JavaFX's broken path system
                         gc.fillRectDirect(params[0], params[1], params[2], params[3]);
                     }

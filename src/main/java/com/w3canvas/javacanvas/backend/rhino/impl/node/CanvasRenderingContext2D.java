@@ -21,6 +21,7 @@ import com.w3canvas.javacanvas.interfaces.IImageData;
 import com.w3canvas.javacanvas.interfaces.ITextMetrics;
 import com.w3canvas.javacanvas.js.CanvasText;
 import com.w3canvas.javacanvas.js.ICanvas;
+import com.w3canvas.javacanvas.js.worker.OffscreenCanvas;
 import com.w3canvas.javacanvas.utils.RhinoCanvasUtils;
 
 @SuppressWarnings("serial")
@@ -873,8 +874,62 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         return isPointInStroke(x, y);
     }
 
-    public void jsFunction_drawImage(Image image, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh) {
-        drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
+    // Handle all drawImage signatures: (image, dx, dy), (image, dx, dy, dw, dh), (image, sx, sy, sw, sh, dx, dy, dw, dh)
+    public void jsFunction_drawImage(Object img, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8) {
+        // Unwrap the image
+        Object image = unwrapImage(img);
+
+        // Count how many arguments are not undefined/null
+        int argCount = 0;
+        Object[] args = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8};
+        for (Object arg : args) {
+            if (arg != null && arg != Context.getUndefinedValue() && arg != Scriptable.NOT_FOUND) {
+                argCount++;
+            } else {
+                break; // Stop at first undefined
+            }
+        }
+
+        if (argCount == 2) {
+            // drawImage(image, dx, dy)
+            double dx = Context.toNumber(arg1);
+            double dy = Context.toNumber(arg2);
+            drawImage(image, dx, dy);
+        } else if (argCount == 4) {
+            // drawImage(image, dx, dy, dWidth, dHeight)
+            double dx = Context.toNumber(arg1);
+            double dy = Context.toNumber(arg2);
+            double dWidth = Context.toNumber(arg3);
+            double dHeight = Context.toNumber(arg4);
+            drawImage(image, dx, dy, dWidth, dHeight);
+        } else if (argCount == 8) {
+            // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+            double sx = Context.toNumber(arg1);
+            double sy = Context.toNumber(arg2);
+            double sWidth = Context.toNumber(arg3);
+            double sHeight = Context.toNumber(arg4);
+            double dx = Context.toNumber(arg5);
+            double dy = Context.toNumber(arg6);
+            double dWidth = Context.toNumber(arg7);
+            double dHeight = Context.toNumber(arg8);
+            drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+        } else {
+            throw new IllegalArgumentException("drawImage requires 3, 5, or 9 arguments, got " + (argCount + 1));
+        }
+    }
+
+    // Helper to unwrap image objects to their native representations
+    private Object unwrapImage(Object img) {
+        if (img instanceof Image) {
+            return ((Image) img).getImage();
+        } else if (img instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap) {
+            return ((com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap) img).getNativeImage();
+        } else if (img instanceof HTMLCanvasElement) {
+            return img;
+        } else if (img instanceof OffscreenCanvas) {
+            return ((OffscreenCanvas) img).getImage();
+        }
+        return img;
     }
 
     @Override
