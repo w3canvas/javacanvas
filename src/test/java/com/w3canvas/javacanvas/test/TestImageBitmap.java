@@ -58,6 +58,8 @@ public class TestImageBitmap extends ApplicationTest {
             throw new RuntimeException(e);
         }
         canvas.jsSet_id("canvas");
+        canvas.jsSet_width(400);
+        canvas.jsSet_height(400);
         javaCanvas.getDocument().addElement("canvas", canvas);
         ScriptableObject.putProperty(scope, "canvas", canvas);
         ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");

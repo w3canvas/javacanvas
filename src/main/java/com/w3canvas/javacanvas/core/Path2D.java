@@ -92,11 +92,8 @@ public class Path2D implements IPath2D {
      * Replay all path elements onto a graphics context.
      */
     public void replayOn(com.w3canvas.javacanvas.interfaces.IGraphicsContext gc) {
-        System.out.println("DEBUG: replayOn - replaying " + elements.size() + " elements");
         for (PathElement element : elements) {
             double[] params = element.getParams();
-            System.out.println("DEBUG: replayOn - element type: " + element.getType() +
-                ", params: " + java.util.Arrays.toString(params));
             switch (element.getType()) {
                 case MOVE_TO:
                     gc.moveTo(params[0], params[1]);

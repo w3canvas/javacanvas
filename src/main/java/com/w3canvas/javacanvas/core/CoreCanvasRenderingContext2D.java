@@ -498,14 +498,27 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         if (path == null) {
             return;
         }
-        // Save current transform
-        Object savedTransform = gc.getTransform();
 
-        // Set transform to identity before replaying path
-        // (Path commands already have transforms "baked in")
-        gc.resetTransform();
+        // Apply current state (including stroke style, line width, etc.)
+        applyCurrentState();
+        if (strokeStyle instanceof String) {
+            gc.setStrokePaint(ColorParser.parse((String) strokeStyle, backend));
+        } else if (strokeStyle instanceof IPaint) {
+            gc.setStrokePaint((IPaint) strokeStyle);
+        }
 
-        // Replay the path onto the graphics context
+        gc.setLineWidth(this.lineWidth);
+        gc.setLineCap(this.lineCap);
+        gc.setLineJoin(this.lineJoin);
+        gc.setMiterLimit(this.miterLimit);
+        if (this.lineDash instanceof double[]) {
+            gc.setLineDash((double[]) this.lineDash);
+        } else {
+            gc.setLineDash(null);
+        }
+        gc.setLineDashOffset(this.lineDashOffset);
+
+        // Begin a new path and replay the Path2D elements
         gc.beginPath();
         if (path instanceof Path2D) {
             ((Path2D) path).replayOn(gc);
@@ -513,11 +526,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             ((com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) path).getCorePath().replayOn(gc);
         }
 
-        // Restore transform before stroking
-        gc.setTransform(savedTransform);
-
-        // Then stroke using the current path
-        stroke();
+        // Stroke the path with the current transform applied
+        gc.stroke();
     }
 
     @Override

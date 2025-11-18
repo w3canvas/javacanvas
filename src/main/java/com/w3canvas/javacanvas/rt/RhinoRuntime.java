@@ -156,6 +156,9 @@ public class RhinoRuntime
                         }
 
                         return rhinoImageBitmap;
+                    } catch (IllegalArgumentException e) {
+                        // Re-throw IllegalArgumentException so it can be caught by JavaScript try-catch
+                        throw e;
                     } catch (Exception e) {
                         throw new RuntimeException("createImageBitmap failed: " + e.getMessage(), e);
                     }
