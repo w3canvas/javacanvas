@@ -304,11 +304,14 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         // Use JavaFX's native fillRect method which bypasses the path system
         // This is needed because JavaFX's path system doesn't properly handle
         // multiple rect() calls within the same path
-
-        // Wrap in save/restore to ensure state is preserved between calls
-        gc.save();
+        //
+        // WORKAROUND for Path2D.addPath() with multiple rectangles:
+        // When CoreCanvasRenderingContext2D detects a Path2D containing multiple
+        // RECT elements, it calls this method for each rectangle individually.
+        // The fill paint and transform are already set by the caller, so we just
+        // need to draw the rectangle directly without save/restore which would
+        // interfere with the state.
         gc.fillRect(x, y, w, h);
-        gc.restore();
     }
 
     @Override

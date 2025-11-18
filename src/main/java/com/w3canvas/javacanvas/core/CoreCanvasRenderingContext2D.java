@@ -794,19 +794,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void drawImage(Object image, double sx, double sy, double sWidth, double sHeight, double dx, double dy, double dWidth, double dHeight) {
-        System.out.println("[DEBUG CoreCanvasRenderingContext2D.drawImage] Called with image type: " +
-            (image != null ? image.getClass().getName() : "null"));
         Object nativeImage = getNativeImage(image);
-        System.out.println("[DEBUG CoreCanvasRenderingContext2D.drawImage] nativeImage: " +
-            (nativeImage != null ? nativeImage.getClass().getName() : "null"));
         if (nativeImage != null) {
-            System.out.println("[DEBUG CoreCanvasRenderingContext2D.drawImage] Calling gc.drawImage with params: " +
-                "sx=" + (int)sx + ", sy=" + (int)sy + ", sWidth=" + (int)sWidth + ", sHeight=" + (int)sHeight +
-                ", dx=" + (int)dx + ", dy=" + (int)dy + ", dWidth=" + (int)dWidth + ", dHeight=" + (int)dHeight);
             gc.drawImage(nativeImage, (int) sx, (int) sy, (int) sWidth, (int) sHeight, (int) dx, (int) dy, (int) dWidth, (int) dHeight);
-            System.out.println("[DEBUG CoreCanvasRenderingContext2D.drawImage] gc.drawImage returned");
-        } else {
-            System.out.println("[DEBUG CoreCanvasRenderingContext2D.drawImage] nativeImage is null, skipping draw");
         }
     }
 

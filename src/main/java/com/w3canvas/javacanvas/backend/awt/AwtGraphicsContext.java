@@ -678,10 +678,20 @@ public class AwtGraphicsContext implements IGraphicsContext {
         } else {
             this.path.setWindingRule(java.awt.geom.Path2D.WIND_NON_ZERO);
         }
+
+        // IMPORTANT: The path has already been built with transformed coordinates
+        // (see moveTo, lineTo, rect, etc. which apply g2d.getTransform() manually).
+        // We must temporarily reset the transform before filling to avoid double transformation.
+        AffineTransform savedTransform = g2d.getTransform();
+        g2d.setTransform(new AffineTransform());  // Identity transform
+
         // Apply shadow first
         applyShadow(this.path, true);
         // Then draw the actual shape
         g2d.fill(this.path);
+
+        // Restore the transform
+        g2d.setTransform(savedTransform);
     }
 
     @Override
@@ -691,10 +701,19 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void stroke() {
+        // IMPORTANT: The path has already been built with transformed coordinates
+        // (see moveTo, lineTo, rect, etc. which apply g2d.getTransform() manually).
+        // We must temporarily reset the transform before stroking to avoid double transformation.
+        AffineTransform savedTransform = g2d.getTransform();
+        g2d.setTransform(new AffineTransform());  // Identity transform
+
         // Apply shadow first
         applyShadow(this.path, false);
         // Then draw the actual shape
         g2d.draw(this.path);
+
+        // Restore the transform
+        g2d.setTransform(savedTransform);
     }
 
     @Override
