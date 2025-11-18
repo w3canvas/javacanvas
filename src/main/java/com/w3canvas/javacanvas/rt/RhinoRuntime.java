@@ -47,10 +47,9 @@ public class RhinoRuntime
 
             defineProperty("setTimeout", new Callable()
             {
-                // todo: allow function parameter instead of string (!!!)
-
                 public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args)
                 {
+                    // Accepts both function and string parameters
                     new Thread(new RhinoScheduler(RhinoRuntime.this, args[0], ((Number) args[1]).intValue(), false))
                         .start();
                     return null;
@@ -59,10 +58,9 @@ public class RhinoRuntime
 
             defineProperty("setInterval", new Callable()
             {
-
                 public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args)
                 {
-                    // todo: allow function parameter instead of string (!!!)
+                    // Accepts both function and string parameters
                     RhinoScheduler e = new RhinoScheduler(RhinoRuntime.this, args[0], ((Number) args[1]).intValue(),
                         true);
                     Integer id = Integer.valueOf(intervalId++);
@@ -74,14 +72,14 @@ public class RhinoRuntime
 
             defineProperty("clearInterval", new Callable()
             {
-
                 public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args)
                 {
-                    // todo: allow function parameter instead of string (!!!)
                     Integer id = Integer.valueOf(((Number) args[0]).intValue());
                     RhinoScheduler e = intervals.get(id);
-                    e.stopLoop();
-                    intervals.remove(id);
+                    if (e != null) {
+                        e.stopLoop();
+                        intervals.remove(id);
+                    }
                     return null;
                 }
             });

@@ -447,6 +447,10 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         if (path == null) {
             return;
         }
+
+        System.out.println("DEBUG: fill(IPath2D) - path elements count: " +
+            (path.getElements() != null ? path.getElements().size() : "null"));
+
         // Save current transform
         Object savedTransform = gc.getTransform();
 

@@ -37,10 +37,15 @@ class RhinoScriptRunner implements ContextAction, Runnable
             {
                 return ((Script) script).exec(cx, runtime.getScope());
             }
-            else
+            else if (script instanceof Function)
             {
                 Function fn = (Function) script;
-                return fn.call(cx, fn, fn, new Object[0]);
+                return fn.call(cx, runtime.getScope(), runtime.getScope(), new Object[0]);
+            }
+            else
+            {
+                throw new IllegalArgumentException("Script must be a String or Function, got: " +
+                    (script != null ? script.getClass().getName() : "null"));
             }
 
         }
