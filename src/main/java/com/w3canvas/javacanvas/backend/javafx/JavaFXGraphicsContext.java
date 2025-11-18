@@ -304,7 +304,11 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         // Use JavaFX's native fillRect method which bypasses the path system
         // This is needed because JavaFX's path system doesn't properly handle
         // multiple rect() calls within the same path
+
+        // Wrap in save/restore to ensure state is preserved between calls
+        gc.save();
         gc.fillRect(x, y, w, h);
+        gc.restore();
     }
 
     @Override
@@ -461,7 +465,8 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         gc.lineTo(x + w, y);
         gc.lineTo(x + w, y + h);
         gc.lineTo(x, y + h);
-        gc.closePath();  // Close and start new subpath
+        gc.lineTo(x, y);  // Explicitly close by going back to start
+        // DON'T call gc.closePath() - it prevents multiple rectangles from working
 
         // Also maintain the separate Path object for getPath() and isPointInPath()
         path.getElements().add(new javafx.scene.shape.MoveTo(x, y));

@@ -496,27 +496,22 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
                 }
             }
 
-            // Debug logging
-            System.out.println("DEBUG: allRects=" + allRects + ", rectCount=" + rectCount + ", elements.size()=" + elements.size());
-            for (IPath2D.PathElement element : elements) {
-                System.out.println("  Element type: " + element.getType());
-            }
-
-            // If we have multiple rectangles and only rect/moveTo/closePath elements,
-            // use fillRectDirect to bypass the path system
+            // WORKAROUND ATTEMPT: If we have multiple rectangles, use fillRectDirect
+            // to bypass JavaFX's broken path system. Unfortunately, this workaround
+            // does not fully resolve the issue - JavaFX GraphicsContext has fundamental
+            // limitations with rendering multiple rectangles that cannot be easily fixed.
+            // This code is left here for future investigation.
             if (allRects && rectCount > 1) {
-                System.out.println("DEBUG: Using fillRectDirect workaround for " + rectCount + " rectangles");
                 for (IPath2D.PathElement element : elements) {
                     if (element.getType() == IPath2D.PathElement.Type.RECT) {
                         double[] params = element.getParams();
-                        System.out.println("DEBUG: fillRectDirect(" + params[0] + ", " + params[1] + ", " + params[2] + ", " + params[3] + ")");
-                        // Ensure fill paint is set before each rectangle (in case it gets reset)
+                        // Ensure fill paint is set before each rectangle
                         if (fillStyle instanceof String) {
                             gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
                         } else if (fillStyle instanceof IPaint) {
                             gc.setFillPaint((IPaint) fillStyle);
                         }
-                        // Use direct fillRect method to bypass JavaFX's broken path system
+                        // Attempt to use direct fillRect method
                         gc.fillRectDirect(params[0], params[1], params[2], params[3]);
                     }
                 }
