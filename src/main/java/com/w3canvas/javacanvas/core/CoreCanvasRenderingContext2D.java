@@ -456,16 +456,37 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             gc.setFillPaint((IPaint) fillStyle);
         }
 
-        // Begin a new path and replay the Path2D elements
-        gc.beginPath();
-        if (path instanceof Path2D) {
-            ((Path2D) path).replayOn(gc);
-        } else if (path instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) {
-            ((com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) path).getCorePath().replayOn(gc);
+        // Check if path contains only RECT elements - if so, use fillRect() directly
+        // This works around JavaFX's limitation with multiple subpaths
+        java.util.List<PathElement> elements = path.getElements();
+        boolean allRects = true;
+        if (elements != null) {
+            for (PathElement elem : elements) {
+                if (elem.getType() != PathElement.Type.RECT) {
+                    allRects = false;
+                    break;
+                }
+            }
         }
 
-        // Fill the path with the current transform applied
-        gc.fill();
+        if (allRects && elements != null && !elements.isEmpty()) {
+            // Use fillRect() for each rectangle
+            for (PathElement elem : elements) {
+                double[] params = elem.getParams();
+                gc.fillRect(params[0], params[1], params[2], params[3]);
+            }
+        } else {
+            // Begin a new path and replay the Path2D elements
+            gc.beginPath();
+            if (path instanceof Path2D) {
+                ((Path2D) path).replayOn(gc);
+            } else if (path instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) {
+                ((com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) path).getCorePath().replayOn(gc);
+            }
+
+            // Fill the path with the current transform applied
+            gc.fill();
+        }
     }
 
     @Override
