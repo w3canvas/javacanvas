@@ -322,8 +322,7 @@ public class SharedWorker extends ProjectScriptableObject {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (Exception e) {
-                System.err.println("SharedWorker error loading script '" + scriptUrl + "': " + e.getMessage());
-                e.printStackTrace();
+                System.err.println("ERROR: SharedWorker failed to load script '" + scriptUrl + "': " + e.getMessage());
             } finally {
                 Context.exit();
                 // Clean up

@@ -132,40 +132,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         // Otherwise, all drawing operations will use the old Graphics2D and won't appear in the image
         this.gc = surface.getGraphicsContext();
 
-        stack = new Stack<>();
-        fillStyle = "#000000";
-        strokeStyle = "#000000";
-        globalAlpha = 1.0;
-        globalCompositeOperation = "source-over";
-        lineWidth = 1.0;
-        lineJoin = "miter";
-        lineCap = "butt";
-        miterLimit = 10.0;
-        lineDash = new double[0];
-        lineDashOffset = 0.0;
-
-        // Initialize shadow properties
-        shadowBlur = 0.0;
-        shadowColor = "rgba(0, 0, 0, 0)"; // transparent black
-        shadowOffsetX = 0.0;
-        shadowOffsetY = 0.0;
-
-        // Initialize image smoothing
-        imageSmoothingEnabled = true;
-        imageSmoothingQuality = "low";
-
-        // Initialize modern text properties
-        direction = "inherit";
-        letterSpacing = 0.0;
-        wordSpacing = 0.0;
-
-        // Initialize filter
-        filter = "none";
-
-        setFont("10px sans-serif");
-        setTextAlign("start");
-        setTextBaseline("alphabetic");
-        gc.resetTransform();
+        // Initialize state using the same logic as constructor
+        initializeState();
     }
 
     @Override
@@ -906,11 +874,46 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     }
 
     // Modern text properties implementation
+
+    /**
+     * Gets the text direction setting.
+     *
+     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
+     * implemented in text rendering</strong>. The value is saved and restored with save()/restore()
+     * state management, but does not currently affect how text is drawn.
+     *
+     * <p><strong>Future Implementation:</strong> To fully support this property, backend implementations
+     * (AWT, JavaFX) would need to:
+     * <ul>
+     *   <li>Apply bidirectional text layout algorithms (Unicode Bidirectional Algorithm)</li>
+     *   <li>Respect the direction when calculating text metrics and positioning</li>
+     *   <li>Handle "inherit" by querying the canvas element's computed CSS direction</li>
+     * </ul>
+     *
+     * @return Current direction setting: "ltr", "rtl", or "inherit"
+     */
     @Override
     public String getDirection() {
         return direction;
     }
 
+    /**
+     * Sets the text direction for rendering.
+     *
+     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
+     * implemented in text rendering</strong>. Setting this value will be preserved across
+     * save()/restore() calls, but will not currently affect how fillText() or strokeText()
+     * render text.
+     *
+     * <p><strong>Valid Values:</strong>
+     * <ul>
+     *   <li>"ltr" - Left-to-right text direction</li>
+     *   <li>"rtl" - Right-to-left text direction</li>
+     *   <li>"inherit" - Inherit from canvas element's CSS direction (default)</li>
+     * </ul>
+     *
+     * @param direction The text direction ("ltr", "rtl", or "inherit"). Invalid values are ignored.
+     */
     @Override
     public void setDirection(String direction) {
         // Validate direction: "ltr", "rtl", "inherit"
@@ -919,21 +922,69 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         }
     }
 
+    /**
+     * Gets the letter spacing for text rendering.
+     *
+     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
+     * implemented in text rendering</strong>. The value is saved and restored with save()/restore()
+     * state management, but does not currently affect glyph spacing in fillText() or strokeText().
+     *
+     * <p><strong>Future Implementation:</strong> Backend implementations would need to adjust
+     * glyph positioning by applying the letter-spacing offset between each character.
+     *
+     * @return Current letter spacing value in pixels (default: 0.0)
+     */
     @Override
     public double getLetterSpacing() {
         return letterSpacing;
     }
 
+    /**
+     * Sets the letter spacing (tracking) for text rendering.
+     *
+     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
+     * implemented in text rendering</strong>. Setting this value will be preserved across
+     * save()/restore() calls, but will not currently affect character spacing in rendered text.
+     *
+     * <p>When implemented, this property should add the specified spacing between each character,
+     * similar to CSS letter-spacing property.
+     *
+     * @param spacing Additional spacing between characters in pixels. Can be negative.
+     */
     @Override
     public void setLetterSpacing(double spacing) {
         this.letterSpacing = spacing;
     }
 
+    /**
+     * Gets the word spacing for text rendering.
+     *
+     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
+     * implemented in text rendering</strong>. The value is saved and restored with save()/restore()
+     * state management, but does not currently affect spacing between words.
+     *
+     * <p><strong>Future Implementation:</strong> Backend implementations would need to identify
+     * word boundaries (typically spaces) and apply additional spacing at those positions.
+     *
+     * @return Current word spacing value in pixels (default: 0.0)
+     */
     @Override
     public double getWordSpacing() {
         return wordSpacing;
     }
 
+    /**
+     * Sets the word spacing for text rendering.
+     *
+     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
+     * implemented in text rendering</strong>. Setting this value will be preserved across
+     * save()/restore() calls, but will not currently affect spacing between words in rendered text.
+     *
+     * <p>When implemented, this property should add the specified spacing between words,
+     * similar to CSS word-spacing property.
+     *
+     * @param spacing Additional spacing between words in pixels. Can be negative.
+     */
     @Override
     public void setWordSpacing(double spacing) {
         this.wordSpacing = spacing;

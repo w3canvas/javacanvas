@@ -31,8 +31,7 @@ public class PropertiesHolder
         }
         catch (IOException e)
         {
-            // handle correct exception
-            e.printStackTrace();
+            System.err.println("ERROR: Failed to load META-INF/config.properties: " + e.getMessage());
         }
         if (!propertiesLoaded)
         {

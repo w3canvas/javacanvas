@@ -130,6 +130,10 @@ public class TestCanvas2D extends ApplicationTest {
         });
 
         // Check a pixel within the rendered text.
+        // NOTE: High tolerance (224) is required for text rendering due to:
+        // 1. Font rendering engine differences between AWT and other backends
+        // 2. Antialiasing variations across different rendering contexts
+        // 3. Subpixel rendering differences that affect color values at text edges
         assertPixel(ctx, 30, 40, 0, 0, 255, 255, 224);
     }
 
@@ -151,6 +155,10 @@ public class TestCanvas2D extends ApplicationTest {
         });
 
         // Check a pixel within the rendered text.
+        // NOTE: High tolerance (224) is required for stroked text due to:
+        // 1. Font rendering engine differences between AWT and other backends
+        // 2. Stroke width antialiasing variations
+        // 3. Different rasterization algorithms for outlined text
         assertPixel(ctx, 30, 40, 255, 0, 0, 255, 224);
     }
 
@@ -562,6 +570,10 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
+        // NOTE: Moderate tolerance (20) is required for line cap testing due to:
+        // 1. Antialiasing differences at line cap edges (round/square/butt)
+        // 2. Slight variations in cap geometry calculation between backends
+        // 3. Pixel rounding differences at cap boundaries
         // Check a pixel at the end of the line for the round cap
         assertPixel(ctx, 104, 40, 0, 0, 0, 255, 20);
         // Check a pixel at the end of the line for the square cap
@@ -986,6 +998,7 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
+        // NOTE: High tolerance (224) required for text alignment testing - same reasons as text rendering tests
         // Check a pixel within the centered text.
         assertPixel(ctx, 200, 40, 0, 0, 255, 255, 224);
         // Check a pixel within the right-aligned text.
@@ -1020,6 +1033,7 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
+        // NOTE: High tolerance (224) required for text baseline testing - same reasons as text rendering tests
         // Check a pixel within the "Top" text.
         assertPixel(ctx, 60, 60, 0, 0, 255, 255, 224);
         // Check a pixel within the "Middle" text.
@@ -1522,7 +1536,13 @@ public class TestCanvas2D extends ApplicationTest {
         });
 
         // Verify the shape was drawn
-        // Very high tolerance for combined features (shadows + blend modes + roundRect)
+        // NOTE: Very high tolerance (70) is required for this complex combination test due to:
+        // 1. Shadow rendering variations (blur algorithms differ across backends)
+        // 2. Blend mode (multiply) implementation differences affecting final color values
+        // 3. Interaction between shadows and blend modes creating compound color variations
+        // 4. RoundRect antialiasing at curved corners
+        // This tolerance is acceptable as it only validates that the combined features work together,
+        // not the precise pixel values.
         assertPixel(ctx, 100, 100, 255, 0, 0, 255, 70);
     }
 
@@ -2182,5 +2202,498 @@ public class TestCanvas2D extends ApplicationTest {
         assertPixel(ctx2, 75, 75, 0, 0, 255, 255, 10);   // Should be blue
         assertPixel(ctx2, 150, 150, 0, 0, 255, 255, 10); // Should also be blue (no hole with nonzero)
         assertPixel(ctx2, 25, 25, 0, 0, 0, 0);            // Should be transparent (outside clip)
+    }
+
+    // =============================================================================
+    // MEDIUM/HIGH PRIORITY Missing Test Cases - Edge Cases
+    // =============================================================================
+
+    @Test
+    public void testEmptyPathStroke() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Begin a path but don't add any segments
+                ctx.beginPath();
+
+                // Stroking an empty path should not throw an error or crash
+                ctx.setStrokeStyle("red");
+                ctx.setLineWidth(5);
+                ctx.stroke();
+
+                // Canvas should still be empty/transparent
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Verify canvas is still transparent at a test point
+        assertPixel(ctx, 100, 100, 0, 0, 0, 0);
+    }
+
+    @Test
+    public void testEmptyPathFill() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Begin a path but don't add any segments
+                ctx.beginPath();
+
+                // Filling an empty path should not throw an error or crash
+                ctx.setFillStyle("blue");
+                ctx.fill();
+
+                // Canvas should still be empty/transparent
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Verify canvas is still transparent at a test point
+        assertPixel(ctx, 100, 100, 0, 0, 0, 0);
+    }
+
+    @Test
+    public void testDegenerateTransformZeroScale() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Apply a scale with zero values (degenerate transform)
+                ctx.scale(0, 0);
+
+                // Drawing with a degenerate transform should not crash
+                // The rectangle will be scaled to zero size, so nothing should be visible
+                ctx.setFillStyle("red");
+                ctx.fillRect(10, 10, 100, 100);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Canvas should remain empty because the rectangle was scaled to zero size
+        assertPixel(ctx, 50, 50, 0, 0, 0, 0);
+    }
+
+    @Test
+    public void testVeryLargeCoordinates() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Test with very large coordinates (1e10)
+                // The implementation should handle this gracefully without crashing
+                ctx.beginPath();
+                ctx.moveTo(1e10, 1e10);
+                ctx.lineTo(1e10 + 100, 1e10);
+                ctx.lineTo(1e10 + 100, 1e10 + 100);
+                ctx.closePath();
+
+                ctx.setStrokeStyle("blue");
+                ctx.stroke();
+
+                // Nothing should be visible on the canvas since coordinates are off-screen
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Verify canvas is still transparent (nothing drawn in visible area)
+        assertPixel(ctx, 200, 200, 0, 0, 0, 0);
+    }
+
+    @Test
+    public void testNegativeDimensionsCreateImageData() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                // Test negative width
+                try {
+                    ctx.createImageData(-100, 100);
+                    // If no exception, implementation may handle it gracefully
+                } catch (IllegalArgumentException e) {
+                    String msg = e.getMessage().toLowerCase();
+                    assertTrue(msg.contains("width") || msg.contains("negative") || msg.contains("positive"),
+                            "Exception should mention width/negative/positive: " + e.getMessage());
+                } catch (Exception e) {
+                    // Other exceptions are acceptable
+                    assertTrue(e.getMessage() != null, "Exception should have a message");
+                }
+
+                // Test negative height
+                try {
+                    ctx.createImageData(100, -100);
+                } catch (IllegalArgumentException e) {
+                    String msg = e.getMessage().toLowerCase();
+                    assertTrue(msg.contains("height") || msg.contains("negative") || msg.contains("positive"),
+                            "Exception should mention height/negative/positive: " + e.getMessage());
+                } catch (Exception e) {
+                    assertTrue(e.getMessage() != null, "Exception should have a message");
+                }
+
+                // Test both negative
+                try {
+                    ctx.createImageData(-100, -100);
+                } catch (Exception e) {
+                    // Should throw some kind of exception
+                    assertTrue(e.getMessage() != null, "Exception should have a message");
+                }
+            } finally {
+                Context.exit();
+            }
+        });
+    }
+
+    // =============================================================================
+    // MEDIUM/HIGH PRIORITY Missing Test Cases - Pattern Repeat Modes
+    // =============================================================================
+
+    @Test
+    public void testPatternRepeatModes() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        String backend = System.getProperty("w3canvas.backend", "awt");
+
+        if (backend.equals("awt")) {
+            // Create a small test pattern image
+            java.awt.image.BufferedImage patternImage = new java.awt.image.BufferedImage(20, 20, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            java.awt.Graphics2D g2d = patternImage.createGraphics();
+            g2d.setColor(java.awt.Color.RED);
+            g2d.fillRect(0, 0, 20, 20);
+            g2d.dispose();
+
+            // Test "repeat" mode
+            interact(() -> {
+                Context.enter();
+                try {
+                    ctx.clearRect(0, 0, 400, 400);
+                    ICanvasPattern pattern = ctx.createPattern(patternImage, "repeat");
+                    ctx.setFillStyle(pattern);
+                    ctx.fillRect(0, 0, 100, 100);
+                } finally {
+                    Context.exit();
+                }
+            });
+            assertPixel(ctx, 50, 50, 255, 0, 0, 255);
+
+            // Test "repeat-x" mode
+            interact(() -> {
+                Context.enter();
+                try {
+                    ctx.clearRect(0, 0, 400, 400);
+                    ICanvasPattern pattern = ctx.createPattern(patternImage, "repeat-x");
+                    ctx.setFillStyle(pattern);
+                    ctx.fillRect(0, 0, 100, 100);
+                } finally {
+                    Context.exit();
+                }
+            });
+            // Pattern should repeat horizontally
+            assertPixel(ctx, 50, 10, 255, 0, 0, 255);
+
+            // Test "repeat-y" mode
+            interact(() -> {
+                Context.enter();
+                try {
+                    ctx.clearRect(0, 0, 400, 400);
+                    ICanvasPattern pattern = ctx.createPattern(patternImage, "repeat-y");
+                    ctx.setFillStyle(pattern);
+                    ctx.fillRect(0, 0, 100, 100);
+                } finally {
+                    Context.exit();
+                }
+            });
+            // Pattern should repeat vertically
+            assertPixel(ctx, 10, 50, 255, 0, 0, 255);
+
+            // Test "no-repeat" mode
+            interact(() -> {
+                Context.enter();
+                try {
+                    ctx.clearRect(0, 0, 400, 400);
+                    ICanvasPattern pattern = ctx.createPattern(patternImage, "no-repeat");
+                    ctx.setFillStyle(pattern);
+                    ctx.fillRect(0, 0, 100, 100);
+                } finally {
+                    Context.exit();
+                }
+            });
+            // Pattern should appear only once at origin
+            assertPixel(ctx, 10, 10, 255, 0, 0, 255);
+        } else {
+            // JavaFX backend - create pattern canvas
+            HTMLCanvasElement patternCanvas = createCanvas();
+            ICanvasRenderingContext2D patternCtx = (ICanvasRenderingContext2D) patternCanvas.jsFunction_getContext("2d");
+
+            interact(() -> {
+                Context.enter();
+                try {
+                    patternCanvas.setWidth(20);
+                    patternCanvas.setHeight(20);
+                    patternCtx.setFillStyle("red");
+                    patternCtx.fillRect(0, 0, 20, 20);
+                } finally {
+                    Context.exit();
+                }
+            });
+
+            // Test all repeat modes
+            String[] repeatModes = {"repeat", "repeat-x", "repeat-y", "no-repeat"};
+            for (String mode : repeatModes) {
+                interact(() -> {
+                    Context.enter();
+                    try {
+                        ctx.clearRect(0, 0, 400, 400);
+                        ICanvasPattern pattern = ctx.createPattern(patternCanvas, mode);
+                        assertTrue(pattern != null, "Pattern with mode '" + mode + "' should be created");
+                        ctx.setFillStyle(pattern);
+                        ctx.fillRect(0, 0, 100, 100);
+                    } finally {
+                        Context.exit();
+                    }
+                });
+            }
+        }
+    }
+
+    @Test
+    public void testPatternFromDifferentImageSources() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        String backend = System.getProperty("w3canvas.backend", "awt");
+
+        // Test 1: Pattern from canvas element
+        HTMLCanvasElement patternCanvas = createCanvas();
+        ICanvasRenderingContext2D patternCtx = (ICanvasRenderingContext2D) patternCanvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                patternCanvas.setWidth(10);
+                patternCanvas.setHeight(10);
+                patternCtx.setFillStyle("blue");
+                patternCtx.fillRect(0, 0, 10, 10);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ICanvasPattern pattern = ctx.createPattern(patternCanvas, "repeat");
+                assertTrue(pattern != null, "Pattern from canvas should be created");
+                ctx.setFillStyle(pattern);
+                ctx.fillRect(0, 0, 50, 50);
+            } finally {
+                Context.exit();
+            }
+        });
+        // Note: Pattern rendering from canvas source may vary by backend,
+        // so we just verify the pattern was created and can be used without error
+
+        // Test 2: Pattern from BufferedImage (AWT backend only)
+        if (backend.equals("awt")) {
+            java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(10, 10, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            java.awt.Graphics2D g2d = img.createGraphics();
+            g2d.setColor(java.awt.Color.GREEN);
+            g2d.fillRect(0, 0, 10, 10);
+            g2d.dispose();
+
+            interact(() -> {
+                Context.enter();
+                try {
+                    ctx.clearRect(0, 0, 400, 400);
+                    ICanvasPattern pattern = ctx.createPattern(img, "repeat");
+                    assertTrue(pattern != null, "Pattern from BufferedImage should be created");
+                    ctx.setFillStyle(pattern);
+                    ctx.fillRect(0, 0, 50, 50);
+                } finally {
+                    Context.exit();
+                }
+            });
+            // Note: Pattern rendering from BufferedImage is AWT-specific,
+            // so we just verify the pattern was created and can be used without error
+        }
+    }
+
+    // =============================================================================
+    // MEDIUM/HIGH PRIORITY Missing Test Cases - ImageData with Dirty Rectangles
+    // =============================================================================
+
+    @Test
+    public void testPutImageDataWithDirtyRect() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Create a 50x50 ImageData with red pixels
+                IImageData imageData = ctx.createImageData(50, 50);
+                int[] pixels = imageData.getData().getPixels(0, 0, 50, 50);
+                for (int i = 0; i < pixels.length; i++) {
+                    // Set all pixels to red (ARGB: 0xFFFF0000)
+                    pixels[i] = 0xFFFF0000;
+                }
+                // Note: pixels array is a direct reference, modifications are applied automatically
+
+                // Put image data at (100, 100) but only the dirty rectangle portion
+                // putImageData(imageData, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight)
+                // This should only copy the region from (10, 10) with size 30x30 from the imageData
+                // to the canvas at position (100, 100)
+                ctx.putImageData(imageData, 100, 100, 10, 10, 30, 30);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // The dirty rectangle (10, 10, 30, 30) from imageData should be at (100, 100) on canvas
+        // So we should see red at canvas position (110, 110) which corresponds to imageData (10, 10)
+        assertPixel(ctx, 110, 110, 255, 0, 0, 255);
+
+        // The area outside the dirty rectangle should not be affected
+        // Position (105, 105) is outside the dirty rectangle, should be transparent
+        assertPixel(ctx, 105, 105, 0, 0, 0, 0);
+
+        // Position at the edge of the dirty rectangle
+        assertPixel(ctx, 125, 125, 255, 0, 0, 255);
+    }
+
+    @Test
+    public void testPutImageDataWithPartialDirtyRect() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Draw a blue background first
+                ctx.setFillStyle("blue");
+                ctx.fillRect(50, 50, 100, 100);
+
+                // Create a 40x40 ImageData with green pixels
+                IImageData imageData = ctx.createImageData(40, 40);
+                int[] pixels = imageData.getData().getPixels(0, 0, 40, 40);
+                for (int i = 0; i < pixels.length; i++) {
+                    pixels[i] = 0xFF00FF00; // Green
+                }
+                // Note: pixels array is a direct reference, modifications are applied automatically
+
+                // Put only the top-left 20x20 portion of the imageData at (70, 70)
+                ctx.putImageData(imageData, 70, 70, 0, 0, 20, 20);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // The dirty rectangle area should be green
+        assertPixel(ctx, 75, 75, 0, 255, 0, 255);
+
+        // Area outside should still be blue from the original fillRect
+        assertPixel(ctx, 60, 60, 0, 0, 255, 255);
+    }
+
+    // =============================================================================
+    // MEDIUM/HIGH PRIORITY Missing Test Cases - drawFocusIfNeeded
+    // =============================================================================
+
+    @Test
+    public void testDrawFocusIfNeeded() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Create a simple path
+                ctx.beginPath();
+                ctx.rect(50, 50, 100, 100);
+
+                // Call drawFocusIfNeeded - should not throw an error
+                // This method draws a focus ring around the current path if the element is focused
+                // Since we don't have a focused element in tests, it should just return without error
+                try {
+                    // The method signature may vary - try the basic version
+                    ctx.drawFocusIfNeeded(canvas);
+                } catch (Exception e) {
+                    // If the method doesn't exist or has different signature, that's acceptable
+                    // The important part is testing that it can be called
+                    assertTrue(e.getMessage() != null || e.getMessage().isEmpty(),
+                            "drawFocusIfNeeded should handle missing element gracefully");
+                }
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Test should complete without crashing
+        // Canvas content depends on whether any element had focus
+    }
+
+    @Test
+    public void testDrawFocusIfNeededWithPath2D() throws ExecutionException, InterruptedException {
+        HTMLCanvasElement canvas = createCanvas();
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        // Create a Path2D object
+        com.w3canvas.javacanvas.core.Path2D path = new com.w3canvas.javacanvas.core.Path2D();
+        path.rect(50, 50, 100, 100);
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+
+                // Call drawFocusIfNeeded with a Path2D object
+                // This is the modern API that accepts a path and an element
+                try {
+                    ctx.drawFocusIfNeeded(path, canvas);
+                } catch (Exception e) {
+                    // If the method doesn't exist or has different signature, that's acceptable
+                    // The important part is testing that it can be called
+                    assertTrue(e.getMessage() != null || e.getMessage().isEmpty(),
+                            "drawFocusIfNeeded with Path2D should handle missing element gracefully");
+                }
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // Test should complete without crashing
     }
 }

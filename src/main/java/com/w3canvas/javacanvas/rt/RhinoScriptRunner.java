@@ -56,7 +56,7 @@ class RhinoScriptRunner implements ContextAction, Runnable
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            System.err.println("ERROR: Script execution failed: " + e.getMessage());
             return e;
         }
     }

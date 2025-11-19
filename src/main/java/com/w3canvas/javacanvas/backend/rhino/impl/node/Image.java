@@ -75,7 +75,7 @@ public class Image extends Node {
 		try {
 			bufImage = ImageIO.read(new ByteArrayInputStream(Base64.decode(base64string)));
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.err.println("ERROR: Failed to decode base64 image: " + e.getMessage());
 		}
 
 		return bufImage;

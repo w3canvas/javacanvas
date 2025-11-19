@@ -19,5 +19,17 @@ public interface IGraphicsBackend {
 
     IFont createFont(String family, double size);
     IFont createFont(String family, double size, String style, String weight);
+
+    /**
+     * Creates a font from binary font data (e.g., TrueType or OpenType font file).
+     *
+     * @param fontData the binary font data to load
+     * @param size the font size in points
+     * @param style the font style (e.g., "normal", "italic", "oblique")
+     * @param weight the font weight (e.g., "normal", "bold")
+     * @return a new IFont instance
+     * @throws IllegalArgumentException if fontData is null or empty
+     * @throws IllegalArgumentException if fontData exceeds 10MB (10485760 bytes)
+     */
     IFont createFont(byte[] fontData, float size, String style, String weight);
 }

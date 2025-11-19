@@ -12,6 +12,47 @@ import javafx.scene.effect.BlendMode;
 /**
  * Factory for creating compositing operations according to Canvas 2D API spec.
  * Supports both Porter-Duff composite operations and CSS blend modes.
+ *
+ * <p><strong>Backend-Specific Blend Mode Support:</strong>
+ *
+ * <p><strong>AWT Backend:</strong>
+ * <ul>
+ *   <li><strong>Fully Supported Porter-Duff Operations:</strong> source-over, source-in,
+ *       source-out, source-atop, destination-over, destination-in, destination-out,
+ *       destination-atop, copy, xor</li>
+ *   <li><strong>Approximated:</strong>
+ *     <ul>
+ *       <li>"lighter" - Mapped to SRC_OVER instead of true additive blending.
+ *           A proper implementation would require custom Composite for pixel-level addition.</li>
+ *     </ul>
+ *   </li>
+ *   <li><strong>Not Supported (fallback to source-over):</strong> All CSS blend modes including
+ *       multiply, screen, overlay, darken, lighten, color-dodge, color-burn, hard-light,
+ *       soft-light, difference, exclusion, hue, saturation, color, and luminosity.
+ *       These require custom {@link java.awt.Composite} implementations with pixel-level blending.</li>
+ * </ul>
+ *
+ * <p><strong>JavaFX Backend:</strong>
+ * <ul>
+ *   <li><strong>Fully Supported CSS Blend Modes:</strong> multiply, screen, overlay, darken,
+ *       lighten, color-dodge, color-burn, hard-light, soft-light, difference, exclusion</li>
+ *   <li><strong>Approximated Porter-Duff Operations:</strong>
+ *     <ul>
+ *       <li>"source-in" - Uses SRC_ATOP as closest approximation</li>
+ *       <li>"copy" - Uses SRC_OVER (JavaFX lacks direct copy mode)</li>
+ *     </ul>
+ *   </li>
+ *   <li><strong>Not Supported (fallback to source-over):</strong> source-out, destination-over,
+ *       destination-in, destination-out, destination-atop, xor, hue, saturation, color, luminosity</li>
+ * </ul>
+ *
+ * <p><strong>Recommendation:</strong> For maximum compatibility with CSS blend modes, consider
+ * using the JavaFX backend. For server-side rendering with AWT, be aware that CSS blend modes
+ * will fall back to standard alpha compositing.
+ *
+ * @see java.awt.AlphaComposite
+ * @see javafx.scene.effect.BlendMode
+ * @since 1.0
  */
 public class CompositeFactory {
 
@@ -26,8 +67,24 @@ public class CompositeFactory {
 
     /**
      * Create AWT composite for Porter-Duff operations.
-     * Note: CSS blend modes are not directly supported in AWT and would require
-     * custom Composite implementations for pixel-level blending.
+     *
+     * <p><strong>AWT Backend Limitations:</strong>
+     * <ul>
+     *   <li>CSS blend modes (multiply, screen, overlay, etc.) are <strong>NOT supported</strong>
+     *       by AWT's {@link java.awt.AlphaComposite} and fall back to source-over</li>
+     *   <li>The "lighter" blend mode is <strong>approximated</strong> using SRC_OVER instead of
+     *       true additive blending (would require custom Composite implementation)</li>
+     *   <li>All Porter-Duff operations (source-*, destination-*, copy, xor) are fully supported</li>
+     * </ul>
+     *
+     * <p>To implement true CSS blend modes in AWT, a custom {@link java.awt.Composite}
+     * implementation would be required that performs pixel-level blending operations
+     * according to the CSS Compositing and Blending Level 1 specification.
+     *
+     * @param operation The blend mode or composite operation name (e.g., "source-over", "multiply")
+     * @param alpha The global alpha value (0.0 to 1.0)
+     * @return AWT composite with the requested operation, or source-over fallback for unsupported modes
+     * @see java.awt.AlphaComposite
      */
     private static AwtComposite createAwtComposite(String operation, double alpha) {
         if (operation == null || operation.isEmpty()) {

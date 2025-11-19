@@ -1,5 +1,6 @@
 // Main thread script for SharedWorker test
 var worker = new SharedWorker('test-sharedworker.js');
+var sharedWorkerComplete = false;
 
 worker.port.onmessage = function(e) {
     console.log('Main thread received:', e.data);
@@ -10,6 +11,7 @@ worker.port.onmessage = function(e) {
         var ctx = canvas.getContext('2d');
         ctx.putImageData(imageData, 0, 0);
         console.log("Image data received from shared worker and drawn on canvas.");
+        sharedWorkerComplete = true;  // Signal completion to test
     }
 };
 

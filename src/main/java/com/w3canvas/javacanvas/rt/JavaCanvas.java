@@ -101,7 +101,7 @@ public class JavaCanvas {
                 System.err.println("Could not find canvas element with id 'canvas'");
             }
         } catch (java.io.IOException e) {
-            e.printStackTrace();
+            System.err.println("ERROR: Failed to save screenshot to '" + path + "': " + e.getMessage());
         }
     }
 
@@ -117,7 +117,7 @@ public class JavaCanvas {
                 Context.exit();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("ERROR: Failed to execute script '" + scriptPath + "': " + e.getMessage());
         }
     }
 
@@ -185,7 +185,7 @@ public class JavaCanvas {
             runtime.defineProperty("console", new ScriptLogger());
             runtime.setSource(basePath);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("ERROR: Failed to initialize backend: " + e.getMessage());
         } finally {
             Context.exit();
         }

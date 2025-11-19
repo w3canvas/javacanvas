@@ -142,6 +142,11 @@ public class TestFontLoading extends ApplicationTest {
         });
 
         // We can't easily assert the font, but we can assert that something was drawn.
+        // NOTE: High tolerance (224) is required for font loading tests due to:
+        // 1. Font rendering engine differences between AWT and other backends
+        // 2. Custom font rasterization variations based on font format and hinting
+        // 3. Different text antialiasing implementations across platforms
+        // 4. TrueType/OpenType font rendering subtleties
         assertPixel(ctx, 30, 40, 0, 0, 255, 255, 224);
     }
 }

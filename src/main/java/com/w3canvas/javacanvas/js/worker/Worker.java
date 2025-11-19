@@ -157,7 +157,7 @@ public class Worker extends ProjectScriptableObject {
                 InputStreamReader reader = new InputStreamReader(Worker.class.getClassLoader().getResourceAsStream(scriptUrl));
                 workerRuntime.exec(reader, scriptUrl);
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println("ERROR: Worker failed to load script '" + scriptUrl + "': " + e.getMessage());
             } finally {
                 Context.exit();
             }

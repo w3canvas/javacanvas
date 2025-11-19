@@ -6,6 +6,22 @@ This document contains detailed recommendations for improving the JavaCanvas cod
 
 ---
 
+## Recent Completions (2025-11-19)
+
+✅ **Medium Priority #5: Filter Integration Documentation**
+- Added comprehensive TODO documentation to `applyFiltersToImage()` method
+- Documented integration requirements and architectural changes needed
+
+✅ **Medium Priority #10: Backend Limitations Documentation**
+- **Radial Gradients**: Documented r0 parameter limitation in `AwtRadialGradient.java`
+- **Blend Modes**: Documented CSS blend mode approximations in `CompositeFactory.java`
+- **Text Features**: Documented direction, letterSpacing, wordSpacing limitations in `CoreCanvasRenderingContext2D.java`
+- **Text Alignment**: Documented textAlign/textBaseline limitations in `AwtGraphicsContext.java`
+
+All documentation includes specific implementation guidance and backend-specific behavior notes.
+
+---
+
 ## Critical Issues (Must Fix)
 
 ### 1. Resource Leak in AwtCanvasSurface.reset()
@@ -103,13 +119,19 @@ public void setLineWidth(double width) {
 
 ---
 
-### 5. Complete or Remove Filter Integration
+### 5. ✅ Complete or Remove Filter Integration - DONE (2025-11-19)
 
-**File:** `src/main/java/com/w3canvas/javacanvas/backend/awt/AwtGraphicsContext.java:872-891`
+**File:** `src/main/java/com/w3canvas/javacanvas/backend/awt/AwtGraphicsContext.java:975-990`
 
 **Issue:** `applyFiltersToImage()` method exists but is never called.
 
-**Action:** Either integrate into rendering pipeline or mark as TODO/remove.
+**Resolution:** Added comprehensive JavaDoc documentation with clear TODO explaining:
+- Method is fully implemented but not yet integrated into rendering pipeline
+- Needs to be called during fill(), stroke(), and drawImage() operations
+- Requires architectural changes to support off-screen rendering buffers
+- Includes reference to HTML Canvas spec for implementation guidance
+
+**Impact:** Developers now have clear guidance on filter integration status and requirements.
 
 ---
 
@@ -169,16 +191,35 @@ public void setLineWidth(double width) {
 
 ---
 
-### 10. Document Backend Limitations
+### 10. ✅ Document Backend Limitations - DONE (2025-11-19)
 
-**Radial Gradients:**
-- AWT doesn't support two-circle gradients
-- Current implementation ignores r0 parameter
-- Action: Document in API javadoc and user documentation
+**Resolution:** Added comprehensive JavaDoc documentation for all backend limitations:
 
-**Blend Modes:**
-- Some CSS blend modes use approximations
-- Action: Document which modes are approximated and limitations
+**Radial Gradients** (`AwtRadialGradient.java`):
+- ✅ Documented that AWT doesn't support two-circle gradients
+- ✅ Documented that r0 parameter is ignored (only x0, y0 used as focus point)
+- ✅ Explained approximation works well when r0=0 but differs for r0>0
+- ✅ Added detailed class-level and method-level JavaDoc with examples
+
+**Blend Modes** (`CompositeFactory.java`):
+- ✅ Documented all CSS blend modes that fall back to source-over in AWT backend
+- ✅ Documented "lighter" blend mode approximation (SRC_OVER instead of additive)
+- ✅ Listed all fully supported Porter-Duff operations
+- ✅ Documented JavaFX backend blend mode support for comparison
+- ✅ Added implementation guidance for proper CSS blend mode support
+
+**Text Features** (`CoreCanvasRenderingContext2D.java`):
+- ✅ Documented that direction, letterSpacing, wordSpacing are stored but not implemented
+- ✅ Explained properties are preserved across save()/restore() but don't affect rendering
+- ✅ Provided detailed implementation requirements for each property
+
+**Text Alignment** (`AwtGraphicsContext.java`):
+- ✅ Documented textAlign limitation with AWT backend
+- ✅ Documented textBaseline limitation with AWT backend
+- ✅ Provided detailed implementation guidance using FontMetrics and LineMetrics
+- ✅ Listed all valid values and expected behavior for each mode
+
+**Impact:** All backend limitations are now clearly documented with specific implementation guidance.
 
 ---
 
@@ -313,14 +354,14 @@ public IFont createFont(byte[] fontData, float size, String style, String weight
 
 ## Summary Priority Matrix
 
-| Priority | Category | Count | Estimated Effort |
-|----------|----------|-------|------------------|
-| Critical | Must Fix | 2 | 4-6 hours |
-| High | Should Fix Soon | 6 | 12-16 hours |
-| Medium | Should Address | 10 | 20-30 hours |
-| Low | Nice to Have | 3 | 8-12 hours |
+| Priority | Category | Count | Completed | Remaining | Estimated Effort |
+|----------|----------|-------|-----------|-----------|------------------|
+| Critical | Must Fix | 2 | 0 | 2 | 4-6 hours |
+| High | Should Fix Soon | 6 | 0 | 6 | 12-16 hours |
+| Medium | Should Address | 10 | 2 | 8 | 14-22 hours |
+| Low | Nice to Have | 3 | 0 | 3 | 8-12 hours |
 
-**Total Estimated Effort:** 44-64 hours for all improvements
+**Total Estimated Effort:** 38-56 hours for remaining improvements (6-8 hours completed)
 
 **Recommended Immediate Actions:**
 1. Fix resource leak (2 hours)

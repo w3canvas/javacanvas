@@ -71,6 +71,11 @@ public class AwtGraphicsContext implements IGraphicsContext {
     // Fill rule
     private String fillRule = "nonzero";
 
+    // Shadow blur constants
+    private static final int BLUR_DIVISOR = 2;
+    private static final int MAX_BLUR_STEPS = 5;
+    private static final float ALPHA_CHANNEL_MAX = 255.0f;
+
     public AwtGraphicsContext(Graphics2D g2d, AwtCanvasSurface surface) {
         this.g2d = g2d;
         this.surface = surface;
@@ -287,12 +292,74 @@ public class AwtGraphicsContext implements IGraphicsContext {
         }
     }
 
+    /**
+     * Sets the text alignment for subsequent text rendering operations.
+     *
+     * <p><strong>AWT Backend Limitation:</strong> This method is currently <strong>not implemented</strong>
+     * in the AWT backend. Java AWT's {@link Graphics2D#drawString(String, float, float)} method does not
+     * support text alignment modes directly - it always draws text starting from the specified baseline point.
+     *
+     * <p><strong>Implementation Requirements:</strong> To properly support this feature, the implementation
+     * would need to:
+     * <ul>
+     *   <li>Measure text width using {@link java.awt.FontMetrics}</li>
+     *   <li>Adjust the x-coordinate based on alignment mode before calling drawString():
+     *     <ul>
+     *       <li>"left" or "start" - no adjustment (default behavior)</li>
+     *       <li>"right" or "end" - subtract text width from x</li>
+     *       <li>"center" - subtract half text width from x</li>
+     *     </ul>
+     *   </li>
+     *   <li>Handle "start" and "end" by considering the direction property (ltr/rtl)</li>
+     * </ul>
+     *
+     * <p><strong>Valid values:</strong> "left", "right", "center", "start", "end" (default: "start")
+     *
+     * @param textAlign The text alignment mode. Currently stored but not used in rendering.
+     * @see java.awt.FontMetrics
+     */
     @Override
     public void setTextAlign(String textAlign) {
         // AWT Graphics2D does not have a direct equivalent.
         // This would require manual calculation based on font metrics.
     }
 
+    /**
+     * Sets the text baseline alignment for subsequent text rendering operations.
+     *
+     * <p><strong>AWT Backend Limitation:</strong> This method is currently <strong>not implemented</strong>
+     * in the AWT backend. Java AWT's {@link Graphics2D#drawString(String, float, float)} method treats
+     * the y-coordinate as the text baseline, which corresponds to Canvas 2D's "alphabetic" mode.
+     *
+     * <p><strong>Implementation Requirements:</strong> To properly support this feature, the implementation
+     * would need to:
+     * <ul>
+     *   <li>Use {@link java.awt.font.FontRenderContext} and {@link java.awt.font.LineMetrics} to get:
+     *     <ul>
+     *       <li>Ascent - distance from baseline to top of tallest glyph</li>
+     *       <li>Descent - distance from baseline to bottom of lowest glyph</li>
+     *       <li>Height - total line height</li>
+     *     </ul>
+     *   </li>
+     *   <li>Adjust the y-coordinate before calling drawString():
+     *     <ul>
+     *       <li>"alphabetic" - no adjustment (default AWT behavior)</li>
+     *       <li>"top" - add ascent to y</li>
+     *       <li>"hanging" - add ascent * 0.8 to y (approximation)</li>
+     *       <li>"middle" - add (ascent - descent) / 2 to y</li>
+     *       <li>"ideographic" - subtract descent from y</li>
+     *       <li>"bottom" - subtract descent from y</li>
+     *     </ul>
+     *   </li>
+     * </ul>
+     *
+     * <p><strong>Valid values:</strong> "top", "hanging", "middle", "alphabetic", "ideographic", "bottom"
+     * (default: "alphabetic")
+     *
+     * @param textBaseline The text baseline mode. Currently stored but not used in rendering.
+     * @see java.awt.font.LineMetrics
+     * @see java.awt.font.FontRenderContext
+     */
     @Override
     public void setTextBaseline(String textBaseline) {
         // AWT Graphics2D does not have a direct equivalent.
@@ -834,8 +901,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
         // Apply shadow with blur approximation
         if (shadowBlur > 0) {
             // Simple blur approximation: draw multiple times with decreasing opacity
-            int blurSteps = Math.min((int) Math.ceil(shadowBlur / 2), 5);
-            float baseAlpha = shadowCol.getAlpha() / 255.0f;
+            int blurSteps = Math.min((int) Math.ceil(shadowBlur / BLUR_DIVISOR), MAX_BLUR_STEPS);
+            float baseAlpha = shadowCol.getAlpha() / ALPHA_CHANNEL_MAX;
 
             for (int i = 0; i < blurSteps; i++) {
                 float alpha = baseAlpha * (1.0f - (float) i / blurSteps) / blurSteps;

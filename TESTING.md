@@ -51,13 +51,13 @@ The project includes a visual regression framework (`VisualRegressionHelper`) fo
 
 ## Current Test Status
 
-**Total:** 136 tests across 17 test classes (100% passing)
+**Total:** 147 tests across 17 test classes (100% passing)
 
 ### Test Suite Breakdown
 
 | Test Class | Tests | Status | Coverage |
 |------------|-------|--------|----------|
-| TestCanvas2D | 66 | ✅ Passing | Core Canvas 2D API, transformations, paths, shapes |
+| TestCanvas2D | 77 | ✅ Passing | Core Canvas 2D API, transformations, paths, shapes, edge cases |
 | TestImageBitmap | 11 | ✅ Passing | ImageBitmap creation, rendering, resource management |
 | TestOffscreenCanvas | 10 | ✅ Passing | OffscreenCanvas API, convertToBlob, transferToImageBitmap |
 | TestCSSFilters | 18 | ✅ Passing | CSS filter parsing (blur, brightness, etc.) |
@@ -195,7 +195,7 @@ The test suite is designed to run in CI/CD environments:
 
 1. **Headless Support:** All tests run with `xvfb`
 2. **No External Dependencies:** All test resources included
-3. **Fast Execution:** 136 tests complete in ~8 minutes
+3. **Fast Execution:** 147 tests complete in ~9 minutes
 4. **Deterministic:** Visual regression with tolerance handles environment differences
 
 ## Troubleshooting
