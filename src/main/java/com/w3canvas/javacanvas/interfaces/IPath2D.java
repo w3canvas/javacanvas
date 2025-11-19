@@ -38,6 +38,13 @@ public interface IPath2D {
     void rect(double x, double y, double w, double h);
 
     /**
+     * Add a rounded rectangle to the path.
+     * The radii parameter can be a single number, an array of numbers,
+     * or an array of DOMPointInit-like objects.
+     */
+    void roundRect(double x, double y, double w, double h, Object radii);
+
+    /**
      * Draw an arc.
      */
     void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise);
@@ -69,15 +76,23 @@ public interface IPath2D {
     public static class PathElement {
         public enum Type {
             MOVE_TO, LINE_TO, QUADRATIC_CURVE_TO, BEZIER_CURVE_TO,
-            ARC_TO, RECT, ARC, ELLIPSE, CLOSE_PATH
+            ARC_TO, RECT, ROUND_RECT, ARC, ELLIPSE, CLOSE_PATH
         }
 
         private final Type type;
         private final double[] params;
+        private final Object extra; // For storing additional data like radii in roundRect
 
         public PathElement(Type type, double... params) {
             this.type = type;
             this.params = params;
+            this.extra = null;
+        }
+
+        public PathElement(Type type, Object extra, double... params) {
+            this.type = type;
+            this.params = params;
+            this.extra = extra;
         }
 
         public Type getType() {
@@ -86,6 +101,10 @@ public interface IPath2D {
 
         public double[] getParams() {
             return params;
+        }
+
+        public Object getExtra() {
+            return extra;
         }
     }
 }

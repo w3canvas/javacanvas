@@ -1606,6 +1606,8 @@ public class TestCanvas2D extends ApplicationTest {
     @Test
     public void testPath2DAddPath() throws ExecutionException, InterruptedException {
         HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
         ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
 
         // Create Path2D objects using Java API to avoid Rhino thread issues

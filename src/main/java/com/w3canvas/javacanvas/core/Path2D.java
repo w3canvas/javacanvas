@@ -31,49 +31,54 @@ public class Path2D implements IPath2D {
 
     @Override
     public void moveTo(double x, double y) {
-        elements.add(new PathElement(PathElement.Type.MOVE_TO, x, y));
+        elements.add(new PathElement(PathElement.Type.MOVE_TO, null, x, y));
     }
 
     @Override
     public void lineTo(double x, double y) {
-        elements.add(new PathElement(PathElement.Type.LINE_TO, x, y));
+        elements.add(new PathElement(PathElement.Type.LINE_TO, null, x, y));
     }
 
     @Override
     public void quadraticCurveTo(double cpx, double cpy, double x, double y) {
-        elements.add(new PathElement(PathElement.Type.QUADRATIC_CURVE_TO, cpx, cpy, x, y));
+        elements.add(new PathElement(PathElement.Type.QUADRATIC_CURVE_TO, null, cpx, cpy, x, y));
     }
 
     @Override
     public void bezierCurveTo(double cp1x, double cp1y, double cp2x, double cp2y, double x, double y) {
-        elements.add(new PathElement(PathElement.Type.BEZIER_CURVE_TO, cp1x, cp1y, cp2x, cp2y, x, y));
+        elements.add(new PathElement(PathElement.Type.BEZIER_CURVE_TO, null, cp1x, cp1y, cp2x, cp2y, x, y));
     }
 
     @Override
     public void arcTo(double x1, double y1, double x2, double y2, double radius) {
-        elements.add(new PathElement(PathElement.Type.ARC_TO, x1, y1, x2, y2, radius));
+        elements.add(new PathElement(PathElement.Type.ARC_TO, null, x1, y1, x2, y2, radius));
     }
 
     @Override
     public void rect(double x, double y, double w, double h) {
-        elements.add(new PathElement(PathElement.Type.RECT, x, y, w, h));
+        elements.add(new PathElement(PathElement.Type.RECT, null, x, y, w, h));
+    }
+
+    @Override
+    public void roundRect(double x, double y, double w, double h, Object radii) {
+        elements.add(new PathElement(PathElement.Type.ROUND_RECT, radii, x, y, w, h));
     }
 
     @Override
     public void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise) {
-        elements.add(new PathElement(PathElement.Type.ARC, x, y, radius, startAngle, endAngle, counterclockwise ? 1.0 : 0.0));
+        elements.add(new PathElement(PathElement.Type.ARC, null, x, y, radius, startAngle, endAngle, counterclockwise ? 1.0 : 0.0));
     }
 
     @Override
     public void ellipse(double x, double y, double radiusX, double radiusY, double rotation,
                        double startAngle, double endAngle, boolean counterclockwise) {
-        elements.add(new PathElement(PathElement.Type.ELLIPSE, x, y, radiusX, radiusY, rotation,
+        elements.add(new PathElement(PathElement.Type.ELLIPSE, null, x, y, radiusX, radiusY, rotation,
                 startAngle, endAngle, counterclockwise ? 1.0 : 0.0));
     }
 
     @Override
     public void closePath() {
-        elements.add(new PathElement(PathElement.Type.CLOSE_PATH));
+        elements.add(new PathElement(PathElement.Type.CLOSE_PATH, null));
     }
 
     @Override
@@ -112,6 +117,9 @@ public class Path2D implements IPath2D {
                     break;
                 case RECT:
                     gc.rect(params[0], params[1], params[2], params[3]);
+                    break;
+                case ROUND_RECT:
+                    gc.roundRect(params[0], params[1], params[2], params[3], element.getExtra());
                     break;
                 case ARC:
                     gc.arc(params[0], params[1], params[2], params[3], params[4], params[5] != 0.0);

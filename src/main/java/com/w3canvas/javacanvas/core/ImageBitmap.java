@@ -20,6 +20,7 @@ public class ImageBitmap implements IImageBitmap {
 
     /**
      * Creates an ImageBitmap from a BufferedImage.
+     * Creates a copy of the image to ensure immutability.
      *
      * @param image the source BufferedImage
      */
@@ -27,9 +28,15 @@ public class ImageBitmap implements IImageBitmap {
         if (image == null) {
             throw new IllegalArgumentException("Image cannot be null");
         }
-        this.image = image;
         this.width = image.getWidth();
         this.height = image.getHeight();
+
+        // Create a copy of the image to ensure immutability
+        this.image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = this.image.createGraphics();
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+
         this.closed = false;
     }
 

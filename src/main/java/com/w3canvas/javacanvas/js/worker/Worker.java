@@ -97,6 +97,9 @@ public class Worker extends ProjectScriptableObject {
 
         @Override
         public void run() {
+            // Set context classloader to ensure inner classes can be loaded
+            Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+
             RhinoRuntime workerRuntime = new RhinoRuntime();
             Context workerContext = Context.enter();
             workerContext.putThreadLocal("runtime", workerRuntime);

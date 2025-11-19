@@ -51,15 +51,28 @@ public class TestSharedWorker extends ApplicationTest {
         Context.enter();
 
         Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
+
+        // Set documentBase to resolve worker script paths
+        try {
+            java.io.File baseDir = new java.io.File(basePath).getAbsoluteFile();
+            String documentBase = baseDir.toURI().toString();
+            scope.put("documentBase", scope, documentBase);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         try {
             canvas = (HTMLCanvasElement) javaCanvas.getDocument().jsFunction_createElement("canvas");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         canvas.jsSet_id("canvas");
+        canvas.jsSet_width(400);
+        canvas.jsSet_height(400);
         javaCanvas.getDocument().addElement("canvas", canvas);
         ScriptableObject.putProperty(scope, "canvas", canvas);
         ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+        ScriptableObject.putProperty(scope, "ctx", ctx);
     }
 
     @AfterEach
@@ -126,7 +139,7 @@ public class TestSharedWorker extends ApplicationTest {
             "worker1.port.postMessage('hello from connection 1');" +
             "worker2.port.postMessage('hello from connection 2');";
 
-        javaCanvas.executeScript(script);
+        javaCanvas.executeCode(script);
 
         // Wait for messages to be processed
         sleep(2, TimeUnit.SECONDS);
@@ -151,7 +164,7 @@ public class TestSharedWorker extends ApplicationTest {
             "" +
             "worker.port.postMessage({command: 'create', width: 100, height: 100, color: 'blue'});";
 
-        interact(() -> javaCanvas.executeScript(script));
+        interact(() -> javaCanvas.executeCode(script));
 
         // Wait for the worker to create and return ImageBitmap
         sleep(2, TimeUnit.SECONDS);
@@ -174,16 +187,22 @@ public class TestSharedWorker extends ApplicationTest {
             "" +
             "port.postMessage('test message');";
 
-        javaCanvas.executeScript(script);
+        javaCanvas.executeCode(script);
 
         // Give time for message processing
         sleep(1, TimeUnit.SECONDS);
 
         Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
-        Boolean messageReceived = (Boolean) scope.get("messageReceived", scope);
+        Object messageReceivedObj = scope.get("messageReceived", scope);
+
+        // Handle Rhino's NOT_FOUND tag when property doesn't exist
+        Boolean messageReceived = false;
+        if (messageReceivedObj != Scriptable.NOT_FOUND && messageReceivedObj instanceof Boolean) {
+            messageReceived = (Boolean) messageReceivedObj;
+        }
 
         // The worker should echo back the message
-        assertTrue(messageReceived != null && messageReceived,
+        assertTrue(messageReceived,
             "Should receive message through MessagePort");
     }
 
@@ -193,7 +212,7 @@ public class TestSharedWorker extends ApplicationTest {
             "var worker = new SharedWorker('test-sharedworker.js');" +
             "worker.port.postMessage('ping');";
 
-        javaCanvas.executeScript(script);
+        javaCanvas.executeCode(script);
 
         // Wait for worker to start
         sleep(1, TimeUnit.SECONDS);

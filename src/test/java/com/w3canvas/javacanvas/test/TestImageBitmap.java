@@ -58,9 +58,12 @@ public class TestImageBitmap extends ApplicationTest {
             throw new RuntimeException(e);
         }
         canvas.jsSet_id("canvas");
+        canvas.jsSet_width(400);
+        canvas.jsSet_height(400);
         javaCanvas.getDocument().addElement("canvas", canvas);
         ScriptableObject.putProperty(scope, "canvas", canvas);
         ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+        ScriptableObject.putProperty(scope, "ctx", ctx);
     }
 
     @AfterEach
@@ -97,7 +100,7 @@ public class TestImageBitmap extends ApplicationTest {
 
         // Create ImageBitmap from canvas using global function
         String script = "var imageBitmap = createImageBitmap(canvas);";
-        javaCanvas.executeScript(script);
+        javaCanvas.executeCode(script);
 
         ImageBitmap imageBitmap = (ImageBitmap) scope.get("imageBitmap", scope);
         assertNotNull(imageBitmap, "ImageBitmap should be created");
@@ -115,7 +118,7 @@ public class TestImageBitmap extends ApplicationTest {
             "offscreenCtx.fillRect(0, 0, 100, 100);" +
             "var imageBitmap = createImageBitmap(offscreen);";
 
-        javaCanvas.executeScript(script);
+        javaCanvas.executeCode(script);
 
         ImageBitmap imageBitmap = (ImageBitmap) scope.get("imageBitmap", scope);
         assertNotNull(imageBitmap, "ImageBitmap should be created from OffscreenCanvas");
@@ -135,7 +138,7 @@ public class TestImageBitmap extends ApplicationTest {
             "}" +
             "var imageBitmap = createImageBitmap(imageData);";
 
-        javaCanvas.executeScript(script);
+        javaCanvas.executeCode(script);
 
         ImageBitmap imageBitmap = (ImageBitmap) scope.get("imageBitmap", scope);
         assertNotNull(imageBitmap, "ImageBitmap should be created from ImageData");
@@ -150,7 +153,7 @@ public class TestImageBitmap extends ApplicationTest {
             "var imageBitmap1 = createImageBitmap(offscreen);" +
             "var imageBitmap2 = createImageBitmap(imageBitmap1);";
 
-        javaCanvas.executeScript(script);
+        javaCanvas.executeCode(script);
 
         ImageBitmap imageBitmap1 = (ImageBitmap) scope.get("imageBitmap1", scope);
         ImageBitmap imageBitmap2 = (ImageBitmap) scope.get("imageBitmap2", scope);
@@ -169,7 +172,7 @@ public class TestImageBitmap extends ApplicationTest {
             "var imageBitmap = createImageBitmap(offscreen);" +
             "imageBitmap.close();";
 
-        javaCanvas.executeScript(script);
+        javaCanvas.executeCode(script);
 
         ImageBitmap imageBitmap = (ImageBitmap) scope.get("imageBitmap", scope);
         assertTrue(imageBitmap.isClosed(), "ImageBitmap should be closed");
@@ -189,7 +192,7 @@ public class TestImageBitmap extends ApplicationTest {
             "ctx.clearRect(0, 0, 400, 400);" +
             "ctx.drawImage(imageBitmap, 10, 10);";
 
-        interact(() -> javaCanvas.executeScript(script));
+        interact(() -> javaCanvas.executeCode(script));
 
         // Verify green pixel was drawn
         assertPixel(50, 50, 0, 255, 0, 255);
@@ -204,7 +207,7 @@ public class TestImageBitmap extends ApplicationTest {
             "offscreenCtx.fillRect(0, 0, 80, 80);" +
             "var imageBitmap = offscreen.transferToImageBitmap();";
 
-        javaCanvas.executeScript(script);
+        javaCanvas.executeCode(script);
 
         ImageBitmap imageBitmap = (ImageBitmap) scope.get("imageBitmap", scope);
         assertNotNull(imageBitmap, "ImageBitmap should be created from transferToImageBitmap");
@@ -221,7 +224,7 @@ public class TestImageBitmap extends ApplicationTest {
             "offscreenCtx.fillRect(0, 0, 100, 100);" +
             "var blob = offscreen.convertToBlobSync('image/png');";
 
-        javaCanvas.executeScript(script);
+        javaCanvas.executeCode(script);
 
         Blob blob = (Blob) scope.get("blob", scope);
         assertNotNull(blob, "Blob should be created");
@@ -240,7 +243,7 @@ public class TestImageBitmap extends ApplicationTest {
             "var blob = offscreen.convertToBlobSync('image/png');" +
             "var imageBitmap = createImageBitmap(blob);";
 
-        javaCanvas.executeScript(script);
+        javaCanvas.executeCode(script);
 
         ImageBitmap imageBitmap = (ImageBitmap) scope.get("imageBitmap", scope);
         assertNotNull(imageBitmap, "ImageBitmap should be created from Blob");
@@ -268,7 +271,7 @@ public class TestImageBitmap extends ApplicationTest {
             // Test drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
             "ctx.drawImage(imageBitmap, 25, 25, 50, 50, 250, 0, 50, 50);";
 
-        interact(() -> javaCanvas.executeScript(script));
+        interact(() -> javaCanvas.executeCode(script));
 
         // Verify pixels at different locations
         assertPixel(50, 50, 255, 0, 0, 255);    // First draw (full size)
@@ -290,7 +293,7 @@ public class TestImageBitmap extends ApplicationTest {
             "  errorThrown = true;" +
             "}";
 
-        javaCanvas.executeScript(script);
+        javaCanvas.executeCode(script);
 
         Boolean errorThrown = (Boolean) scope.get("errorThrown", scope);
         assertTrue(errorThrown, "Should throw error when creating from closed ImageBitmap");

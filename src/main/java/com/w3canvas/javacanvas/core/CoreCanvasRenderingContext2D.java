@@ -5,6 +5,7 @@ import com.w3canvas.javacanvas.backend.rhino.impl.node.Document;
 import com.w3canvas.javacanvas.interfaces.*;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
+import java.awt.image.BufferedImage;
 import java.util.Stack;
 import com.w3canvas.javacanvas.core.Path2D;
 
@@ -12,7 +13,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     private final IGraphicsBackend backend;
     private final ICanvasSurface surface;
-    private final IGraphicsContext gc;
+    private IGraphicsContext gc;
     private Document document;
 
     private Stack<ContextState> stack;
@@ -50,7 +51,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         this.backend = backend;
         this.surface = backend.createCanvasSurface(width, height);
         this.gc = surface.getGraphicsContext();
-        reset();
+        // Initialize state without calling surface.reset() to avoid disposing the graphics context
+        initializeState();
     }
 
     @Override
@@ -58,9 +60,54 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         return surface;
     }
 
+    /**
+     * Initialize the rendering context state without resetting the graphics surface.
+     * Used during construction to avoid disposing the graphics context.
+     */
+    private void initializeState() {
+        stack = new Stack<>();
+        fillStyle = "#000000";
+        strokeStyle = "#000000";
+        globalAlpha = 1.0;
+        globalCompositeOperation = "source-over";
+        lineWidth = 1.0;
+        lineJoin = "miter";
+        lineCap = "butt";
+        miterLimit = 10.0;
+        lineDash = new double[0];
+        lineDashOffset = 0.0;
+
+        // Initialize shadow properties
+        shadowBlur = 0.0;
+        shadowColor = "rgba(0, 0, 0, 0)"; // transparent black
+        shadowOffsetX = 0.0;
+        shadowOffsetY = 0.0;
+
+        // Initialize image smoothing
+        imageSmoothingEnabled = true;
+        imageSmoothingQuality = "low";
+
+        // Initialize modern text properties
+        direction = "inherit";
+        letterSpacing = 0.0;
+        wordSpacing = 0.0;
+
+        // Initialize filter
+        filter = "none";
+
+        setFont("10px sans-serif");
+        setTextAlign("start");
+        setTextBaseline("alphabetic");
+        gc.resetTransform();
+    }
+
     @Override
     public void reset() {
         surface.reset();
+        // CRITICAL: After surface.reset() creates a new Graphics2D, we must update our reference
+        // Otherwise, all drawing operations will use the old Graphics2D and won't appear in the image
+        this.gc = surface.getGraphicsContext();
+
         stack = new Stack<>();
         fillStyle = "#000000";
         strokeStyle = "#000000";
@@ -431,6 +478,11 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void fill() {
+        fill("nonzero");
+    }
+
+    @Override
+    public void fill(String fillRule) {
         applyCurrentState();
         if (fillStyle instanceof String) {
             gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
@@ -439,22 +491,77 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         } else if (fillStyle instanceof ICanvasPattern) {
             // The backend needs to handle this.
         }
+        if (fillRule != null && ("evenodd".equals(fillRule) || "nonzero".equals(fillRule))) {
+            gc.setFillRule(fillRule);
+        }
         gc.fill(gc.getPath());
     }
 
     @Override
     public void fill(IPath2D path) {
+        fill(path, "nonzero");
+    }
+
+    @Override
+    public void fill(IPath2D path, String fillRule) {
         if (path == null) {
             return;
         }
-        // Save current transform
-        Object savedTransform = gc.getTransform();
 
-        // Set transform to identity before replaying path
-        // (Path commands already have transforms "baked in")
-        gc.resetTransform();
+        // Apply current state (including fill style, global alpha, etc.)
+        applyCurrentState();
+        if (fillStyle instanceof String) {
+            gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
+        } else if (fillStyle instanceof IPaint) {
+            gc.setFillPaint((IPaint) fillStyle);
+        }
 
-        // Replay the path onto the graphics context
+        // Set fill rule if specified
+        if (fillRule != null && ("evenodd".equals(fillRule) || "nonzero".equals(fillRule))) {
+            gc.setFillRule(fillRule);
+        }
+
+        // WORKAROUND: JavaFX's GraphicsContext doesn't properly handle multiple rect() calls
+        // in the same path. Detect if the path contains multiple RECT elements and fill them
+        // individually using fillRect() instead.
+        java.util.List<IPath2D.PathElement> elements = path.getElements();
+        if (elements != null && elements.size() > 0) {
+            // Check if path contains only RECT elements (and maybe MOVE_TO before each)
+            boolean allRects = true;
+            int rectCount = 0;
+            for (IPath2D.PathElement element : elements) {
+                if (element.getType() == IPath2D.PathElement.Type.RECT) {
+                    rectCount++;
+                } else if (element.getType() != IPath2D.PathElement.Type.MOVE_TO &&
+                          element.getType() != IPath2D.PathElement.Type.CLOSE_PATH) {
+                    allRects = false;
+                    break;
+                }
+            }
+
+            // WORKAROUND: If we have multiple rectangles, use fillRectDirect
+            // to bypass JavaFX's path rendering limitation. JavaFX's GraphicsContext
+            // doesn't properly render multiple rect() calls within the same path.
+            // By using fillRectDirect, we render each rectangle separately which works correctly.
+            if (allRects && rectCount > 1) {
+                for (IPath2D.PathElement element : elements) {
+                    if (element.getType() == IPath2D.PathElement.Type.RECT) {
+                        double[] params = element.getParams();
+                        // Ensure fill paint is set before each rectangle
+                        if (fillStyle instanceof String) {
+                            gc.setFillPaint(ColorParser.parse((String) fillStyle, backend));
+                        } else if (fillStyle instanceof IPaint) {
+                            gc.setFillPaint((IPaint) fillStyle);
+                        }
+                        // Attempt to use direct fillRect method
+                        gc.fillRectDirect(params[0], params[1], params[2], params[3]);
+                    }
+                }
+                return;
+            }
+        }
+
+        // For other paths, use the normal approach
         gc.beginPath();
         if (path instanceof Path2D) {
             ((Path2D) path).replayOn(gc);
@@ -462,11 +569,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             ((com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) path).getCorePath().replayOn(gc);
         }
 
-        // Restore transform before filling
-        gc.setTransform(savedTransform);
-
-        // Then fill using the current path
-        fill();
+        // Fill the path with the current transform applied
+        gc.fill();
     }
 
     @Override
@@ -499,14 +603,27 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         if (path == null) {
             return;
         }
-        // Save current transform
-        Object savedTransform = gc.getTransform();
 
-        // Set transform to identity before replaying path
-        // (Path commands already have transforms "baked in")
-        gc.resetTransform();
+        // Apply current state (including stroke style, line width, etc.)
+        applyCurrentState();
+        if (strokeStyle instanceof String) {
+            gc.setStrokePaint(ColorParser.parse((String) strokeStyle, backend));
+        } else if (strokeStyle instanceof IPaint) {
+            gc.setStrokePaint((IPaint) strokeStyle);
+        }
 
-        // Replay the path onto the graphics context
+        gc.setLineWidth(this.lineWidth);
+        gc.setLineCap(this.lineCap);
+        gc.setLineJoin(this.lineJoin);
+        gc.setMiterLimit(this.miterLimit);
+        if (this.lineDash instanceof double[]) {
+            gc.setLineDash((double[]) this.lineDash);
+        } else {
+            gc.setLineDash(null);
+        }
+        gc.setLineDashOffset(this.lineDashOffset);
+
+        // Begin a new path and replay the Path2D elements
         gc.beginPath();
         if (path instanceof Path2D) {
             ((Path2D) path).replayOn(gc);
@@ -514,15 +631,48 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             ((com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) path).getCorePath().replayOn(gc);
         }
 
-        // Restore transform before stroking
-        gc.setTransform(savedTransform);
-
-        // Then stroke using the current path
-        stroke();
+        // Stroke the path with the current transform applied
+        gc.stroke();
     }
 
     @Override
     public void clip() {
+        clip("nonzero");
+    }
+
+    @Override
+    public void clip(String fillRule) {
+        if (fillRule != null && ("evenodd".equals(fillRule) || "nonzero".equals(fillRule))) {
+            gc.setFillRule(fillRule);
+        }
+        gc.clip();
+    }
+
+    @Override
+    public void clip(IPath2D path) {
+        clip(path, "nonzero");
+    }
+
+    @Override
+    public void clip(IPath2D path, String fillRule) {
+        if (path == null) {
+            return;
+        }
+
+        // Set fill rule if specified
+        if (fillRule != null && ("evenodd".equals(fillRule) || "nonzero".equals(fillRule))) {
+            gc.setFillRule(fillRule);
+        }
+
+        // Begin a new path and replay the Path2D elements
+        gc.beginPath();
+        if (path instanceof Path2D) {
+            ((Path2D) path).replayOn(gc);
+        } else if (path instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) {
+            ((com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) path).getCorePath().replayOn(gc);
+        }
+
+        // Clip the path
         gc.clip();
     }
 
@@ -561,6 +711,31 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         return gc.isPointInStroke(x, y);
     }
 
+    @Override
+    public boolean isPointInStroke(IPath2D path, double x, double y) {
+        if (path == null) {
+            return false;
+        }
+        // Save the current path
+        IShape savedPath = gc.getPath();
+
+        // Replay the provided path onto the graphics context
+        gc.beginPath();
+        if (path instanceof Path2D) {
+            ((Path2D) path).replayOn(gc);
+        } else if (path instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) {
+            ((com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D) path).getCorePath().replayOn(gc);
+        }
+
+        // Check if point is in the stroke
+        boolean result = gc.isPointInStroke(x, y);
+
+        // Note: In a real implementation, we might want to restore the saved path
+        // but that would require additional methods on IGraphicsContext
+
+        return result;
+    }
+
     private Object getNativeImage(Object image) {
         if (image instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) {
             com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement canvas = (com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) image;
@@ -570,6 +745,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             return ((com.w3canvas.javacanvas.backend.rhino.impl.node.Image) image).getImage();
         } else if (image instanceof IImageBitmap) {
             return ((IImageBitmap) image).getNativeImage();
+        } else if (image instanceof BufferedImage) {
+            // Handle BufferedImage directly (e.g., from ImageBitmap.getNativeImage())
+            return image;
         }
         return null;
     }
@@ -581,6 +759,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             return ((com.w3canvas.javacanvas.backend.rhino.impl.node.Image) image).getRealWidth();
         } else if (image instanceof IImageBitmap) {
             return ((IImageBitmap) image).getWidth();
+        } else if (image instanceof BufferedImage) {
+            return ((BufferedImage) image).getWidth();
         }
         return 0;
     }
@@ -592,6 +772,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             return ((com.w3canvas.javacanvas.backend.rhino.impl.node.Image) image).getRealHeight();
         } else if (image instanceof IImageBitmap) {
             return ((IImageBitmap) image).getHeight();
+        } else if (image instanceof BufferedImage) {
+            return ((BufferedImage) image).getHeight();
         }
         return 0;
     }

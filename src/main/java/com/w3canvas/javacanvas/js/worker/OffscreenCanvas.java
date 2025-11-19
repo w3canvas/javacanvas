@@ -293,7 +293,19 @@ public class OffscreenCanvas extends ProjectScriptableObject implements ICanvas 
             // Create surface if not yet initialized
             surface = backend.createCanvasSurface(width, height);
         }
-        return (BufferedImage) surface.getNativeImage();
+        // Get the image from the context's surface, which has the rendered content
+        BufferedImage resultImage = null;
+        if (context != null) {
+            ICanvasSurface contextSurface = context.getSurface();
+            if (contextSurface != null && contextSurface.getNativeImage() != null) {
+                resultImage = (BufferedImage) contextSurface.getNativeImage();
+            }
+        }
+        if (resultImage == null) {
+            resultImage = (BufferedImage) surface.getNativeImage();
+        }
+
+        return resultImage;
     }
 
     @Override

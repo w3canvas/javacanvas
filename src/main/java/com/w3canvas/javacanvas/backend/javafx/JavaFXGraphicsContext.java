@@ -45,6 +45,9 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     // Filter
     private String filter = "none";
 
+    // Fill rule
+    private String fillRule = "nonzero";
+
     public JavaFXGraphicsContext(GraphicsContext gc) {
         this.gc = gc;
         this.path = new Path();
@@ -297,6 +300,21 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void fillRectDirect(double x, double y, double w, double h) {
+        // Use JavaFX's native fillRect method which bypasses the path system
+        // This is needed because JavaFX's path system doesn't properly handle
+        // multiple rect() calls within the same path
+        //
+        // WORKAROUND for Path2D.addPath() with multiple rectangles:
+        // When CoreCanvasRenderingContext2D detects a Path2D containing multiple
+        // RECT elements, it calls this method for each rectangle individually.
+        // The fill paint and transform are already set by the caller, so we just
+        // need to draw the rectangle directly without save/restore which would
+        // interfere with the state.
+        gc.fillRect(x, y, w, h);
+    }
+
+    @Override
     public void draw(IShape shape) {
         gc.stroke();
     }
@@ -438,7 +456,22 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void rect(double x, double y, double w, double h) {
-        gc.rect(x, y, w, h);
+        // JavaFX's gc.rect() doesn't properly add multiple rectangles to the same path.
+        // Instead, we manually add the path elements using moveTo/lineTo.
+        //
+        // According to Canvas 2D spec, rect() should create a new subpath containing
+        // just the four points of the rectangle, with the subpath closed.
+
+        // Add to JavaFX's built-in path using moveTo/lineTo
+        // This builds up the GraphicsContext's current path for rendering
+        gc.moveTo(x, y);
+        gc.lineTo(x + w, y);
+        gc.lineTo(x + w, y + h);
+        gc.lineTo(x, y + h);
+        gc.lineTo(x, y);  // Explicitly close by going back to start
+        // DON'T call gc.closePath() - it prevents multiple rectangles from working
+
+        // Also maintain the separate Path object for getPath() and isPointInPath()
         path.getElements().add(new javafx.scene.shape.MoveTo(x, y));
         path.getElements().add(new javafx.scene.shape.LineTo(x + w, y));
         path.getElements().add(new javafx.scene.shape.LineTo(x + w, y + h));
@@ -640,7 +673,25 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fill() {
+        fill(this.fillRule);
+    }
+
+    @Override
+    public void fill(String fillRule) {
+        // Set the fill rule on the path based on the fillRule parameter
+        if (path != null) {
+            if ("evenodd".equals(fillRule)) {
+                path.setFillRule(javafx.scene.shape.FillRule.EVEN_ODD);
+            } else {
+                path.setFillRule(javafx.scene.shape.FillRule.NON_ZERO);
+            }
+        }
         gc.fill();
+    }
+
+    @Override
+    public void setFillRule(String fillRule) {
+        this.fillRule = fillRule != null ? fillRule : "nonzero";
     }
 
     @Override

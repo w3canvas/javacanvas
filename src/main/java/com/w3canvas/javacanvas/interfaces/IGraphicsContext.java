@@ -43,6 +43,7 @@ public interface IGraphicsContext {
 
     // Drawing operations
     void clearRect(double x, double y, double w, double h);
+    void fillRectDirect(double x, double y, double w, double h); // Direct fill without path system
     void draw(IShape shape);
     void fill(IShape shape);
     void drawImage(Object img, int x, int y);
@@ -71,9 +72,11 @@ public interface IGraphicsContext {
     void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise);
     void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise);
     void fill();
+    void fill(String fillRule);
     void stroke();
     boolean isPointInPath(double x, double y);
     boolean isPointInStroke(double x, double y);
+    void setFillRule(String fillRule);
     IShape getPath();
     double[] getLastPoint();
 }

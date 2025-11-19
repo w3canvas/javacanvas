@@ -62,22 +62,21 @@ public class SharedWorker extends ProjectScriptableObject {
         // Entangle the ports
         port.entangle(workerPort);
 
-        // Set up scopes and prototypes
-        Scriptable scope = ScriptableObject.getTopLevelScope(this);
-        port.setParentScope(scope);
-        workerPort.setParentScope(scope);
+        // Set up scope and prototype for main thread's port
+        Scriptable mainScope = ScriptableObject.getTopLevelScope(this);
+        port.setParentScope(mainScope);
 
         try {
-            Scriptable proto = ScriptableObject.getClassPrototype(scope, "MessagePort");
+            Scriptable proto = ScriptableObject.getClassPrototype(mainScope, "MessagePort");
             if (proto != null) {
                 port.setPrototype(proto);
-                workerPort.setPrototype(proto);
             }
         } catch (Exception e) {
-            // Prototype not found, ports will still work
+            // Prototype not found, port will still work
         }
 
         // Notify the worker of the new connection
+        // The worker thread will set up the workerPort's scope
         workerThread.addConnection(workerPort);
     }
 
@@ -102,9 +101,11 @@ public class SharedWorker extends ProjectScriptableObject {
         private final RhinoRuntime mainRuntime;
         private final String scriptUrl;
         private final List<MessagePort> connections = new ArrayList<>();
+        private final List<MessagePort> pendingConnections = new ArrayList<>();
         private RhinoRuntime workerRuntime;
         private Scriptable workerScope;
         private Context workerContext;
+        private volatile boolean scriptLoaded = false;
 
         public SharedWorkerThread(RhinoRuntime mainRuntime, String scriptUrl) {
             this.mainRuntime = mainRuntime;
@@ -115,13 +116,29 @@ public class SharedWorker extends ProjectScriptableObject {
         public void addConnection(MessagePort port) {
             synchronized (connections) {
                 connections.add(port);
-                // Dispatch connect event to the worker
-                dispatchConnectEvent(port);
+                if (scriptLoaded) {
+                    // Script already loaded, dispatch immediately
+                    dispatchConnectEvent(port);
+                } else {
+                    // Queue for later dispatch after script loads
+                    pendingConnections.add(port);
+                }
             }
         }
 
         private void dispatchConnectEvent(MessagePort port) {
             if (workerContext != null && workerScope != null) {
+                // Set up the port's scope to the worker scope so onmessage handlers work correctly
+                port.setParentScope(workerScope);
+                try {
+                    Scriptable proto = ScriptableObject.getClassPrototype(workerScope, "MessagePort");
+                    if (proto != null) {
+                        port.setPrototype(proto);
+                    }
+                } catch (Exception e) {
+                    // Prototype not found, port will still work
+                }
+
                 // Get the onconnect handler
                 Object onconnect = workerScope.get("onconnect", workerScope);
                 if (onconnect instanceof Function) {
@@ -141,6 +158,9 @@ public class SharedWorker extends ProjectScriptableObject {
 
         @Override
         public void run() {
+            // Set context classloader to ensure inner classes can be loaded
+            Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+
             workerRuntime = new RhinoRuntime();
             workerContext = Context.enter();
             workerContext.putThreadLocal("runtime", workerRuntime);
@@ -163,6 +183,75 @@ public class SharedWorker extends ProjectScriptableObject {
             // Add console for debugging
             ScriptableObject.putProperty(workerScope, "console", new com.w3canvas.javacanvas.utils.ScriptLogger());
 
+            // Add createImageBitmap global function
+            ScriptableObject.putProperty(workerScope, "createImageBitmap", new Callable() {
+                @Override
+                public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+                    if (args.length == 0) {
+                        throw new IllegalArgumentException("createImageBitmap requires at least 1 argument");
+                    }
+
+                    Object source = args[0];
+
+                    // Create core ImageBitmap from various source types
+                    com.w3canvas.javacanvas.core.ImageBitmap coreImageBitmap = null;
+
+                    try {
+                        if (source instanceof OffscreenCanvas) {
+                            // OffscreenCanvas - get BufferedImage
+                            java.awt.image.BufferedImage img =
+                                ((OffscreenCanvas) source).getImage();
+                            coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(img);
+                        } else if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) {
+                            // ImageData - unwrap to core
+                            com.w3canvas.javacanvas.interfaces.IImageData coreImageData =
+                                ((com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) source);
+                            coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(coreImageData);
+                        } else if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap) {
+                            // ImageBitmap - create copy
+                            com.w3canvas.javacanvas.interfaces.IImageBitmap sourceImageBitmap =
+                                (com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap) source;
+                            coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(sourceImageBitmap);
+                        } else if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.Blob) {
+                            // Blob - decode image from blob data
+                            com.w3canvas.javacanvas.backend.rhino.impl.node.Blob blob =
+                                (com.w3canvas.javacanvas.backend.rhino.impl.node.Blob) source;
+                            byte[] data = blob.getData();
+                            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(data);
+                            java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(bais);
+                            if (img == null) {
+                                throw new IllegalArgumentException("Failed to decode image from Blob");
+                            }
+                            coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(img);
+                        } else {
+                            throw new IllegalArgumentException(
+                                "createImageBitmap: unsupported source type: " +
+                                (source != null ? source.getClass().getName() : "null"));
+                        }
+
+                        // Create Rhino wrapper
+                        com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap rhinoImageBitmap =
+                            new com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap();
+                        rhinoImageBitmap.init(coreImageBitmap);
+
+                        // Set up scope and prototype
+                        rhinoImageBitmap.setParentScope(scope);
+                        try {
+                            Scriptable proto = ScriptableObject.getClassPrototype(scope, "ImageBitmap");
+                            if (proto != null) {
+                                rhinoImageBitmap.setPrototype(proto);
+                            }
+                        } catch (Exception e) {
+                            // Prototype not found, object will still work
+                        }
+
+                        return rhinoImageBitmap;
+                    } catch (Exception e) {
+                        throw new RuntimeException("createImageBitmap failed: " + e.getMessage(), e);
+                    }
+                }
+            });
+
             // Define close() function to terminate the worker
             ScriptableObject.putProperty(workerScope, "close", new Callable() {
                 @Override
@@ -184,9 +273,47 @@ public class SharedWorker extends ProjectScriptableObject {
 
             try {
                 // Load and execute the worker script
-                InputStreamReader reader = new InputStreamReader(
-                    SharedWorker.class.getClassLoader().getResourceAsStream(scriptUrl));
+                // Get documentBase from main runtime to resolve script path
+                String documentBase = null;
+                try {
+                    Scriptable mainScope = mainRuntime.getScope();
+                    Object docBaseObj = mainScope.get("documentBase", mainScope);
+                    if (docBaseObj != Scriptable.NOT_FOUND && docBaseObj instanceof String) {
+                        documentBase = (String) docBaseObj;
+                    }
+                } catch (Exception e) {
+                    // documentBase not available, will try loading as-is
+                }
+
+                java.io.Reader reader;
+                if (documentBase != null && !scriptUrl.startsWith("http://") && !scriptUrl.startsWith("https://")) {
+                    // Resolve relative path using documentBase
+                    try {
+                        java.net.URI baseURI = new java.net.URI(documentBase);
+                        java.net.URI scriptURI = baseURI.resolve(scriptUrl);
+                        java.io.File scriptFile = new java.io.File(scriptURI);
+                        reader = new java.io.FileReader(scriptFile);
+                    } catch (Exception e) {
+                        // Fall back to classpath resource
+                        reader = new InputStreamReader(
+                            SharedWorker.class.getClassLoader().getResourceAsStream(scriptUrl));
+                    }
+                } else {
+                    // Try classpath resource
+                    reader = new InputStreamReader(
+                        SharedWorker.class.getClassLoader().getResourceAsStream(scriptUrl));
+                }
+
                 workerRuntime.exec(reader, scriptUrl);
+
+                // Script loaded successfully, dispatch any pending connections
+                scriptLoaded = true;
+                synchronized (connections) {
+                    for (MessagePort port : pendingConnections) {
+                        dispatchConnectEvent(port);
+                    }
+                    pendingConnections.clear();
+                }
 
                 // Keep the worker alive (until interrupted)
                 while (!Thread.currentThread().isInterrupted()) {
@@ -195,6 +322,7 @@ public class SharedWorker extends ProjectScriptableObject {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (Exception e) {
+                System.err.println("SharedWorker error loading script '" + scriptUrl + "': " + e.getMessage());
                 e.printStackTrace();
             } finally {
                 Context.exit();

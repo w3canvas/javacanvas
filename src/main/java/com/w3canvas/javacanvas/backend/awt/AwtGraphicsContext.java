@@ -40,6 +40,9 @@ public class AwtGraphicsContext implements IGraphicsContext {
     // Filter
     private String filter = "none";
 
+    // Fill rule
+    private String fillRule = "nonzero";
+
     public AwtGraphicsContext(Graphics2D g2d, AwtCanvasSurface surface) {
         this.g2d = g2d;
         this.surface = surface;
@@ -278,6 +281,12 @@ public class AwtGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void fillRectDirect(double x, double y, double w, double h) {
+        // Use AWT's native fillRect method
+        g2d.fillRect((int) x, (int) y, (int) w, (int) h);
+    }
+
+    @Override
     public void draw(IShape shape) {
         if (shape instanceof AwtShape) {
             g2d.draw(((AwtShape) shape).getShape());
@@ -308,7 +317,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
     @Override
     public void drawImage(Object img, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh) {
         if (img instanceof BufferedImage) {
-            g2d.drawImage((BufferedImage) img, dx, dy, dx + dw, dy + dh, sx, sy, sx + sw, sy + sh, null);
+            BufferedImage buffImg = (BufferedImage) img;
+            g2d.drawImage(buffImg, dx, dy, dx + dw, dy + dh, sx, sy, sx + sw, sy + sh, null);
         }
     }
 
@@ -641,18 +651,53 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fill() {
+        fill(this.fillRule);
+    }
+
+    @Override
+    public void fill(String fillRule) {
+        // Set the winding rule on the path based on the fillRule
+        if ("evenodd".equals(fillRule)) {
+            this.path.setWindingRule(java.awt.geom.Path2D.WIND_EVEN_ODD);
+        } else {
+            this.path.setWindingRule(java.awt.geom.Path2D.WIND_NON_ZERO);
+        }
+
+        // IMPORTANT: The path has already been built with transformed coordinates
+        // (see moveTo, lineTo, rect, etc. which apply g2d.getTransform() manually).
+        // We must temporarily reset the transform before filling to avoid double transformation.
+        AffineTransform savedTransform = g2d.getTransform();
+        g2d.setTransform(new AffineTransform());  // Identity transform
+
         // Apply shadow first
         applyShadow(this.path, true);
         // Then draw the actual shape
         g2d.fill(this.path);
+
+        // Restore the transform
+        g2d.setTransform(savedTransform);
+    }
+
+    @Override
+    public void setFillRule(String fillRule) {
+        this.fillRule = fillRule != null ? fillRule : "nonzero";
     }
 
     @Override
     public void stroke() {
+        // IMPORTANT: The path has already been built with transformed coordinates
+        // (see moveTo, lineTo, rect, etc. which apply g2d.getTransform() manually).
+        // We must temporarily reset the transform before stroking to avoid double transformation.
+        AffineTransform savedTransform = g2d.getTransform();
+        g2d.setTransform(new AffineTransform());  // Identity transform
+
         // Apply shadow first
         applyShadow(this.path, false);
         // Then draw the actual shape
         g2d.draw(this.path);
+
+        // Restore the transform
+        g2d.setTransform(savedTransform);
     }
 
     @Override
@@ -1107,5 +1152,14 @@ public class AwtGraphicsContext implements IGraphicsContext {
         }
 
         return result;
+    }
+
+    /**
+     * Dispose the underlying Graphics2D to release resources and flush any pending drawing operations.
+     */
+    public void dispose() {
+        if (g2d != null) {
+            g2d.dispose();
+        }
     }
 }

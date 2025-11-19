@@ -56,7 +56,6 @@ public class AwtConicGradient implements ICanvasGradient, IPaint {
         Collections.sort(stops);
     }
 
-    @Override
     public Paint getPaint() {
         if (stops.isEmpty()) {
             return new Color(0, 0, 0, 0); // Transparent
