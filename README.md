@@ -183,31 +183,22 @@ mvn clean test
 
 Current test coverage metrics are available after running tests with JaCoCo enabled. Coverage reports are generated in `target/site/jacoco/`.
 
-## Known Issues
+## Project Documentation
 
-### Path2D Edge Cases ✅ FIXED (2025-11-16)
+- **[STATUS.md](STATUS.md)** - Current project status, test results, and known limitations
+- **[IMPROVEMENTS.md](IMPROVEMENTS.md)** - Detailed code quality recommendations and improvement priorities
+- **[TESTING.md](TESTING.md)** - Complete testing guide with test suite breakdown
+- **[REFACTOR.md](REFACTOR.md)** - Architectural design and "Trident" architecture explanation
+- **Historical Documentation:** `docs/archive/` - Archived bug analyses and implementation notes
 
-1. **Path2D Multi-Subpath Rendering** - ✅ FIXED
-   - Issue: When multiple shapes were combined using `addPath()`, only the first shape rendered
-   - Fix: Changed `AwtGraphicsContext.rect()` to use explicit path commands
-   - Test: `testPath2DMultiSubpathRendering` now passing
-   - Status: Fixed and verified
+### Architecture Notes
 
-2. **Path2D with Transforms** - ✅ FIXED
-   - Issue: Path2D objects didn't render at correct location when rotation transforms applied
-   - Fix: Modified `CoreCanvasRenderingContext2D.fill(IPath2D)` to save/restore transform during replay
-   - Test: `testPath2DWithTransform` now passing
-   - Status: Fixed and verified
+The project uses a "Trident" architecture with three layers:
+- **Interfaces Layer** - Pure Java interfaces defining contracts
+- **Core Layer** - Backend-agnostic canvas implementation
+- **Backend Layer** - AWT/Swing and JavaFX rendering implementations
 
-### Documentation
-
-See detailed bug analysis and fixes in UNDONE.md
-
-### Design Considerations
-
-- **Tight Coupling** - Deep integration between GUI and business logic
-- **Static Dependencies** - Use of singletons throughout codebase
-- **Rhino Dependency** - Hard coupling to Mozilla Rhino JavaScript engine
+See [REFACTOR.md](REFACTOR.md) for architectural details.
 
 ## Project Status
 
@@ -225,50 +216,12 @@ See detailed bug analysis and fixes in UNDONE.md
 - ✓ Complete TextMetrics, ImageBitmap, and OffscreenCanvas APIs
 - ✓ **Comprehensive test coverage: 127 tests, 100% pass rate**
 
-**No remaining gaps - 100% of Canvas 2D API implemented!** 🎉
+**100% of Canvas 2D API implemented!** 🎉
 
-### Development Roadmap
+## Developer Resources
 
-**Phase 1 - Fix Foundation** ✅ **COMPLETED**
-- [x] Fix state management issues
-- [x] Resolve arcTo/isPointInStroke bug
-- [x] Implement proper test isolation
-- [x] Achieve 100% test pass rate (111 tests)
-
-**Phase 2 - Core Features** ✅ **COMPLETED**
-- [x] Implement shadow effects
-- [x] Implement image smoothing controls
-- [x] Expand composite/blend modes (26 modes)
-- [x] Add `roundRect()`
-- [x] Add modern text properties
-- [x] Implement conic gradients
-- [x] Add Path2D support
-- [x] Make filter property functional
-
-**Phase 3 - Modern Features** ✅ **COMPLETED**
-- [x] Complete OffscreenCanvas implementation
-- [x] Implement ImageBitmap
-- [x] Complete TextMetrics properties
-
-**Phase 4 - Polish** ✅ **COMPLETED 2025-11-19**
-- [x] Fix 2 Path2D edge case bugs
-- [x] Add focus management (`drawFocusIfNeeded()`)
-- [x] Implement true conic gradients (custom Paint)
-- [x] Add canvas back-reference property
-- [x] Add font kerning property
-
-## Documentation
-
-### Current Documentation
-- [README.md](README.md) - This file (main project documentation)
-- [UNDONE.md](UNDONE.md) - Current status, known issues, and Path2D bugs
-- [TESTING.md](TESTING.md) - Testing guide and test status
-- [REFACTOR.md](REFACTOR.md) - Architecture refactoring plans
-- [AGENTS.md](AGENTS.md) - Developer instructions
-- [HEADLESS_TESTING_PLAN.md](HEADLESS_TESTING_PLAN.md) - Headless testing strategy
-
-### Historical Documentation
-- [docs/archive/](docs/archive/) - Historical bug analyses and implementation notes
+- **[AGENTS.md](AGENTS.md)** - Instructions for AI agents and automated development
+- **[HEADLESS_TESTING_PLAN.md](HEADLESS_TESTING_PLAN.md)** - Headless testing strategy and setup
 
 ## Usage Example
 
