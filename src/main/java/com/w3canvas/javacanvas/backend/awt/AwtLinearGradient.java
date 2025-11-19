@@ -29,7 +29,7 @@ public class AwtLinearGradient implements ICanvasGradient, IPaint {
     @Override
     public void addColorStop(double offset, String colorStr) {
         offsets.add(offset);
-        AwtPaint paint = (AwtPaint) new ColorParser().parse(colorStr, backend);
+        AwtPaint paint = (AwtPaint) ColorParser.parse(colorStr, backend);
         colors.add((Color) paint.getPaint());
     }
 

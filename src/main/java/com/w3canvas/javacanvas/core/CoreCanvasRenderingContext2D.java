@@ -9,6 +9,30 @@ import java.awt.image.BufferedImage;
 import java.util.Stack;
 import com.w3canvas.javacanvas.core.Path2D;
 
+/**
+ * Backend-agnostic implementation of the Canvas 2D rendering context.
+ *
+ * <p>This class provides the core implementation of {@link ICanvasRenderingContext2D},
+ * delegating actual rendering operations to a backend-specific {@link IGraphicsContext}.
+ * It maintains the rendering state (fill/stroke styles, line properties, text properties,
+ * shadows, filters, etc.) and manages the state stack for save/restore operations.
+ *
+ * <p>The separation between this class and the backend allows JavaCanvas to support
+ * multiple rendering backends (AWT, JavaFX, etc.) while providing a consistent API.
+ *
+ * <p>Key responsibilities:
+ * <ul>
+ *   <li>Maintaining drawing state (styles, compositing, line properties, etc.)</li>
+ *   <li>Managing the state stack via {@link #save()} and {@link #restore()}</li>
+ *   <li>Delegating low-level rendering to the backend-specific graphics context</li>
+ *   <li>Handling Path2D objects for reusable paths</li>
+ *   <li>Applying global state (alpha, composite operations, filters) before drawing</li>
+ * </ul>
+ *
+ * @see ICanvasRenderingContext2D
+ * @see IGraphicsContext
+ * @since 1.0
+ */
 public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     private final IGraphicsBackend backend;
@@ -259,6 +283,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void setLineWidth(double lw) {
+        if (lw <= 0) {
+            throw new IllegalArgumentException("Line width must be positive, got: " + lw);
+        }
         this.lineWidth = lw;
         gc.setLineWidth(lw);
     }
@@ -432,6 +459,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void arcTo(double x1, double y1, double x2, double y2, double radius) {
+        if (radius < 0) {
+            throw new IllegalArgumentException("Radius must be non-negative, got: " + radius);
+        }
         gc.arcTo(x1, y1, x2, y2, radius);
     }
 
@@ -447,11 +477,20 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise) {
+        if (radius < 0) {
+            throw new IllegalArgumentException("Radius must be non-negative, got: " + radius);
+        }
         gc.arc(x, y, radius, startAngle, endAngle, counterclockwise);
     }
 
     @Override
     public void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise) {
+        if (radiusX < 0) {
+            throw new IllegalArgumentException("radiusX must be non-negative, got: " + radiusX);
+        }
+        if (radiusY < 0) {
+            throw new IllegalArgumentException("radiusY must be non-negative, got: " + radiusY);
+        }
         gc.ellipse(x,y,radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
     }
 
@@ -700,8 +739,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         // Check if point is in the path
         boolean result = gc.isPointInPath(x, y);
 
-        // Note: In a real implementation, we might want to restore the saved path
-        // but that would require additional methods on IGraphicsContext
+        // Restore the saved path
+        gc.setPath(savedPath);
 
         return result;
     }
@@ -730,8 +769,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         // Check if point is in the stroke
         boolean result = gc.isPointInStroke(x, y);
 
-        // Note: In a real implementation, we might want to restore the saved path
-        // but that would require additional methods on IGraphicsContext
+        // Restore the saved path
+        gc.setPath(savedPath);
 
         return result;
     }
@@ -928,11 +967,35 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public IImageData createImageData(int width, int height) {
+        if (width <= 0) {
+            throw new IllegalArgumentException("Width must be positive, got: " + width);
+        }
+        if (height <= 0) {
+            throw new IllegalArgumentException("Height must be positive, got: " + height);
+        }
         return gc.createImageData(width, height);
     }
 
     @Override
     public IImageData getImageData(int x, int y, int width, int height) {
+        if (width <= 0) {
+            throw new IllegalArgumentException("Width must be positive, got: " + width);
+        }
+        if (height <= 0) {
+            throw new IllegalArgumentException("Height must be positive, got: " + height);
+        }
+
+        // Validate bounds are at least partially within canvas
+        int canvasWidth = surface.getWidth();
+        int canvasHeight = surface.getHeight();
+
+        if (x >= canvasWidth || y >= canvasHeight || x + width <= 0 || y + height <= 0) {
+            throw new IllegalArgumentException(
+                "The requested region (x=" + x + ", y=" + y + ", width=" + width + ", height=" + height +
+                ") is completely outside the canvas bounds (width=" + canvasWidth + ", height=" + canvasHeight + ")"
+            );
+        }
+
         return gc.getImageData(x, y, width, height);
     }
 

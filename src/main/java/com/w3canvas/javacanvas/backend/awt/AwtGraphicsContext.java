@@ -18,6 +18,34 @@ import java.awt.Transparency;
 
 import com.w3canvas.javacanvas.interfaces.*;
 
+/**
+ * AWT/Swing backend implementation of the graphics context.
+ *
+ * <p>This class implements {@link IGraphicsContext} using Java's AWT (Abstract Window Toolkit)
+ * and Swing Graphics2D for rendering. It translates Canvas 2D API calls into corresponding
+ * AWT graphics operations.
+ *
+ * <p>The AWT backend provides:
+ * <ul>
+ *   <li>Broad platform compatibility (works on all Java-supported platforms)</li>
+ *   <li>Headless rendering support (useful for server-side image generation)</li>
+ *   <li>Integration with existing AWT/Swing applications</li>
+ *   <li>Support for advanced features like shadows, filters, and compositing</li>
+ * </ul>
+ *
+ * <p><strong>Important implementation details:</strong>
+ * <ul>
+ *   <li>Paths are transformed during construction (moveTo, lineTo, etc.) rather than at draw time,
+ *       preventing double-transformation issues</li>
+ *   <li>Shadow effects are approximated using multiple drawing passes with varying opacity</li>
+ *   <li>CSS filters are implemented using BufferedImageOp operations</li>
+ *   <li>Rendering hints are configured differently for headless vs. GUI mode for optimal results</li>
+ * </ul>
+ *
+ * @see IGraphicsContext
+ * @see java.awt.Graphics2D
+ * @since 1.0
+ */
 public class AwtGraphicsContext implements IGraphicsContext {
 
     private final Graphics2D g2d;
@@ -706,6 +734,19 @@ public class AwtGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void setPath(IShape shape) {
+        if (shape instanceof AwtShape) {
+            java.awt.Shape nativeShape = ((AwtShape) shape).getShape();
+            if (nativeShape instanceof java.awt.geom.Path2D.Double) {
+                this.path = (java.awt.geom.Path2D.Double) nativeShape;
+            } else {
+                // Create a new Path2D from the shape
+                this.path = new java.awt.geom.Path2D.Double(nativeShape);
+            }
+        }
+    }
+
+    @Override
     public boolean isPointInPath(double x, double y) {
         return path.contains(x, y);
     }
@@ -867,7 +908,18 @@ public class AwtGraphicsContext implements IGraphicsContext {
     /**
      * Apply CSS filters to an image using AWT BufferedImageOp operations.
      * This creates a filtered version of the current canvas content.
-     * Note: Filters are applied during rendering operations in the fill/stroke methods.
+     *
+     * TODO: FILTER INTEGRATION - This method is fully implemented but not yet integrated
+     * into the rendering pipeline. To properly support the Canvas 2D filter API, this
+     * method needs to be called during fill(), stroke(), and drawImage() operations.
+     *
+     * Implementation approach:
+     * 1. Render the operation to a temporary BufferedImage
+     * 2. Apply filters using this method
+     * 3. Composite the filtered result back to the main canvas
+     *
+     * This requires architectural changes to support off-screen rendering buffers.
+     * See HTML Canvas spec: https://html.spec.whatwg.org/multipage/canvas.html#filters
      */
     private BufferedImage applyFiltersToImage(BufferedImage source) {
         if (filter == null || "none".equals(filter)) {
