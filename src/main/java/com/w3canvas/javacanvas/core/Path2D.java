@@ -5,8 +5,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Core implementation of Path2D that stores path commands as a list of elements
- * that can be replayed later.
+ * Reusable path object following the HTML5 Path2D API.
+ *
+ * <p>This class provides a way to declare paths that can be retained and replayed
+ * multiple times. It corresponds to the HTML5 Canvas Path2D API, allowing paths
+ * to be created independently of the rendering context and then used with
+ * {@code fill()}, {@code stroke()}, {@code clip()}, and hit-testing methods.
+ *
+ * <p>The path is stored as a list of path elements (commands) that can be replayed
+ * on any {@link IGraphicsContext}. This allows for:
+ * <ul>
+ *   <li>Creating complex paths once and reusing them multiple times</li>
+ *   <li>Copying and modifying paths without affecting the original</li>
+ *   <li>Combining paths using {@link #addPath(IPath2D)}</li>
+ *   <li>Serializing and deserializing paths (command list is accessible)</li>
+ * </ul>
+ *
+ * <p><strong>Example usage:</strong>
+ * <pre>{@code
+ * Path2D path = new Path2D();
+ * path.rect(10, 10, 100, 100);
+ * path.arc(60, 60, 40, 0, Math.PI * 2, false);
+ *
+ * // Use the path multiple times
+ * ctx.fill(path, "evenodd");
+ * ctx.translate(150, 0);
+ * ctx.stroke(path);
+ * }</pre>
+ *
+ * @see IPath2D
+ * @see ICanvasRenderingContext2D#fill(IPath2D)
+ * @see ICanvasRenderingContext2D#stroke(IPath2D)
+ * @since 1.0
  */
 public class Path2D implements IPath2D {
 

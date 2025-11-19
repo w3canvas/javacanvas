@@ -14,9 +14,27 @@ public class CanvasPixelArray implements ICanvasPixelArray {
     }
 
     public int[] getPixels(int x, int y, int width, int height) {
-        // This is a simplified implementation. A real implementation would
-        // need to handle dirty rectangles correctly.
-        return data;
+        // Validate bounds
+        if (x < 0 || y < 0 || x + width > this.width || y + height > this.height) {
+            throw new IllegalArgumentException(
+                String.format("Requested region [%d, %d, %d, %d] is out of bounds for array [%d, %d]",
+                    x, y, width, height, this.width, this.height));
+        }
+
+        // If requesting the entire array, return it directly
+        if (x == 0 && y == 0 && width == this.width && height == this.height) {
+            return data;
+        }
+
+        // Extract the subregion (dirty rectangle)
+        int[] result = new int[width * height];
+        for (int row = 0; row < height; row++) {
+            int srcPos = (y + row) * this.width + x;
+            int destPos = row * width;
+            System.arraycopy(data, srcPos, result, destPos, width);
+        }
+
+        return result;
     }
 
     public int getWidth() {

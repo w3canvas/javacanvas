@@ -872,6 +872,18 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         return new JavaFXShape(new Path(path.getElements()));
     }
 
+    @Override
+    public void setPath(IShape shape) {
+        if (shape instanceof JavaFXShape) {
+            Object nativeShape = ((JavaFXShape) shape).getShape();
+            if (nativeShape instanceof Path) {
+                Path sourcePath = (Path) nativeShape;
+                this.path.getElements().clear();
+                this.path.getElements().addAll(sourcePath.getElements());
+            }
+        }
+    }
+
     // Shadow property setters
     @Override
     public void setShadowBlur(double blur) {

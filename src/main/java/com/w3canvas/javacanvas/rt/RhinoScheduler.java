@@ -55,7 +55,7 @@ class RhinoScheduler implements Runnable
                 }
                 catch (Exception e)
                 {
-                    e.printStackTrace();
+                    System.err.println("ERROR: Scheduled task execution failed: " + e.getMessage());
                 }
             }
         } while (loop);

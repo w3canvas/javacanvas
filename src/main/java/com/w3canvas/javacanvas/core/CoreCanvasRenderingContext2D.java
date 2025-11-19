@@ -9,6 +9,30 @@ import java.awt.image.BufferedImage;
 import java.util.Stack;
 import com.w3canvas.javacanvas.core.Path2D;
 
+/**
+ * Backend-agnostic implementation of the Canvas 2D rendering context.
+ *
+ * <p>This class provides the core implementation of {@link ICanvasRenderingContext2D},
+ * delegating actual rendering operations to a backend-specific {@link IGraphicsContext}.
+ * It maintains the rendering state (fill/stroke styles, line properties, text properties,
+ * shadows, filters, etc.) and manages the state stack for save/restore operations.
+ *
+ * <p>The separation between this class and the backend allows JavaCanvas to support
+ * multiple rendering backends (AWT, JavaFX, etc.) while providing a consistent API.
+ *
+ * <p>Key responsibilities:
+ * <ul>
+ *   <li>Maintaining drawing state (styles, compositing, line properties, etc.)</li>
+ *   <li>Managing the state stack via {@link #save()} and {@link #restore()}</li>
+ *   <li>Delegating low-level rendering to the backend-specific graphics context</li>
+ *   <li>Handling Path2D objects for reusable paths</li>
+ *   <li>Applying global state (alpha, composite operations, filters) before drawing</li>
+ * </ul>
+ *
+ * @see ICanvasRenderingContext2D
+ * @see IGraphicsContext
+ * @since 1.0
+ */
 public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     private final IGraphicsBackend backend;
@@ -108,40 +132,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         // Otherwise, all drawing operations will use the old Graphics2D and won't appear in the image
         this.gc = surface.getGraphicsContext();
 
-        stack = new Stack<>();
-        fillStyle = "#000000";
-        strokeStyle = "#000000";
-        globalAlpha = 1.0;
-        globalCompositeOperation = "source-over";
-        lineWidth = 1.0;
-        lineJoin = "miter";
-        lineCap = "butt";
-        miterLimit = 10.0;
-        lineDash = new double[0];
-        lineDashOffset = 0.0;
-
-        // Initialize shadow properties
-        shadowBlur = 0.0;
-        shadowColor = "rgba(0, 0, 0, 0)"; // transparent black
-        shadowOffsetX = 0.0;
-        shadowOffsetY = 0.0;
-
-        // Initialize image smoothing
-        imageSmoothingEnabled = true;
-        imageSmoothingQuality = "low";
-
-        // Initialize modern text properties
-        direction = "inherit";
-        letterSpacing = 0.0;
-        wordSpacing = 0.0;
-
-        // Initialize filter
-        filter = "none";
-
-        setFont("10px sans-serif");
-        setTextAlign("start");
-        setTextBaseline("alphabetic");
-        gc.resetTransform();
+        // Initialize state using the same logic as constructor
+        initializeState();
     }
 
     @Override
@@ -259,6 +251,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void setLineWidth(double lw) {
+        if (lw <= 0) {
+            throw new IllegalArgumentException("Line width must be positive, got: " + lw);
+        }
         this.lineWidth = lw;
         gc.setLineWidth(lw);
     }
@@ -432,6 +427,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void arcTo(double x1, double y1, double x2, double y2, double radius) {
+        if (radius < 0) {
+            throw new IllegalArgumentException("Radius must be non-negative, got: " + radius);
+        }
         gc.arcTo(x1, y1, x2, y2, radius);
     }
 
@@ -447,11 +445,20 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise) {
+        if (radius < 0) {
+            throw new IllegalArgumentException("Radius must be non-negative, got: " + radius);
+        }
         gc.arc(x, y, radius, startAngle, endAngle, counterclockwise);
     }
 
     @Override
     public void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise) {
+        if (radiusX < 0) {
+            throw new IllegalArgumentException("radiusX must be non-negative, got: " + radiusX);
+        }
+        if (radiusY < 0) {
+            throw new IllegalArgumentException("radiusY must be non-negative, got: " + radiusY);
+        }
         gc.ellipse(x,y,radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
     }
 
@@ -700,8 +707,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         // Check if point is in the path
         boolean result = gc.isPointInPath(x, y);
 
-        // Note: In a real implementation, we might want to restore the saved path
-        // but that would require additional methods on IGraphicsContext
+        // Restore the saved path
+        gc.setPath(savedPath);
 
         return result;
     }
@@ -730,8 +737,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         // Check if point is in the stroke
         boolean result = gc.isPointInStroke(x, y);
 
-        // Note: In a real implementation, we might want to restore the saved path
-        // but that would require additional methods on IGraphicsContext
+        // Restore the saved path
+        gc.setPath(savedPath);
 
         return result;
     }
@@ -867,11 +874,46 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     }
 
     // Modern text properties implementation
+
+    /**
+     * Gets the text direction setting.
+     *
+     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
+     * implemented in text rendering</strong>. The value is saved and restored with save()/restore()
+     * state management, but does not currently affect how text is drawn.
+     *
+     * <p><strong>Future Implementation:</strong> To fully support this property, backend implementations
+     * (AWT, JavaFX) would need to:
+     * <ul>
+     *   <li>Apply bidirectional text layout algorithms (Unicode Bidirectional Algorithm)</li>
+     *   <li>Respect the direction when calculating text metrics and positioning</li>
+     *   <li>Handle "inherit" by querying the canvas element's computed CSS direction</li>
+     * </ul>
+     *
+     * @return Current direction setting: "ltr", "rtl", or "inherit"
+     */
     @Override
     public String getDirection() {
         return direction;
     }
 
+    /**
+     * Sets the text direction for rendering.
+     *
+     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
+     * implemented in text rendering</strong>. Setting this value will be preserved across
+     * save()/restore() calls, but will not currently affect how fillText() or strokeText()
+     * render text.
+     *
+     * <p><strong>Valid Values:</strong>
+     * <ul>
+     *   <li>"ltr" - Left-to-right text direction</li>
+     *   <li>"rtl" - Right-to-left text direction</li>
+     *   <li>"inherit" - Inherit from canvas element's CSS direction (default)</li>
+     * </ul>
+     *
+     * @param direction The text direction ("ltr", "rtl", or "inherit"). Invalid values are ignored.
+     */
     @Override
     public void setDirection(String direction) {
         // Validate direction: "ltr", "rtl", "inherit"
@@ -880,21 +922,69 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         }
     }
 
+    /**
+     * Gets the letter spacing for text rendering.
+     *
+     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
+     * implemented in text rendering</strong>. The value is saved and restored with save()/restore()
+     * state management, but does not currently affect glyph spacing in fillText() or strokeText().
+     *
+     * <p><strong>Future Implementation:</strong> Backend implementations would need to adjust
+     * glyph positioning by applying the letter-spacing offset between each character.
+     *
+     * @return Current letter spacing value in pixels (default: 0.0)
+     */
     @Override
     public double getLetterSpacing() {
         return letterSpacing;
     }
 
+    /**
+     * Sets the letter spacing (tracking) for text rendering.
+     *
+     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
+     * implemented in text rendering</strong>. Setting this value will be preserved across
+     * save()/restore() calls, but will not currently affect character spacing in rendered text.
+     *
+     * <p>When implemented, this property should add the specified spacing between each character,
+     * similar to CSS letter-spacing property.
+     *
+     * @param spacing Additional spacing between characters in pixels. Can be negative.
+     */
     @Override
     public void setLetterSpacing(double spacing) {
         this.letterSpacing = spacing;
     }
 
+    /**
+     * Gets the word spacing for text rendering.
+     *
+     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
+     * implemented in text rendering</strong>. The value is saved and restored with save()/restore()
+     * state management, but does not currently affect spacing between words.
+     *
+     * <p><strong>Future Implementation:</strong> Backend implementations would need to identify
+     * word boundaries (typically spaces) and apply additional spacing at those positions.
+     *
+     * @return Current word spacing value in pixels (default: 0.0)
+     */
     @Override
     public double getWordSpacing() {
         return wordSpacing;
     }
 
+    /**
+     * Sets the word spacing for text rendering.
+     *
+     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
+     * implemented in text rendering</strong>. Setting this value will be preserved across
+     * save()/restore() calls, but will not currently affect spacing between words in rendered text.
+     *
+     * <p>When implemented, this property should add the specified spacing between words,
+     * similar to CSS word-spacing property.
+     *
+     * @param spacing Additional spacing between words in pixels. Can be negative.
+     */
     @Override
     public void setWordSpacing(double spacing) {
         this.wordSpacing = spacing;
@@ -928,11 +1018,35 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
     @Override
     public IImageData createImageData(int width, int height) {
+        if (width <= 0) {
+            throw new IllegalArgumentException("Width must be positive, got: " + width);
+        }
+        if (height <= 0) {
+            throw new IllegalArgumentException("Height must be positive, got: " + height);
+        }
         return gc.createImageData(width, height);
     }
 
     @Override
     public IImageData getImageData(int x, int y, int width, int height) {
+        if (width <= 0) {
+            throw new IllegalArgumentException("Width must be positive, got: " + width);
+        }
+        if (height <= 0) {
+            throw new IllegalArgumentException("Height must be positive, got: " + height);
+        }
+
+        // Validate bounds are at least partially within canvas
+        int canvasWidth = surface.getWidth();
+        int canvasHeight = surface.getHeight();
+
+        if (x >= canvasWidth || y >= canvasHeight || x + width <= 0 || y + height <= 0) {
+            throw new IllegalArgumentException(
+                "The requested region (x=" + x + ", y=" + y + ", width=" + width + ", height=" + height +
+                ") is completely outside the canvas bounds (width=" + canvasWidth + ", height=" + canvasHeight + ")"
+            );
+        }
+
         return gc.getImageData(x, y, width, height);
     }
 

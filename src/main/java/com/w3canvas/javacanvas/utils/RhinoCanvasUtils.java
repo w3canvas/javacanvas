@@ -48,7 +48,7 @@ public class RhinoCanvasUtils
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            System.err.println("ERROR: Failed to get integer value for method '" + methodName + "': " + e.getMessage());
         }
 
         return intResult;

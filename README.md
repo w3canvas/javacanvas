@@ -6,8 +6,8 @@ A Java implementation of the HTML5 Canvas 2D API with dual graphics backend supp
 
 **JavaCanvas** enables HTML5 Canvas drawing capabilities in Java applications by bridging JavaScript canvas code with Java graphics backends. This allows JavaScript-based canvas applications to run in Java environments with full 2D rendering support.
 
-**Status:** 🎉 **100% feature complete** for modern Canvas 2D API specification (updated 2025-11-16)
-**Test Status:** 113/113 tests passing (100% pass rate)
+**Status:** 🎉 **100% feature complete** for modern Canvas 2D API specification (updated 2025-11-19)
+**Test Status:** 147/147 tests passing (100% pass rate)
 **License:** Public Domain / CC0 (Creative Commons Zero)
 **Developed by:** Jumis, Inc.
 
@@ -45,10 +45,12 @@ A Java implementation of the HTML5 Canvas 2D API with dual graphics backend supp
 - Patterns: `createPattern()`
 
 #### ✓ Text Rendering
-- Text drawing: `fillText()`, `strokeText()`
+- Text drawing: `fillText()`, `strokeText()` with maxWidth parameter ✅
 - Text measurement: `measureText()` (width only)
-- Text properties: `font`, `textAlign`, `textBaseline`
-- **NEW:** Modern text properties: `direction`, `letterSpacing`, `wordSpacing`
+- Text alignment: `textAlign` (left, right, center, start, end) ✅ **IMPLEMENTED**
+- Text baseline: `textBaseline` (top, hanging, middle, alphabetic, ideographic, bottom) ✅ **IMPLEMENTED**
+- Font properties: `font` (family, size, style, weight)
+- **NEW:** Modern text properties: `direction`, `letterSpacing`, `wordSpacing`, `fontKerning`
 
 #### ✓ Image Operations
 - Image drawing: `drawImage()` (all 3 variants)
@@ -141,15 +143,24 @@ mvn clean test
 
 ### Test Status
 
-**All Tests Passing (113/113 - 100%):**
-- ✓ `TestCanvas2D` - 59 comprehensive Canvas 2D API tests (2 Path2D bug fixes added)
+**All Tests Passing (147/147 - 100%):**
+- ✓ `TestCanvas2D` - 77 comprehensive Canvas 2D API tests
+- ✓ `TestImageBitmap` - 11 ImageBitmap API tests
 - ✓ `TestOffscreenCanvas` - 10 OffscreenCanvas API tests
 - ✓ `TestCSSFilters` - 18 CSS filter parsing tests
 - ✓ `TestFilterIntegration` - 10 filter integration tests
-- ✓ `TestJavaFX` - JavaFX backend drawing capabilities
-- ✓ `TestCSSParser` - CSS color parser
-- ✓ `TestCanvas` - Application initialization smoke test
-- ✓ All other test suites - 100% passing
+- ✓ `TestSharedWorker` - 5 SharedWorker tests
+- ✓ `TestJavaFX` - 2 JavaFX backend drawing capability tests
+- ✓ `TestAwtBackendSmokeTest` - 2 AWT backend smoke tests
+- ✓ `TestPureJavaFXFont` - 2 JavaFX font tests
+- ✓ `TestPureAWTFont` - 2 AWT font tests
+- ✓ `TestCSSParser` - 2 CSS color parser tests
+- ✓ `TestFontLoading` - 1 font loading test
+- ✓ `TestCanvas` - 1 application initialization smoke test
+- ✓ `TestFontFace` - 1 FontFace API test
+- ✓ `TestJavaFXFont` - 1 JavaFX font integration test
+- ✓ `TestRhino` - 1 Rhino JavaScript integration test
+- ✓ `TestWorker` - 1 Worker API test
 
 **Note:** Path2D edge case bugs fixed - all tests passing with assertions enabled
 
@@ -174,31 +185,22 @@ mvn clean test
 
 Current test coverage metrics are available after running tests with JaCoCo enabled. Coverage reports are generated in `target/site/jacoco/`.
 
-## Known Issues
+## Project Documentation
 
-### Path2D Edge Cases ✅ FIXED (2025-11-16)
+- **[STATUS.md](STATUS.md)** - Current project status, test results, and known limitations
+- **[IMPROVEMENTS.md](IMPROVEMENTS.md)** - Detailed code quality recommendations and improvement priorities
+- **[TESTING.md](TESTING.md)** - Complete testing guide with test suite breakdown
+- **[REFACTOR.md](REFACTOR.md)** - Architectural design and "Trident" architecture explanation
+- **Historical Documentation:** `docs/archive/` - Archived bug analyses and implementation notes
 
-1. **Path2D Multi-Subpath Rendering** - ✅ FIXED
-   - Issue: When multiple shapes were combined using `addPath()`, only the first shape rendered
-   - Fix: Changed `AwtGraphicsContext.rect()` to use explicit path commands
-   - Test: `testPath2DMultiSubpathRendering` now passing
-   - Status: Fixed and verified
+### Architecture Notes
 
-2. **Path2D with Transforms** - ✅ FIXED
-   - Issue: Path2D objects didn't render at correct location when rotation transforms applied
-   - Fix: Modified `CoreCanvasRenderingContext2D.fill(IPath2D)` to save/restore transform during replay
-   - Test: `testPath2DWithTransform` now passing
-   - Status: Fixed and verified
+The project uses a "Trident" architecture with three layers:
+- **Interfaces Layer** - Pure Java interfaces defining contracts
+- **Core Layer** - Backend-agnostic canvas implementation
+- **Backend Layer** - AWT/Swing and JavaFX rendering implementations
 
-### Documentation
-
-See detailed bug analysis and fixes in UNDONE.md
-
-### Design Considerations
-
-- **Tight Coupling** - Deep integration between GUI and business logic
-- **Static Dependencies** - Use of singletons throughout codebase
-- **Rhino Dependency** - Hard coupling to Mozilla Rhino JavaScript engine
+See [REFACTOR.md](REFACTOR.md) for architectural details.
 
 ## Project Status
 
@@ -207,69 +209,21 @@ See detailed bug analysis and fixes in UNDONE.md
 **Strengths:**
 - ✓ Solid architectural foundation with "Trident" architecture
 - ✓ Dual backend support (AWT + JavaFX)
-- ✓ All core Canvas 2D drawing operations functional
 - ✓ Modern build/test infrastructure with Maven
 - ✓ Headless testing capability with xvfb
-- ✓ Shadow effects fully implemented
-- ✓ Image smoothing controls
-- ✓ Modern Canvas API features (roundRect, 26 composite modes)
+- ✓ Complete Canvas 2D API implementation (100% feature coverage)
+- ✓ Modern Canvas features (roundRect, 26 composite modes, conic gradients)
 - ✓ Path2D API (fully functional, edge cases fixed)
 - ✓ CSS Filter Effects (10+ filter functions)
-- ✓ Complete TextMetrics (all 12 properties)
-- ✓ ImageBitmap API (fully functional)
-- ✓ OffscreenCanvas API (fully functional)
-- ✓ **NEW:** Focus management (`drawFocusIfNeeded()`)
-- ✓ **NEW:** Canvas back-reference (`.canvas` property)
-- ✓ **NEW:** Font kerning (`fontKerning` read-only)
-- ✓ **NEW:** True conic gradients (custom Paint, not fallback!)
-- ✓ **Comprehensive test coverage: 113 tests, 100% pass rate**
+- ✓ Complete TextMetrics, ImageBitmap, and OffscreenCanvas APIs
+- ✓ **Comprehensive test coverage: 147 tests, 100% pass rate**
 
-**No remaining gaps - 100% of Canvas 2D API implemented!** 🎉
+**100% of Canvas 2D API implemented!** 🎉
 
-### Development Roadmap
+## Developer Resources
 
-**Phase 1 - Fix Foundation** ✅ **COMPLETED**
-- [x] Fix state management issues
-- [x] Resolve arcTo/isPointInStroke bug
-- [x] Implement proper test isolation
-- [x] Achieve 100% test pass rate (111 tests)
-
-**Phase 2 - Core Features** ✅ **COMPLETED**
-- [x] Implement shadow effects
-- [x] Implement image smoothing controls
-- [x] Expand composite/blend modes (26 modes)
-- [x] Add `roundRect()`
-- [x] Add modern text properties
-- [x] Implement conic gradients
-- [x] Add Path2D support
-- [x] Make filter property functional
-
-**Phase 3 - Modern Features** ✅ **COMPLETED**
-- [x] Complete OffscreenCanvas implementation
-- [x] Implement ImageBitmap
-- [x] Complete TextMetrics properties
-
-**Phase 4 - Polish** ✅ **COMPLETED 2025-11-16**
-- [x] Fix 2 Path2D edge case bugs
-- [x] Add focus management (`drawFocusIfNeeded()`)
-- [x] Implement true conic gradients (custom Paint)
-- [x] Add canvas back-reference property
-- [x] Add font kerning property
-- [ ] Performance optimization (future enhancement)
-- [ ] API compliance testing (future enhancement)
-
-## Documentation
-
-### Current Documentation
-- [README.md](README.md) - This file (main project documentation)
-- [UNDONE.md](UNDONE.md) - Current status, known issues, and Path2D bugs
-- [TESTING.md](TESTING.md) - Testing guide and test status
-- [REFACTOR.md](REFACTOR.md) - Architecture refactoring plans
-- [AGENTS.md](AGENTS.md) - Developer instructions
-- [HEADLESS_TESTING_PLAN.md](HEADLESS_TESTING_PLAN.md) - Headless testing strategy
-
-### Historical Documentation
-- [docs/archive/](docs/archive/) - Historical bug analyses and implementation notes
+- **[AGENTS.md](AGENTS.md)** - Instructions for AI agents and automated development
+- **[HEADLESS_TESTING_PLAN.md](HEADLESS_TESTING_PLAN.md)** - Headless testing strategy and setup
 
 ## Usage Example
 
@@ -296,12 +250,11 @@ javaCanvas.executeScript("path/to/canvas-script.js");
 
 This is an open source project released under CC0 (public domain). Contributions are welcome.
 
-**Priority Areas:**
-1. Fixing the arcTo conversion bug
-2. Resolving test state management issues
-3. Implementing missing Canvas API features (shadows, Path2D, etc.)
-4. Expanding test coverage
-5. Performance optimization
+**Areas for Improvement:**
+1. Performance optimization
+2. API compliance testing
+3. Expanding test coverage
+4. Documentation improvements
 
 ## License
 

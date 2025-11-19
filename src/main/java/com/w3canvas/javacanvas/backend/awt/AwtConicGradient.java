@@ -41,7 +41,7 @@ public class AwtConicGradient implements ICanvasGradient, IPaint {
 
     @Override
     public void addColorStop(double offset, String colorStr) {
-        AwtPaint paint = (AwtPaint) new ColorParser().parse(colorStr, backend);
+        AwtPaint paint = (AwtPaint) ColorParser.parse(colorStr, backend);
         Color color = (Color) paint.getPaint();
 
         stops.add(new ConicGradientHelper.ColorStop(
