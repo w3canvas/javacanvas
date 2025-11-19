@@ -71,6 +71,11 @@ public class AwtGraphicsContext implements IGraphicsContext {
     // Fill rule
     private String fillRule = "nonzero";
 
+    // Text properties
+    private String textAlign = "start";
+    private String textBaseline = "alphabetic";
+    private String direction = "ltr";  // Default direction for start/end handling
+
     // Shadow blur constants
     private static final int BLUR_DIVISOR = 2;
     private static final int MAX_BLUR_STEPS = 5;
@@ -115,20 +120,65 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fillText(String text, double x, double y, double maxWidth) {
-        // AWT Graphics2D doesn't have a maxWidth parameter for fillText,
-        // so we ignore it. A more complete implementation might manually
-        // scale the text or truncate it.
-        g2d.drawString(text, (float)x, (float)y);
+        // Adjust x-coordinate based on textAlign setting
+        double adjustedX = adjustXForTextAlign(text, x);
+        // Adjust y-coordinate based on textBaseline setting
+        double adjustedY = adjustYForTextBaseline(y);
+
+        // Handle maxWidth by scaling text horizontally when it exceeds the limit
+        if (maxWidth > 0) {
+            int textWidth = g2d.getFontMetrics().stringWidth(text);
+            if (textWidth > maxWidth) {
+                // Scale text to fit maxWidth
+                double scale = maxWidth / textWidth;
+                AffineTransform oldTransform = g2d.getTransform();
+                AffineTransform scaleTransform = new AffineTransform(oldTransform);
+                scaleTransform.translate(adjustedX, adjustedY);
+                scaleTransform.scale(scale, 1.0); // Only scale X, not Y
+                scaleTransform.translate(-adjustedX, -adjustedY);
+                g2d.setTransform(scaleTransform);
+                // Draw text
+                g2d.drawString(text, (float)adjustedX, (float)adjustedY);
+                g2d.setTransform(oldTransform); // Restore
+                return; // Don't draw again
+            }
+        }
+        // Normal drawing if maxWidth not exceeded or not specified
+        g2d.drawString(text, (float)adjustedX, (float)adjustedY);
     }
 
     @Override
     public void strokeText(String text, double x, double y, double maxWidth) {
-        // AWT Graphics2D doesn't have a direct strokeText method.
-        // We can simulate it by getting the outline of the text and stroking that.
+        // Adjust x-coordinate based on textAlign setting
+        double adjustedX = adjustXForTextAlign(text, x);
+        // Adjust y-coordinate based on textBaseline setting
+        double adjustedY = adjustYForTextBaseline(y);
+
+        // Handle maxWidth by scaling text horizontally when it exceeds the limit
         Font font = g2d.getFont();
         java.awt.font.FontRenderContext frc = g2d.getFontRenderContext();
         java.awt.font.TextLayout tl = new java.awt.font.TextLayout(text, font, frc);
-        Shape shape = tl.getOutline(AffineTransform.getTranslateInstance(x, y));
+
+        if (maxWidth > 0) {
+            int textWidth = g2d.getFontMetrics().stringWidth(text);
+            if (textWidth > maxWidth) {
+                // Scale text to fit maxWidth
+                double scale = maxWidth / textWidth;
+                AffineTransform oldTransform = g2d.getTransform();
+                AffineTransform scaleTransform = new AffineTransform(oldTransform);
+                scaleTransform.translate(adjustedX, adjustedY);
+                scaleTransform.scale(scale, 1.0); // Only scale X, not Y
+                scaleTransform.translate(-adjustedX, -adjustedY);
+                g2d.setTransform(scaleTransform);
+                // Draw text outline
+                Shape shape = tl.getOutline(AffineTransform.getTranslateInstance(adjustedX, adjustedY));
+                g2d.draw(shape);
+                g2d.setTransform(oldTransform); // Restore
+                return; // Don't draw again
+            }
+        }
+        // Normal drawing if maxWidth not exceeded or not specified
+        Shape shape = tl.getOutline(AffineTransform.getTranslateInstance(adjustedX, adjustedY));
         g2d.draw(shape);
     }
 
@@ -295,75 +345,135 @@ public class AwtGraphicsContext implements IGraphicsContext {
     /**
      * Sets the text alignment for subsequent text rendering operations.
      *
-     * <p><strong>AWT Backend Limitation:</strong> This method is currently <strong>not implemented</strong>
-     * in the AWT backend. Java AWT's {@link Graphics2D#drawString(String, float, float)} method does not
-     * support text alignment modes directly - it always draws text starting from the specified baseline point.
+     * <p>This implementation adjusts the x-coordinate before text rendering to match the specified
+     * alignment mode. Java AWT's {@link Graphics2D#drawString(String, float, float)} method treats
+     * the x-coordinate as the left edge of the text by default.
      *
-     * <p><strong>Implementation Requirements:</strong> To properly support this feature, the implementation
-     * would need to:
+     * <p><strong>Alignment modes:</strong>
      * <ul>
-     *   <li>Measure text width using {@link java.awt.FontMetrics}</li>
-     *   <li>Adjust the x-coordinate based on alignment mode before calling drawString():
-     *     <ul>
-     *       <li>"left" or "start" - no adjustment (default behavior)</li>
-     *       <li>"right" or "end" - subtract text width from x</li>
-     *       <li>"center" - subtract half text width from x</li>
-     *     </ul>
-     *   </li>
-     *   <li>Handle "start" and "end" by considering the direction property (ltr/rtl)</li>
+     *   <li>"left" - align text left (default AWT behavior)</li>
+     *   <li>"right" - align text right (x - textWidth)</li>
+     *   <li>"center" - center text (x - textWidth/2)</li>
+     *   <li>"start" - depends on direction: left for ltr, right for rtl (currently assumes ltr)</li>
+     *   <li>"end" - depends on direction: right for ltr, left for rtl (currently assumes ltr)</li>
      * </ul>
      *
      * <p><strong>Valid values:</strong> "left", "right", "center", "start", "end" (default: "start")
      *
-     * @param textAlign The text alignment mode. Currently stored but not used in rendering.
+     * @param textAlign The text alignment mode to use for rendering text
      * @see java.awt.FontMetrics
+     * @see #adjustXForTextAlign(String, double)
      */
     @Override
     public void setTextAlign(String textAlign) {
-        // AWT Graphics2D does not have a direct equivalent.
-        // This would require manual calculation based on font metrics.
+        this.textAlign = textAlign != null ? textAlign : "start";
     }
 
     /**
      * Sets the text baseline alignment for subsequent text rendering operations.
      *
-     * <p><strong>AWT Backend Limitation:</strong> This method is currently <strong>not implemented</strong>
-     * in the AWT backend. Java AWT's {@link Graphics2D#drawString(String, float, float)} method treats
-     * the y-coordinate as the text baseline, which corresponds to Canvas 2D's "alphabetic" mode.
+     * <p>This implementation adjusts the y-coordinate before text rendering to match the specified
+     * baseline mode. Java AWT's {@link Graphics2D#drawString(String, float, float)} method treats
+     * the y-coordinate as the alphabetic baseline by default.
      *
-     * <p><strong>Implementation Requirements:</strong> To properly support this feature, the implementation
-     * would need to:
+     * <p><strong>Baseline modes:</strong>
      * <ul>
-     *   <li>Use {@link java.awt.font.FontRenderContext} and {@link java.awt.font.LineMetrics} to get:
-     *     <ul>
-     *       <li>Ascent - distance from baseline to top of tallest glyph</li>
-     *       <li>Descent - distance from baseline to bottom of lowest glyph</li>
-     *       <li>Height - total line height</li>
-     *     </ul>
-     *   </li>
-     *   <li>Adjust the y-coordinate before calling drawString():
-     *     <ul>
-     *       <li>"alphabetic" - no adjustment (default AWT behavior)</li>
-     *       <li>"top" - add ascent to y</li>
-     *       <li>"hanging" - add ascent * 0.8 to y (approximation)</li>
-     *       <li>"middle" - add (ascent - descent) / 2 to y</li>
-     *       <li>"ideographic" - subtract descent from y</li>
-     *       <li>"bottom" - subtract descent from y</li>
-     *     </ul>
-     *   </li>
+     *   <li>"alphabetic" - baseline for normal text (default, no adjustment)</li>
+     *   <li>"top" - top of the em square (y + ascent)</li>
+     *   <li>"hanging" - hanging baseline, typically 80% of ascent (y + ascent * 0.8)</li>
+     *   <li>"middle" - middle of the em square (y + (ascent - descent) / 2)</li>
+     *   <li>"ideographic" - ideographic baseline, at the bottom (y - descent)</li>
+     *   <li>"bottom" - bottom of the em square (y - descent)</li>
      * </ul>
      *
      * <p><strong>Valid values:</strong> "top", "hanging", "middle", "alphabetic", "ideographic", "bottom"
      * (default: "alphabetic")
      *
-     * @param textBaseline The text baseline mode. Currently stored but not used in rendering.
-     * @see java.awt.font.LineMetrics
-     * @see java.awt.font.FontRenderContext
+     * @param textBaseline The text baseline mode to use for rendering text
+     * @see java.awt.FontMetrics
+     * @see #adjustYForTextBaseline(double)
      */
     @Override
     public void setTextBaseline(String textBaseline) {
-        // AWT Graphics2D does not have a direct equivalent.
-        // This would require manual calculation based on font metrics.
+        this.textBaseline = textBaseline != null ? textBaseline : "alphabetic";
+    }
+
+    /**
+     * Adjusts the y-coordinate for text rendering based on the current textBaseline setting.
+     * Graphics2D treats y as the alphabetic baseline by default, so we adjust for other baseline modes.
+     *
+     * @param y The original y-coordinate
+     * @return The adjusted y-coordinate based on textBaseline
+     */
+    private double adjustYForTextBaseline(double y) {
+        if ("alphabetic".equals(textBaseline)) {
+            return y; // Default AWT behavior - no adjustment needed
+        }
+
+        java.awt.FontMetrics fm = g2d.getFontMetrics();
+        int ascent = fm.getAscent();
+        int descent = fm.getDescent();
+
+        if ("top".equals(textBaseline)) {
+            return y + ascent;
+        } else if ("hanging".equals(textBaseline)) {
+            return y + (ascent * 0.8);
+        } else if ("middle".equals(textBaseline)) {
+            return y + ((ascent - descent) / 2.0);
+        } else if ("ideographic".equals(textBaseline) || "bottom".equals(textBaseline)) {
+            return y - descent;
+        }
+
+        return y; // Default to alphabetic if unknown value
+    }
+
+    /**
+     * Adjusts the x-coordinate for text rendering based on the current textAlign setting.
+     * Graphics2D treats x as the left edge of the text by default, so we adjust for other alignment modes.
+     *
+     * @param text The text string to be rendered
+     * @param x The original x-coordinate
+     * @return The adjusted x-coordinate based on textAlign
+     */
+    private double adjustXForTextAlign(String text, double x) {
+        if ("left".equals(textAlign)) {
+            return x; // Default AWT behavior - no adjustment needed
+        }
+
+        // For "start" and "end", we need to consider the direction property
+        // Currently defaulting to ltr behavior since direction is not yet passed from context
+        if ("start".equals(textAlign)) {
+            // In ltr mode, "start" means left; in rtl mode, "start" means right
+            if ("ltr".equals(direction)) {
+                return x; // No adjustment for ltr start
+            } else {
+                // rtl: start means right-aligned
+                int textWidth = g2d.getFontMetrics().stringWidth(text);
+                return x - textWidth;
+            }
+        }
+
+        if ("end".equals(textAlign)) {
+            // In ltr mode, "end" means right; in rtl mode, "end" means left
+            if ("ltr".equals(direction)) {
+                int textWidth = g2d.getFontMetrics().stringWidth(text);
+                return x - textWidth;
+            } else {
+                // rtl: end means left-aligned
+                return x; // No adjustment for rtl end
+            }
+        }
+
+        // Measure text width for right and center alignment
+        int textWidth = g2d.getFontMetrics().stringWidth(text);
+
+        if ("right".equals(textAlign)) {
+            return x - textWidth;
+        } else if ("center".equals(textAlign)) {
+            return x - (textWidth / 2.0);
+        }
+
+        return x; // Default to left if unknown value
     }
 
     // Drawing operations

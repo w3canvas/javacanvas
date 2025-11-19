@@ -1042,6 +1042,468 @@ public class TestCanvas2D extends ApplicationTest {
         assertPixel(ctx, 60, 140, 0, 0, 255, 255, 224);
     }
 
+    @Test
+    public void testTextAlignDetailed() throws ExecutionException, InterruptedException {
+        // Test all textAlign modes: "left", "right", "center", "start", "end"
+        // Verifies that text is positioned correctly relative to the x coordinate
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(500);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 500, 400);
+                ctx.setFont("20px sans-serif");
+                ctx.setFillStyle("blue");
+
+                // Draw a vertical reference line at x=250
+                ctx.setStrokeStyle("red");
+                ctx.beginPath();
+                ctx.moveTo(250, 0);
+                ctx.lineTo(250, 400);
+                ctx.stroke();
+
+                // Test "left" alignment - text starts at x coordinate
+                ctx.setTextAlign("left");
+                ctx.fillText("Left", 250, 50, 0);
+
+                // Test "right" alignment - text ends at x coordinate
+                ctx.setTextAlign("right");
+                ctx.fillText("Right", 250, 100, 0);
+
+                // Test "center" alignment - text centered at x coordinate
+                ctx.setTextAlign("center");
+                ctx.fillText("Center", 250, 150, 0);
+
+                // Test "start" alignment - same as left in LTR context
+                ctx.setTextAlign("start");
+                ctx.fillText("Start", 250, 200, 0);
+
+                // Test "end" alignment - same as right in LTR context
+                ctx.setTextAlign("end");
+                ctx.fillText("End", 250, 250, 0);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // NOTE: High tolerance (224) for text alignment pixel checks
+        // Verify "left" aligned text appears to the right of reference line
+        assertPixel(ctx, 260, 45, 0, 0, 255, 255, 224);
+
+        // Verify "right" aligned text appears to the left of reference line
+        assertPixel(ctx, 230, 95, 0, 0, 255, 255, 224);
+
+        // Verify "center" aligned text appears centered around reference line
+        assertPixel(ctx, 250, 145, 0, 0, 255, 255, 224);
+
+        // Verify "start" aligned text (same as left in LTR)
+        assertPixel(ctx, 260, 195, 0, 0, 255, 255, 224);
+
+        // Verify "end" aligned text (same as right in LTR)
+        assertPixel(ctx, 230, 245, 0, 0, 255, 255, 224);
+    }
+
+    @Test
+    public void testTextBaselineDetailed() throws ExecutionException, InterruptedException {
+        // Test all textBaseline modes: "top", "hanging", "middle", "alphabetic", "ideographic", "bottom"
+        // Verifies that text is positioned correctly relative to the y coordinate
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(600);
+        canvas.setHeight(500);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 600, 500);
+                ctx.setFont("30px sans-serif");
+                ctx.setFillStyle("blue");
+
+                // Draw horizontal reference lines to visualize baseline positioning
+                ctx.setStrokeStyle("red");
+                double[] yPositions = {50, 100, 150, 200, 250, 300};
+                for (double y : yPositions) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(600, y);
+                    ctx.stroke();
+                }
+
+                // Test "top" baseline - top of em square at y coordinate
+                ctx.setTextBaseline("top");
+                ctx.fillText("Top", 50, 50, 0);
+
+                // Test "hanging" baseline - hanging baseline at y coordinate
+                ctx.setTextBaseline("hanging");
+                ctx.fillText("Hanging", 50, 100, 0);
+
+                // Test "middle" baseline - middle of em square at y coordinate
+                ctx.setTextBaseline("middle");
+                ctx.fillText("Middle", 50, 150, 0);
+
+                // Test "alphabetic" baseline - normal alphabetic baseline at y coordinate (default)
+                ctx.setTextBaseline("alphabetic");
+                ctx.fillText("Alphabetic", 50, 200, 0);
+
+                // Test "ideographic" baseline - ideographic baseline at y coordinate
+                ctx.setTextBaseline("ideographic");
+                ctx.fillText("Ideographic", 50, 250, 0);
+
+                // Test "bottom" baseline - bottom of em square at y coordinate
+                ctx.setTextBaseline("bottom");
+                ctx.fillText("Bottom", 50, 300, 0);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // NOTE: High tolerance (224) for text baseline pixel checks
+        // Verify "top" baseline - text appears below the reference line
+        assertPixel(ctx, 70, 65, 0, 0, 255, 255, 224);
+
+        // Verify "hanging" baseline - text appears slightly below the reference line
+        assertPixel(ctx, 70, 110, 0, 0, 255, 255, 224);
+
+        // Verify "middle" baseline - text is vertically centered around reference line
+        assertPixel(ctx, 70, 150, 0, 0, 255, 255, 224);
+
+        // Verify "alphabetic" baseline - text appears above the reference line
+        assertPixel(ctx, 70, 185, 0, 0, 255, 255, 224);
+
+        // Verify "ideographic" baseline - text appears above the reference line
+        assertPixel(ctx, 70, 235, 0, 0, 255, 255, 224);
+
+        // Verify "bottom" baseline - text appears above the reference line
+        assertPixel(ctx, 70, 280, 0, 0, 255, 255, 224);
+    }
+
+    @Test
+    public void testMaxWidthScaling() throws ExecutionException, InterruptedException {
+        // Test maxWidth parameter - text should be scaled down if it exceeds maxWidth
+        // Verifies scaling behavior and that short text is not scaled up
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(500);
+        canvas.setHeight(300);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 500, 300);
+                ctx.setFont("30px sans-serif");
+                ctx.setFillStyle("blue");
+
+                // Measure normal text width
+                ITextMetrics metrics = ctx.measureText("LongText");
+                double normalWidth = metrics.getWidth();
+
+                // Draw text without maxWidth constraint
+                ctx.fillText("LongText", 50, 50, 0);
+
+                // Draw same text with maxWidth < actual width - should be scaled down
+                ctx.fillText("LongText", 50, 100, normalWidth / 2);
+
+                // Draw short text with large maxWidth - should NOT be scaled up
+                ctx.fillText("Hi", 50, 150, 500);
+
+                // Test maxWidth = 0 - should not render (or render with zero width)
+                ctx.fillText("Zero", 50, 200, 0);
+
+                // Test negative maxWidth - should be treated as no constraint
+                ctx.fillText("Negative", 50, 250, -10);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // NOTE: High tolerance (224) for text rendering pixel checks
+        // Verify normal text renders
+        assertPixel(ctx, 80, 45, 0, 0, 255, 255, 224);
+
+        // Verify scaled down text renders (more compressed horizontally)
+        assertPixel(ctx, 70, 95, 0, 0, 255, 255, 224);
+
+        // Verify short text with large maxWidth renders normally
+        assertPixel(ctx, 60, 145, 0, 0, 255, 255, 224);
+
+        // Verify negative maxWidth text renders (should render normally)
+        assertPixel(ctx, 70, 245, 0, 0, 255, 255, 224);
+    }
+
+    @Test
+    public void testTextAlignWithBaseline() throws ExecutionException, InterruptedException {
+        // Test that textAlign and textBaseline work correctly when combined
+        // Verifies both horizontal and vertical positioning are applied together
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 400);
+                ctx.setFont("25px sans-serif");
+                ctx.setFillStyle("green");
+
+                // Draw reference point at center
+                ctx.setFillStyle("red");
+                ctx.fillRect(198, 198, 4, 4);
+
+                // Test center align + middle baseline - text centered at point
+                ctx.setFillStyle("green");
+                ctx.setTextAlign("center");
+                ctx.setTextBaseline("middle");
+                ctx.fillText("Center+Middle", 200, 200, 0);
+
+                // Test right align + top baseline
+                ctx.setTextAlign("right");
+                ctx.setTextBaseline("top");
+                ctx.fillText("Right+Top", 350, 50, 0);
+
+                // Test left align + bottom baseline
+                ctx.setTextAlign("left");
+                ctx.setTextBaseline("bottom");
+                ctx.fillText("Left+Bottom", 50, 350, 0);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // NOTE: High tolerance (224) for combined text positioning
+        // Verify center+middle text appears centered around point
+        assertPixel(ctx, 200, 200, 0, 255, 0, 255, 224);
+
+        // Verify right+top text
+        assertPixel(ctx, 330, 60, 0, 255, 0, 255, 224);
+
+        // Verify left+bottom text
+        assertPixel(ctx, 70, 340, 0, 255, 0, 255, 224);
+    }
+
+    @Test
+    public void testMaxWidthWithAlignment() throws ExecutionException, InterruptedException {
+        // Test that maxWidth scaling happens before alignment adjustment
+        // Verifies scaled text is still aligned correctly relative to x coordinate
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(500);
+        canvas.setHeight(300);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 500, 300);
+                ctx.setFont("30px sans-serif");
+                ctx.setFillStyle("purple");
+
+                // Draw vertical reference line at x=250
+                ctx.setStrokeStyle("red");
+                ctx.beginPath();
+                ctx.moveTo(250, 0);
+                ctx.lineTo(250, 300);
+                ctx.stroke();
+
+                ctx.setFillStyle("purple");
+
+                // Measure text to get normal width
+                ITextMetrics metrics = ctx.measureText("ScaledText");
+                double normalWidth = metrics.getWidth();
+
+                // Test center alignment with maxWidth constraint
+                ctx.setTextAlign("center");
+                ctx.fillText("ScaledText", 250, 80, normalWidth / 2);
+
+                // Test right alignment with maxWidth constraint
+                ctx.setTextAlign("right");
+                ctx.fillText("ScaledText", 250, 150, normalWidth / 2);
+
+                // Test left alignment with maxWidth constraint
+                ctx.setTextAlign("left");
+                ctx.fillText("ScaledText", 250, 220, normalWidth / 2);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // NOTE: High tolerance (224) for scaled and aligned text
+        // Verify center-aligned scaled text is centered at reference line
+        assertPixel(ctx, 250, 75, 128, 0, 128, 255, 224);
+
+        // Verify right-aligned scaled text ends at reference line
+        assertPixel(ctx, 240, 145, 128, 0, 128, 255, 224);
+
+        // Verify left-aligned scaled text starts at reference line
+        assertPixel(ctx, 260, 215, 128, 0, 128, 255, 224);
+    }
+
+    @Test
+    public void testTextAlignMeasurement() throws ExecutionException, InterruptedException {
+        // Test textAlign positioning using measureText API
+        // Verifies alignment calculations match measured text dimensions
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(500);
+        canvas.setHeight(300);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.setFont("20px sans-serif");
+                String testText = "MeasureMe";
+                ITextMetrics metrics = ctx.measureText(testText);
+                double textWidth = metrics.getWidth();
+
+                // Verify text width is reasonable
+                assertTrue(textWidth > 50, "Text width should be greater than 50px");
+                assertTrue(textWidth < 200, "Text width should be less than 200px");
+
+                // Clear and draw with different alignments to verify positioning
+                ctx.clearRect(0, 0, 500, 300);
+                ctx.setFillStyle("blue");
+
+                double xPos = 250;
+
+                // Left alignment - text starts at xPos
+                ctx.setTextAlign("left");
+                ctx.fillText(testText, xPos, 50, 0);
+
+                // Right alignment - text ends at xPos
+                ctx.setTextAlign("right");
+                ctx.fillText(testText, xPos, 100, 0);
+
+                // Center alignment - text centered at xPos
+                ctx.setTextAlign("center");
+                ctx.fillText(testText, xPos, 150, 0);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // NOTE: High tolerance (224) for text measurement verification
+        // Verify left-aligned text starts after xPos
+        assertPixel(ctx, 260, 45, 0, 0, 255, 255, 224);
+
+        // Verify right-aligned text ends before xPos
+        assertPixel(ctx, 240, 95, 0, 0, 255, 255, 224);
+
+        // Verify center-aligned text is around xPos
+        assertPixel(ctx, 250, 145, 0, 0, 255, 255, 224);
+    }
+
+    @Test
+    public void testMaxWidthEdgeCases() throws ExecutionException, InterruptedException {
+        // Test edge cases for maxWidth parameter
+        // Verifies handling of zero, negative, very small, and very large values
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(500);
+        canvas.setHeight(400);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 500, 400);
+                ctx.setFont("25px sans-serif");
+                ctx.setFillStyle("orange");
+
+                // Measure normal text width
+                ITextMetrics metrics = ctx.measureText("EdgeCase");
+                double normalWidth = metrics.getWidth();
+
+                // Normal rendering for reference
+                ctx.fillText("EdgeCase", 50, 50, 0);
+
+                // maxWidth = 0 - should not render or render with zero width
+                ctx.fillText("EdgeCase", 50, 100, 0);
+
+                // maxWidth negative - should render normally (no constraint)
+                ctx.fillText("EdgeCase", 50, 150, -100);
+
+                // maxWidth very small (1 pixel) - extreme scaling
+                ctx.fillText("EdgeCase", 50, 200, 1);
+
+                // maxWidth very large - no scaling
+                ctx.fillText("EdgeCase", 50, 250, 10000);
+
+                // maxWidth exactly equal to text width - no scaling
+                ctx.fillText("EdgeCase", 50, 300, normalWidth);
+
+                // maxWidth slightly less than text width - minor scaling
+                ctx.fillText("EdgeCase", 50, 350, normalWidth * 0.9);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // NOTE: High tolerance (224) for edge case text rendering
+        // Verify normal rendering
+        assertPixel(ctx, 80, 45, 255, 165, 0, 255, 224);
+
+        // Verify negative maxWidth renders normally
+        assertPixel(ctx, 80, 145, 255, 165, 0, 255, 224);
+
+        // Verify very large maxWidth renders normally
+        assertPixel(ctx, 80, 245, 255, 165, 0, 255, 224);
+
+        // Verify maxWidth equal to text width renders normally
+        assertPixel(ctx, 80, 295, 255, 165, 0, 255, 224);
+
+        // Verify maxWidth slightly less renders with minor scaling
+        assertPixel(ctx, 80, 345, 255, 165, 0, 255, 224);
+    }
+
+    @Test
+    public void testStrokeTextWithAlignment() throws ExecutionException, InterruptedException {
+        // Test that textAlign and textBaseline work with strokeText, not just fillText
+        // Verifies alignment applies to both fill and stroke rendering
+        HTMLCanvasElement canvas = createCanvas();
+        canvas.setWidth(400);
+        canvas.setHeight(300);
+        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+
+        interact(() -> {
+            Context.enter();
+            try {
+                ctx.clearRect(0, 0, 400, 300);
+                ctx.setFont("30px sans-serif");
+                ctx.setStrokeStyle("blue");
+                ctx.setLineWidth(2);
+
+                // Draw reference line
+                ctx.setStrokeStyle("red");
+                ctx.beginPath();
+                ctx.moveTo(200, 0);
+                ctx.lineTo(200, 300);
+                ctx.stroke();
+
+                ctx.setStrokeStyle("blue");
+
+                // Test center alignment with strokeText
+                ctx.setTextAlign("center");
+                ctx.setTextBaseline("middle");
+                ctx.strokeText("Stroke", 200, 100, 0);
+
+                // Test right alignment with strokeText
+                ctx.setTextAlign("right");
+                ctx.setTextBaseline("top");
+                ctx.strokeText("Stroke", 200, 200, 0);
+            } finally {
+                Context.exit();
+            }
+        });
+
+        // NOTE: High tolerance (224) for stroked text alignment
+        // Verify center-aligned stroked text
+        assertPixel(ctx, 200, 100, 0, 0, 255, 255, 224);
+
+        // Verify right-aligned stroked text
+        assertPixel(ctx, 180, 210, 0, 0, 255, 255, 224);
+    }
+
     private HTMLCanvasElement createTestPatternCanvas() {
         HTMLCanvasElement patternCanvas = createCanvas();
         ICanvasRenderingContext2D patternCtx = (ICanvasRenderingContext2D) patternCanvas.jsFunction_getContext("2d");
