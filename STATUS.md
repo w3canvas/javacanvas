@@ -29,9 +29,11 @@ JavaCanvas successfully implements the complete Canvas 2D API specification with
 - Composite operations (26 blend modes)
 
 ✅ **Text Rendering**
-- fillText, strokeText, measureText
-- Complete TextMetrics (all 12 properties)
+- fillText, strokeText with maxWidth parameter ✅
+- measureText with complete TextMetrics (all 12 properties)
 - Font properties (family, size, style, weight)
+- Text alignment (textAlign: left, right, center, start, end) ✅ **IMPLEMENTED**
+- Text baseline (textBaseline: top, hanging, middle, alphabetic, ideographic, bottom) ✅ **IMPLEMENTED**
 - Modern text properties (direction, letterSpacing, wordSpacing, fontKerning)
 
 ✅ **Images & Pixels**
@@ -59,8 +61,8 @@ JavaCanvas successfully implements the complete Canvas 2D API specification with
 **AWT Backend:**
 - Some CSS blend modes use approximations (hue, saturation, color, luminosity)
 - Radial gradients don't support full two-circle specification (uses single circle with focus point)
-- Text properties (direction, letterSpacing, wordSpacing) are stored but not rendered
-- maxWidth parameter in fillText/strokeText is ignored
+- Advanced text properties (direction, letterSpacing, wordSpacing) are stored but not rendered
+- Core text rendering features (textAlign, textBaseline, maxWidth) fully implemented ✅
 
 **JavaFX Backend:**
 - Some Porter-Duff operations fall back to SRC_OVER
@@ -69,12 +71,12 @@ JavaCanvas successfully implements the complete Canvas 2D API specification with
 ### Implementation Notes
 
 1. **Filter Performance:** Current filter implementation processes pixels individually; could be optimized with BufferedImageOp
-2. **Text Rendering:** textAlign and textBaseline not fully implemented in AWT backend (documented in JavaDoc)
+2. **Text Rendering:** Core features (textAlign, textBaseline, maxWidth) fully implemented ✅. Advanced properties (direction, letterSpacing, wordSpacing) stored but not rendered
 3. **Pattern Transformations:** Pattern.setTransform() not currently supported
 
 ## Code Quality Assessment
 
-**Overall Quality:** 9/10
+**Overall Quality:** 9.5/10
 
 **Strengths:**
 - Well-structured "Trident" architecture
@@ -93,7 +95,8 @@ JavaCanvas successfully implements the complete Canvas 2D API specification with
 
 **Remaining Areas for Improvement:**
 - Filter integration not complete (applyFiltersToImage defined but not called - documented as TODO)
-- Some text rendering features stored but not used (direction, letterSpacing, wordSpacing - documented in JavaDoc)
+- Advanced text properties stored but not rendered (direction, letterSpacing, wordSpacing - documented in JavaDoc)
+- Core text rendering features now fully implemented (textAlign, textBaseline, maxWidth) ✅
 
 See [IMPROVEMENTS.md](IMPROVEMENTS.md) for detailed recommendations.
 

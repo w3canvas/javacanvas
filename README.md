@@ -45,10 +45,12 @@ A Java implementation of the HTML5 Canvas 2D API with dual graphics backend supp
 - Patterns: `createPattern()`
 
 #### ✓ Text Rendering
-- Text drawing: `fillText()`, `strokeText()`
+- Text drawing: `fillText()`, `strokeText()` with maxWidth parameter ✅
 - Text measurement: `measureText()` (width only)
-- Text properties: `font`, `textAlign`, `textBaseline`
-- **NEW:** Modern text properties: `direction`, `letterSpacing`, `wordSpacing`
+- Text alignment: `textAlign` (left, right, center, start, end) ✅ **IMPLEMENTED**
+- Text baseline: `textBaseline` (top, hanging, middle, alphabetic, ideographic, bottom) ✅ **IMPLEMENTED**
+- Font properties: `font` (family, size, style, weight)
+- **NEW:** Modern text properties: `direction`, `letterSpacing`, `wordSpacing`, `fontKerning`
 
 #### ✓ Image Operations
 - Image drawing: `drawImage()` (all 3 variants)
