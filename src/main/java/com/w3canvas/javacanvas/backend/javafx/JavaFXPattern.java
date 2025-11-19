@@ -17,6 +17,11 @@ public class JavaFXPattern implements ICanvasPattern, IPaint {
     private final String repetition;
     private final Paint paint;
 
+    // Cache for generated paint to reduce memory allocation
+    private Paint cachedBoundsPaint = null;
+    private double cachedBoundsWidth = -1;
+    private double cachedBoundsHeight = -1;
+
     public JavaFXPattern(Image image, String repetition) {
         this.image = image;
         this.repetition = repetition;
@@ -50,6 +55,33 @@ public class JavaFXPattern implements ICanvasPattern, IPaint {
             return paint;
         }
 
+        // Check if we can use cached paint
+        if (isCacheValid(boundsWidth, boundsHeight)) {
+            return cachedBoundsPaint;
+        }
+
+        // Generate new paint
+        Paint generatedPaint = generatePaint(boundsWidth, boundsHeight);
+
+        // Cache the paint
+        cachePaint(boundsWidth, boundsHeight, generatedPaint);
+
+        return generatedPaint;
+    }
+
+    private boolean isCacheValid(double boundsWidth, double boundsHeight) {
+        return cachedBoundsPaint != null
+            && cachedBoundsWidth == boundsWidth
+            && cachedBoundsHeight == boundsHeight;
+    }
+
+    private void cachePaint(double boundsWidth, double boundsHeight, Paint paint) {
+        cachedBoundsWidth = boundsWidth;
+        cachedBoundsHeight = boundsHeight;
+        cachedBoundsPaint = paint;
+    }
+
+    private Paint generatePaint(double boundsWidth, double boundsHeight) {
         double imgWidth = image.getWidth();
         double imgHeight = image.getHeight();
 

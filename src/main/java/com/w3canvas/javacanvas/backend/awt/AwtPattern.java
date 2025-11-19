@@ -58,6 +58,14 @@ public class AwtPattern implements ICanvasPattern, IPaint {
         private final int width;
         private final int height;
 
+        // Cache for raster data to reduce memory allocation
+        private static final int MAX_CACHE_SIZE = 1024 * 1024; // 1M pixels max
+        private int[] cachedData = null;
+        private int cachedX = Integer.MIN_VALUE;
+        private int cachedY = Integer.MIN_VALUE;
+        private int cachedW = -1;
+        private int cachedH = -1;
+
         public CustomPatternPaintContext(BufferedImage image, String repetition) {
             this.image = image;
             this.repetition = repetition;
@@ -76,7 +84,48 @@ public class AwtPattern implements ICanvasPattern, IPaint {
 
         @Override
         public Raster getRaster(int x, int y, int w, int h) {
+            // Check if we can use cached data
+            if (isCacheValid(x, y, w, h)) {
+                WritableRaster raster = getColorModel().createCompatibleWritableRaster(w, h);
+                raster.setPixels(0, 0, w, h, cachedData);
+                return raster;
+            }
+
+            // Generate new raster data
             WritableRaster raster = getColorModel().createCompatibleWritableRaster(w, h);
+            int[] data = generateRasterData(x, y, w, h);
+
+            // Cache the data if size is reasonable
+            if (shouldCache(w, h)) {
+                cacheRasterData(x, y, w, h, data);
+            }
+
+            raster.setPixels(0, 0, w, h, data);
+            return raster;
+        }
+
+        private boolean isCacheValid(int x, int y, int w, int h) {
+            return cachedData != null
+                && cachedX == x
+                && cachedY == y
+                && cachedW == w
+                && cachedH == h;
+        }
+
+        private boolean shouldCache(int w, int h) {
+            // Only cache if raster size is reasonable (not too large)
+            return (w * h) <= MAX_CACHE_SIZE;
+        }
+
+        private void cacheRasterData(int x, int y, int w, int h, int[] data) {
+            cachedX = x;
+            cachedY = y;
+            cachedW = w;
+            cachedH = h;
+            cachedData = data;
+        }
+
+        private int[] generateRasterData(int x, int y, int w, int h) {
             int[] data = new int[w * h * 4];
             for (int j = 0; j < h; j++) {
                 for (int i = 0; i < w; i++) {
@@ -134,8 +183,7 @@ public class AwtPattern implements ICanvasPattern, IPaint {
                     }
                 }
             }
-            raster.setPixels(0, 0, w, h, data);
-            return raster;
+            return data;
         }
     }
 }
