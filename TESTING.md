@@ -51,13 +51,13 @@ The project includes a visual regression framework (`VisualRegressionHelper`) fo
 
 ## Current Test Status
 
-**Total:** 127 tests across 17 test classes (100% passing)
+**Total:** 136 tests across 17 test classes (100% passing)
 
 ### Test Suite Breakdown
 
 | Test Class | Tests | Status | Coverage |
 |------------|-------|--------|----------|
-| TestCanvas2D | 57 | ✅ Passing | Core Canvas 2D API, transformations, paths, shapes |
+| TestCanvas2D | 66 | ✅ Passing | Core Canvas 2D API, transformations, paths, shapes |
 | TestImageBitmap | 11 | ✅ Passing | ImageBitmap creation, rendering, resource management |
 | TestOffscreenCanvas | 10 | ✅ Passing | OffscreenCanvas API, convertToBlob, transferToImageBitmap |
 | TestCSSFilters | 18 | ✅ Passing | CSS filter parsing (blur, brightness, etc.) |
@@ -113,14 +113,20 @@ The project includes a visual regression framework (`VisualRegressionHelper`) fo
 
 The following areas need additional test coverage (see [IMPROVEMENTS.md](IMPROVEMENTS.md) for details):
 
-**Missing Tests:**
-- `getTransform()` - no tests
-- `isContextLost()` - no tests
-- `getContextAttributes()` - no tests
+**Recently Added Tests (9 new tests in TestCanvas2D):** ✅
+- ✅ `getTransform()` - now tested
+- ✅ `isContextLost()` - now tested
+- ✅ `getContextAttributes()` - now tested
+- ✅ `reset()` comprehensive state clearing - now tested
+- ✅ Parameter validation (lineWidth, arc radius, etc.) - now tested
+- ✅ Fill rules ("evenodd" vs "nonzero") - now tested
+
+**Still Missing Tests:**
 - `drawFocusIfNeeded()` - no tests
-- Fill rules ("evenodd" vs "nonzero") - limited testing
-- Error handling - minimal coverage
-- Edge cases (negative dimensions, empty paths, large coordinates)
+- Advanced edge cases (degenerate transforms, very large coordinates)
+- putImageData with dirty rectangles (all 7 parameters)
+- Pattern transformations
+- Unicode text rendering
 
 **Test Quality Issues:**
 - High pixel tolerance in headless mode (10-15 pixels)
@@ -189,7 +195,7 @@ The test suite is designed to run in CI/CD environments:
 
 1. **Headless Support:** All tests run with `xvfb`
 2. **No External Dependencies:** All test resources included
-3. **Fast Execution:** 127 tests complete in ~30 seconds
+3. **Fast Execution:** 136 tests complete in ~8 minutes
 4. **Deterministic:** Visual regression with tolerance handles environment differences
 
 ## Troubleshooting
