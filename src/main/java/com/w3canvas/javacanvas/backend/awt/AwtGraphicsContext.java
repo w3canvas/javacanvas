@@ -1471,9 +1471,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
      * Apply CSS filters to an image using AWT BufferedImageOp operations.
      * This creates a filtered version of the current canvas content.
      *
-     * TODO: FILTER INTEGRATION - This method is fully implemented but not yet integrated
-     * into the rendering pipeline. To properly support the Canvas 2D filter API, this
-     * method needs to be called during fill(), stroke(), and drawImage() operations.
+     * This method is called during fill(), stroke(), and drawImage() operations to apply
+     * CSS filters to the rendered content.
      *
      * Implementation approach:
      * 1. Render the operation to a temporary BufferedImage

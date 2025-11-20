@@ -61,18 +61,20 @@ JavaCanvas successfully implements the complete Canvas 2D API specification with
 **AWT Backend:**
 - Some CSS blend modes use approximations (hue, saturation, color, luminosity)
 - Radial gradients don't support full two-circle specification (uses single circle with focus point)
-- Advanced text properties (direction, letterSpacing, wordSpacing) are stored but not rendered
+- Text direction (LTR/RTL) and letter spacing supported via TextLayout ✅
+- Word spacing not supported natively by AWT
 - Core text rendering features (textAlign, textBaseline, maxWidth) fully implemented ✅
 
 **JavaFX Backend:**
 - Some Porter-Duff operations fall back to SRC_OVER
 - Limited support for certain composite modes
+- Advanced text properties (direction, spacing) stored but not rendered
 
 ### Implementation Notes
 
-1. **Filter Performance:** Current filter implementation processes pixels individually; could be optimized with BufferedImageOp
-2. **Text Rendering:** Core features (textAlign, textBaseline, maxWidth) fully implemented ✅. Advanced properties (direction, letterSpacing, wordSpacing) stored but not rendered
-3. **Pattern Transformations:** Pattern.setTransform() not currently supported
+1. **Filter Performance:** Filter implementation uses BufferedImageOp for performance (optimized).
+2. **Text Rendering:** Core features (textAlign, textBaseline, maxWidth) fully implemented. Advanced properties supported in AWT.
+3. **Pattern Transformations:** Pattern.setTransform() fully supported ✅
 
 ## Code Quality Assessment
 
@@ -94,9 +96,8 @@ JavaCanvas successfully implements the complete Canvas 2D API specification with
 - Improved test quality (proper synchronization, no sleep-based timing) ✅
 
 **Remaining Areas for Improvement:**
-- Filter integration not complete (applyFiltersToImage defined but not called - documented as TODO)
-- Advanced text properties stored but not rendered (direction, letterSpacing, wordSpacing - documented in JavaDoc)
-- Core text rendering features now fully implemented (textAlign, textBaseline, maxWidth) ✅
+- JavaFX backend text features (direction, spacing)
+- Word spacing in AWT backend
 
 See [IMPROVEMENTS.md](IMPROVEMENTS.md) for detailed recommendations.
 
@@ -118,7 +119,6 @@ See [IMPROVEMENTS.md](IMPROVEMENTS.md) for detailed recommendations.
 - drawFocusIfNeeded (basic functionality) ✅
 
 **Remaining Test Coverage Gaps:**
-- Pattern transformations (Pattern.setTransform not yet supported)
 - Unicode text rendering
 - Advanced focus management edge cases
 
