@@ -1066,8 +1066,10 @@ public class AwtGraphicsContext implements IGraphicsContext {
             // Translate graphics context to account for bounds offset
             offscreenG2d.translate(-bounds.x, -bounds.y);
 
-            // Copy relevant graphics state (composite, paint, stroke)
-            offscreenG2d.setComposite(g2d.getComposite());
+            // Copy relevant graphics state (paint, stroke)
+            // Use SrcOver for compositing shape and shadow onto offscreen buffer
+            // The global composite operation will be applied when drawing the result back to canvas
+            offscreenG2d.setComposite(AlphaComposite.SrcOver);
             offscreenG2d.setPaint(g2d.getPaint());
             offscreenG2d.setStroke(g2d.getStroke());
 
@@ -1168,7 +1170,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
             offscreenG2d.translate(-bounds.x, -bounds.y);
 
             // Copy graphics state
-            offscreenG2d.setComposite(g2d.getComposite());
+            // Use SrcOver for compositing shape and shadow onto offscreen buffer
+            offscreenG2d.setComposite(AlphaComposite.SrcOver);
             offscreenG2d.setPaint(g2d.getPaint());
             offscreenG2d.setStroke(g2d.getStroke());
 
