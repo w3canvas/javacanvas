@@ -4,7 +4,7 @@
 
 ## Project Completion: 100% ✅
 
-JavaCanvas successfully implements the complete Canvas 2D API specification with dual backend support (AWT/Swing and JavaFX) and JavaScript integration via Mozilla Rhino.
+JavaCanvas successfully implements the complete Canvas 2D API specification with dual backend support (AWT/Swing and JavaFX) and JavaScript integration via Mozilla Rhino (Legacy) and GraalJS (Modern).
 
 ### Test Results
 - **Total Tests:** 147

@@ -110,7 +110,7 @@ JavaCanvas uses a three-layered "Trident" architecture:
 - **Language:** Java 11
 - **Build Tool:** Apache Maven
 - **Graphics:** AWT/Swing, JavaFX 21.0.8
-- **JavaScript Engine:** Mozilla Rhino 1.7.14
+- **JavaScript Engine:** Mozilla Rhino 1.7.14 (Legacy), GraalJS 23.0.0 (Modern)
 - **Testing:** JUnit 5, TestFX 4.0.18, Mockito 5.18.0
 - **Code Coverage:** JaCoCo 0.8.11
 - **Headless Testing:** xvfb (X Virtual Framebuffer)

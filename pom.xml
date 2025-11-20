@@ -124,6 +124,18 @@
             <version>1.7.14</version>
         </dependency>
 
+        <!-- GraalJS -->
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js</artifactId>
+            <version>23.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.sdk</groupId>
+            <artifactId>graal-sdk</artifactId>
+            <version>23.0.0</version>
+        </dependency>
+
         <!-- TestFX -->
         <dependency>
             <groupId>org.testfx</groupId>
