@@ -11,6 +11,8 @@ import com.w3canvas.javacanvas.rt.JavaCanvas;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
@@ -28,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static com.w3canvas.javacanvas.test.VisualRegressionHelper.compareToGoldenMaster;
 
 @ExtendWith(ApplicationExtension.class)
+@Timeout(value = 60, unit = TimeUnit.SECONDS)
 // NOTE: Tests re-enabled after fixing thread-local Context management issue
 // See STATE_MANAGEMENT_BUG_ANALYSIS.md for details
 public class TestCanvas2D extends ApplicationTest {

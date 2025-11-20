@@ -15,10 +15,21 @@ public class RhinoCanvasPattern extends ProjectScriptableObject implements ICanv
     public void init(ICanvasPattern backendPattern) {
         this.backendPattern = backendPattern;
         setParentScope(getParentScope());
-        setPrototype(getClassPrototype(getParentScope(), "CanvasPattern"));
+        setPrototype(getClassPrototype(getParentScope(), "RhinoCanvasPattern"));
     }
 
     public Object getBackendPattern() {
         return backendPattern;
+    }
+
+    public void jsFunction_setTransform(Object matrix) {
+        if (matrix instanceof DOMMatrix) {
+            backendPattern.setTransform(((DOMMatrix) matrix).getTransform());
+        }
+    }
+
+    @Override
+    public void setTransform(Object transform) {
+        backendPattern.setTransform(transform);
     }
 }

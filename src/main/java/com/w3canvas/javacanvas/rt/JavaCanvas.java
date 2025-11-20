@@ -31,6 +31,8 @@ import com.w3canvas.javacanvas.backend.rhino.impl.gradient.LinearCanvasGradient;
 import com.w3canvas.javacanvas.backend.rhino.impl.gradient.RadialCanvasGradient;
 import com.w3canvas.javacanvas.backend.rhino.impl.gradient.RhinoCanvasGradient;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPattern;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoCanvasPattern;
+import com.w3canvas.javacanvas.backend.rhino.impl.node.DOMMatrix;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasPixelArray;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasRenderingContext2D;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.Document;
@@ -172,6 +174,8 @@ public class JavaCanvas {
             ScriptableObject.defineClass(runtime.getScope(), LinearCanvasGradient.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), RadialCanvasGradient.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), CanvasPattern.class, false, true);
+            ScriptableObject.defineClass(runtime.getScope(), RhinoCanvasPattern.class, false, true);
+            ScriptableObject.defineClass(runtime.getScope(), DOMMatrix.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), TextMetrics.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), CanvasPixelArray.class, false, true);
             ScriptableObject.defineClass(runtime.getScope(), ImageData.class, false, true);
