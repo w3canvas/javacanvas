@@ -88,6 +88,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
     private String textBaseline = "alphabetic";
     private String direction = "ltr";  // Default direction for start/end handling
     private double letterSpacing = 0;
+    private double wordSpacing = 0;
 
     // Shadow blur constants
     private static final float ALPHA_CHANNEL_MAX = 255.0f;
@@ -139,6 +140,11 @@ public class AwtGraphicsContext implements IGraphicsContext {
         // Adjust y-coordinate based on textBaseline setting
         double adjustedY = adjustYForTextBaseline(y);
 
+        if (wordSpacing != 0) {
+            drawTextWithSpacing(text, adjustedX, adjustedY, maxWidth, true);
+            return;
+        }
+
         java.awt.font.TextLayout tl = createTextLayout(text);
         if (tl == null) return;
 
@@ -170,6 +176,11 @@ public class AwtGraphicsContext implements IGraphicsContext {
         double adjustedX = adjustXForTextAlign(text, x);
         // Adjust y-coordinate based on textBaseline setting
         double adjustedY = adjustYForTextBaseline(y);
+
+        if (wordSpacing != 0) {
+            drawTextWithSpacing(text, adjustedX, adjustedY, maxWidth, false);
+            return;
+        }
 
         // Create TextLayout using helper (handles direction/attributes)
         java.awt.font.TextLayout tl = createTextLayout(text);
@@ -393,7 +404,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public void setWordSpacing(double spacing) {
-        // Not supported in AWT TextLayout standard attributes
+        this.wordSpacing = spacing;
     }
 
     private void updateFontWithAttributes() {
@@ -548,7 +559,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
         if ("end".equals(textAlign)) {
             // In ltr mode, "end" means right; in rtl mode, "end" means left
             if ("ltr".equals(direction)) {
-                int textWidth = g2d.getFontMetrics().stringWidth(text);
+                double textWidth = getTextWidth(text);
                 return x - textWidth;
             } else {
                 // rtl: end means left-aligned
@@ -557,7 +568,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
         }
 
         // Measure text width for right and center alignment
-        int textWidth = g2d.getFontMetrics().stringWidth(text);
+        double textWidth = getTextWidth(text);
 
         if ("right".equals(textAlign)) {
             return x - textWidth;
@@ -670,7 +681,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public ITextMetrics measureText(String text) {
-        return new AwtTextMetrics(text, g2d.getFont(), g2d);
+        return new AwtTextMetrics(text, g2d.getFont(), g2d, wordSpacing);
     }
 
     @Override
@@ -1918,6 +1929,65 @@ public class AwtGraphicsContext implements IGraphicsContext {
         }
 
         return null;
+    }
+
+    private double getTextWidth(String text) {
+        if (wordSpacing == 0) {
+            return g2d.getFontMetrics().stringWidth(text);
+        }
+        return measureText(text).getWidth();
+    }
+
+    private void drawTextWithSpacing(String text, double x, double y, double maxWidth, boolean fill) {
+        String[] words = text.split(" ", -1);
+        double spaceWidth = g2d.getFontMetrics().getStringBounds(" ", g2d).getWidth();
+
+        // Calculate total width for maxWidth scaling
+        double totalWidth = getTextWidth(text);
+
+        AffineTransform oldTransform = g2d.getTransform();
+        if (maxWidth > 0 && totalWidth > maxWidth) {
+            double scale = maxWidth / totalWidth;
+            AffineTransform scaleTransform = new AffineTransform(oldTransform);
+            scaleTransform.translate(x, y);
+            scaleTransform.scale(scale, 1.0);
+            scaleTransform.translate(-x, -y);
+            g2d.setTransform(scaleTransform);
+        }
+
+        double currentX = x;
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            if (!word.isEmpty()) {
+                java.awt.font.TextLayout tl = createTextLayout(word);
+                if (tl != null) {
+                    if (fill) {
+                        tl.draw(g2d, (float)currentX, (float)y);
+                    } else {
+                        Shape shape = tl.getOutline(AffineTransform.getTranslateInstance(currentX, y));
+                        if (shouldApplyFilters()) {
+                            // Need to apply current g2d transform
+                            Shape deviceShape = g2d.getTransform().createTransformedShape(shape);
+                            AffineTransform saved = g2d.getTransform();
+                            g2d.setTransform(new AffineTransform());
+                            strokeShapeWithFilters(deviceShape);
+                            g2d.setTransform(saved);
+                        } else {
+                            g2d.draw(shape);
+                        }
+                    }
+                    currentX += tl.getAdvance();
+                }
+            }
+
+            if (i < words.length - 1) {
+                currentX += spaceWidth + wordSpacing;
+            }
+        }
+
+        if (maxWidth > 0 && totalWidth > maxWidth) {
+            g2d.setTransform(oldTransform);
+        }
     }
 
     /**
