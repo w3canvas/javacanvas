@@ -481,6 +481,11 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
         // Apply filter
         gc.setFilter(this.filter);
+
+        // Apply modern text properties
+        gc.setDirection(this.direction);
+        gc.setLetterSpacing(this.letterSpacing);
+        gc.setWordSpacing(this.wordSpacing);
     }
 
     @Override
@@ -919,6 +924,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         // Validate direction: "ltr", "rtl", "inherit"
         if ("ltr".equals(direction) || "rtl".equals(direction) || "inherit".equals(direction)) {
             this.direction = direction;
+            gc.setDirection(direction);
         }
     }
 
@@ -954,6 +960,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public void setLetterSpacing(double spacing) {
         this.letterSpacing = spacing;
+        gc.setLetterSpacing(spacing);
     }
 
     /**
@@ -988,6 +995,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public void setWordSpacing(double spacing) {
         this.wordSpacing = spacing;
+        gc.setWordSpacing(spacing);
     }
 
     @Override

@@ -243,6 +243,21 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void setDirection(String direction) {
+        // Not fully supported in JavaFX GraphicsContext API yet
+    }
+
+    @Override
+    public void setLetterSpacing(double spacing) {
+        // Not supported in JavaFX GraphicsContext API
+    }
+
+    @Override
+    public void setWordSpacing(double spacing) {
+        // Not supported in JavaFX GraphicsContext API
+    }
+
+    @Override
     public void setFont(IFont font) {
         if (font instanceof JavaFXFont) {
             gc.setFont(((JavaFXFont) font).getFont());

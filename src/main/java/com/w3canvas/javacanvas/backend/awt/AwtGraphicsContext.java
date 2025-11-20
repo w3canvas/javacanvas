@@ -23,6 +23,10 @@ import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.awt.image.LookupOp;
 import java.awt.image.RescaleOp;
+import java.text.AttributedString;
+import java.awt.font.TextAttribute;
+import java.util.Map;
+import java.util.HashMap;
 
 import com.w3canvas.javacanvas.interfaces.*;
 
@@ -83,6 +87,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
     private String textAlign = "start";
     private String textBaseline = "alphabetic";
     private String direction = "ltr";  // Default direction for start/end handling
+    private double letterSpacing = 0;
 
     // Shadow blur constants
     private static final float ALPHA_CHANNEL_MAX = 255.0f;
@@ -134,9 +139,12 @@ public class AwtGraphicsContext implements IGraphicsContext {
         // Adjust y-coordinate based on textBaseline setting
         double adjustedY = adjustYForTextBaseline(y);
 
+        java.awt.font.TextLayout tl = createTextLayout(text);
+        if (tl == null) return;
+
         // Handle maxWidth by scaling text horizontally when it exceeds the limit
         if (maxWidth > 0) {
-            int textWidth = g2d.getFontMetrics().stringWidth(text);
+            double textWidth = tl.getAdvance();
             if (textWidth > maxWidth) {
                 // Scale text to fit maxWidth
                 double scale = maxWidth / textWidth;
@@ -147,13 +155,13 @@ public class AwtGraphicsContext implements IGraphicsContext {
                 scaleTransform.translate(-adjustedX, -adjustedY);
                 g2d.setTransform(scaleTransform);
                 // Draw text
-                g2d.drawString(text, (float)adjustedX, (float)adjustedY);
+                tl.draw(g2d, (float)adjustedX, (float)adjustedY);
                 g2d.setTransform(oldTransform); // Restore
                 return; // Don't draw again
             }
         }
         // Normal drawing if maxWidth not exceeded or not specified
-        g2d.drawString(text, (float)adjustedX, (float)adjustedY);
+        tl.draw(g2d, (float)adjustedX, (float)adjustedY);
     }
 
     @Override
@@ -163,13 +171,13 @@ public class AwtGraphicsContext implements IGraphicsContext {
         // Adjust y-coordinate based on textBaseline setting
         double adjustedY = adjustYForTextBaseline(y);
 
-        // Handle maxWidth by scaling text horizontally when it exceeds the limit
-        Font font = g2d.getFont();
-        java.awt.font.FontRenderContext frc = g2d.getFontRenderContext();
-        java.awt.font.TextLayout tl = new java.awt.font.TextLayout(text, font, frc);
+        // Create TextLayout using helper (handles direction/attributes)
+        java.awt.font.TextLayout tl = createTextLayout(text);
+        if (tl == null) return;
 
+        // Handle maxWidth by scaling text horizontally when it exceeds the limit
         if (maxWidth > 0) {
-            int textWidth = g2d.getFontMetrics().stringWidth(text);
+            double textWidth = tl.getAdvance();
             if (textWidth > maxWidth) {
                 // Scale text to fit maxWidth
                 double scale = maxWidth / textWidth;
@@ -368,7 +376,62 @@ public class AwtGraphicsContext implements IGraphicsContext {
     public void setFont(IFont font) {
         if (font instanceof AwtFont) {
             g2d.setFont(((AwtFont) font).getFont());
+            updateFontWithAttributes();
         }
+    }
+
+    @Override
+    public void setDirection(String direction) {
+        this.direction = direction;
+    }
+
+    @Override
+    public void setLetterSpacing(double spacing) {
+        this.letterSpacing = spacing;
+        updateFontWithAttributes();
+    }
+
+    @Override
+    public void setWordSpacing(double spacing) {
+        // Not supported in AWT TextLayout standard attributes
+    }
+
+    private void updateFontWithAttributes() {
+        Font f = g2d.getFont();
+        if (f == null) return;
+
+        Map<TextAttribute, Object> attributes = new HashMap<>();
+
+        // Apply tracking (letter spacing)
+        if (letterSpacing != 0) {
+            float size = f.getSize2D();
+            if (size > 0) {
+                double tracking = letterSpacing / size;
+                attributes.put(TextAttribute.TRACKING, tracking);
+            }
+        } else {
+            attributes.put(TextAttribute.TRACKING, 0.0);
+        }
+
+        g2d.setFont(f.deriveFont(attributes));
+    }
+
+    private java.awt.font.TextLayout createTextLayout(String text) {
+        if (text == null || text.isEmpty()) return null;
+
+        java.awt.font.FontRenderContext frc = g2d.getFontRenderContext();
+        Font font = g2d.getFont();
+
+        AttributedString as = new AttributedString(text);
+        as.addAttribute(TextAttribute.FONT, font);
+
+        if ("rtl".equals(direction)) {
+            as.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_RTL);
+        } else if ("ltr".equals(direction)) {
+            as.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_LTR);
+        }
+
+        return new java.awt.font.TextLayout(as.getIterator(), frc);
     }
 
     /**

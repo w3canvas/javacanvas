@@ -26,7 +26,6 @@ var pattern = ctx.createPattern(pCanvas, 'repeat');
 
 ctx.save();
 ctx.scale(2, 2);
-// ctx.rotate(Math.PI / 4); // optional
 var matrix = ctx.getTransform();
 ctx.restore();
 
@@ -40,3 +39,16 @@ if (pattern.setTransform) {
 ctx.fillStyle = pattern;
 ctx.fillRect(50, 0, 150, 200);
 console.log("Pattern fill executed");
+
+// Test Text Direction
+ctx.resetTransform();
+ctx.font = "20px sans-serif";
+ctx.direction = "rtl";
+ctx.textAlign = "start";
+ctx.fillStyle = "black";
+ctx.fillText("RTL Text", 150, 150);
+console.log("RTL Text executed");
+
+ctx.direction = "ltr";
+ctx.fillText("LTR Text", 150, 180);
+console.log("LTR Text executed");
