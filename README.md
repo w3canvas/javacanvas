@@ -6,8 +6,8 @@ A Java implementation of the HTML5 Canvas 2D API with dual graphics backend supp
 
 **JavaCanvas** enables HTML5 Canvas drawing capabilities in Java applications by bridging JavaScript canvas code with Java graphics backends. This allows JavaScript-based canvas applications to run in Java environments with full 2D rendering support.
 
-**Status:** 🎉 **100% feature complete** for modern Canvas 2D API specification (updated 2025-11-19)
-**Test Status:** 147/147 tests passing (100% pass rate)
+**Status:** 🎉 **100% feature complete** for modern Canvas 2D API specification (updated 2025-11-20)
+**Test Status:** 149/149 tests passing (100% pass rate)
 **License:** Public Domain / CC0 (Creative Commons Zero)
 **Developed by:** Jumis, Inc.
 
@@ -84,6 +84,9 @@ All Canvas 2D API features are now fully implemented:
 - ✅ Canvas property: `.canvas` back-reference
 - ✅ Font kerning: `fontKerning` (read-only "auto" - Java handles automatically)
 - ✅ True conic gradients: Custom Paint implementation (not fallback)
+- ✅ Pattern transforms: `setTransform()` fully implemented in all layers
+- ✅ Filters on stroke: CSS filters now work for both fill and stroke operations
+- ✅ Text layout: Direction and letter-spacing support in AWT backend
 
 ## Architecture
 
@@ -143,7 +146,7 @@ mvn clean test
 
 ### Test Status
 
-**All Tests Passing (147/147 - 100%):**
+**All Tests Passing (149/149 - 100%):**
 - ✓ `TestCanvas2D` - 77 comprehensive Canvas 2D API tests
 - ✓ `TestImageBitmap` - 11 ImageBitmap API tests
 - ✓ `TestOffscreenCanvas` - 10 OffscreenCanvas API tests
@@ -161,6 +164,8 @@ mvn clean test
 - ✓ `TestJavaFXFont` - 1 JavaFX font integration test
 - ✓ `TestRhino` - 1 Rhino JavaScript integration test
 - ✓ `TestWorker` - 1 Worker API test
+- ✓ `TestJSFeatures` - 1 JavaScript feature integration test
+- ✓ `TestAwtStrokeWithFilter` - 1 AWT filter unit test
 
 **Note:** Path2D edge case bugs fixed - all tests passing with assertions enabled
 

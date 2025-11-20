@@ -73,47 +73,24 @@ All critical, high, and medium priority improvements have been completed. The co
 
 ## Remaining Improvements
 
-### 1. Advanced Text Properties (Low Priority)
+### 1. Advanced Text Properties (Completed for AWT) ✅
 
-**Status:** Core text rendering features (textAlign, textBaseline, maxWidth) fully implemented ✅
+**Status:** Core text rendering features (textAlign, textBaseline, maxWidth) fully implemented. AWT backend now supports direction and letterSpacing.
 
-**Remaining Advanced Features:**
-
-#### Advanced Text Properties
-- **Properties:** direction, letterSpacing, wordSpacing
-- **Current:** Stored but not implemented (documented in CoreCanvasRenderingContext2D)
-- **Required:**
-  - direction: Bidirectional text layout
-  - letterSpacing: Adjust glyph positioning
-  - wordSpacing: Add spacing at word boundaries
-- **Effort:** 8-12 hours each
-
-**Total Advanced Text Effort:** 24-36 hours
-
-**Note:** These are advanced typography features rarely used in typical Canvas applications. Core text rendering (textAlign, textBaseline, maxWidth) is now complete.
+**Remaining Gaps:**
+- Word spacing (not supported in AWT)
+- JavaFX advanced text properties (direction, spacing)
 
 ---
 
-### 2. CSS Filter Integration (Low Priority)
+### 2. CSS Filter Integration (Completed) ✅
 
-**Status:** Method fully implemented but not integrated into rendering pipeline
+**Status:** Fully integrated into rendering pipeline for both AWT and JavaFX.
 
-**File:** `AwtGraphicsContext.java:applyFiltersToImage()`
-
-**Required Steps:**
-1. Modify fill(), stroke(), and drawImage() to render to temporary BufferedImage
-2. Call applyFiltersToImage() on temporary image
-3. Composite filtered result back to main canvas
-4. Handle filter context (current transformation, clip region)
-
-**Architectural Changes:**
-- Add off-screen rendering buffer management
-- Track when filters are active
-- Optimize to avoid unnecessary off-screen rendering
-
-**Effort:** 12-16 hours
-
-**Note:** Method is fully functional and well-documented. Integration requires architectural changes to support off-screen rendering. This is a nice-to-have feature for applications that need CSS filter effects.
+**Implementation:**
+- AWT: Uses off-screen rendering buffer management for stroke/fill operations.
+- JavaFX: Uses native Effect pipeline.
+- Performance: Optimized with BufferedImageOp/ConvolveOp.
 
 ---
 
@@ -148,8 +125,7 @@ These are nice-to-have improvements for performance-critical applications:
 Most critical test coverage has been added. Remaining gaps are edge cases:
 
 **Pattern Transformations:**
-- Test Pattern.setTransform() if/when implemented
-- Effort: 1 hour
+- Pattern.setTransform() implemented and tested ✅
 
 **Unicode Text Rendering:**
 - Test complex Unicode (emoji, RTL text, combining characters)
