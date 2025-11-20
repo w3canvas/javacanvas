@@ -230,6 +230,23 @@ See [REFACTOR.md](REFACTOR.md) for architectural details.
 - **[AGENTS.md](AGENTS.md)** - Instructions for AI agents and automated development
 - **[HEADLESS_TESTING_PLAN.md](HEADLESS_TESTING_PLAN.md)** - Headless testing strategy and setup
 
+## Native Image Support (Experimental)
+
+This project includes configuration for building a GraalVM Native Image. This allows for faster startup and lower memory footprint, particularly useful for serverless or CLI use cases.
+
+### Prerequisites
+- GraalVM JDK (Java 11+) installed and `native-image` tool available.
+
+### Building Native Image
+
+```bash
+mvn -Pnative package
+```
+
+### Limitations
+- The legacy Rhino integration (used by `JavaCanvas` default setup) may require additional configuration for AOT compilation due to dynamic bytecode generation.
+- The recommended path for Native Image is to use `CoreCanvasRenderingContext2D` directly with GraalJS or Java-only logic, bypassing the Rhino binding layer.
+
 ## Usage Example
 
 ```java
