@@ -9,6 +9,7 @@ import com.w3canvas.javacanvas.interfaces.IImageData;
 import com.w3canvas.javacanvas.interfaces.ITextMetrics;
 import com.w3canvas.javacanvas.rt.JavaCanvas;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -37,6 +38,19 @@ public class TestCanvas2D extends ApplicationTest {
 
     private JavaCanvas javaCanvas;
     private Scriptable scope;
+
+    @BeforeAll
+    public static void warmUp() {
+        // Warm up JavaFX and Canvas classes to avoid timeout in first test
+        try {
+            javafx.application.Platform.startup(() -> {});
+        } catch (IllegalStateException e) {
+            // Platform already started
+        }
+        // Initialize a dummy canvas to load classes
+        JavaCanvas canvas = new JavaCanvas(".", true);
+        canvas.initializeBackend();
+    }
 
     @Start
     public void start(Stage stage) {
