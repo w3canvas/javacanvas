@@ -4,8 +4,10 @@ import com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
 import com.w3canvas.javacanvas.rt.JavaCanvas;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
@@ -25,11 +27,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @ExtendWith(ApplicationExtension.class)
+@Timeout(value = 60, unit = TimeUnit.SECONDS)
 public class TestWorker extends ApplicationTest {
 
     private JavaCanvas javaCanvas;
     private ICanvasRenderingContext2D ctx;
     private HTMLCanvasElement canvas;
+
+    @BeforeAll
+    public static void warmUp() {
+        try {
+            javafx.application.Platform.startup(() -> {});
+        } catch (IllegalStateException e) {
+            // Platform already started
+        }
+    }
 
     @Start
     public void start(Stage stage) {

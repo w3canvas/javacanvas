@@ -1,7 +1,10 @@
 package com.w3canvas.javacanvas.test;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
+import java.util.concurrent.TimeUnit;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.ApplicationTest;
 import org.testfx.framework.junit5.Start;
@@ -18,7 +21,17 @@ import java.io.InputStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(ApplicationExtension.class)
+@Timeout(value = 60, unit = TimeUnit.SECONDS)
 public class TestJavaFXFont extends ApplicationTest {
+
+    @BeforeAll
+    public static void warmUp() {
+        try {
+            javafx.application.Platform.startup(() -> {});
+        } catch (IllegalStateException e) {
+            // Platform already started
+        }
+    }
 
     @Start
     public void start(Stage stage) {

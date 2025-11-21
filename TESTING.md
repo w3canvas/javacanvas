@@ -125,7 +125,6 @@ The following areas need additional test coverage (see [IMPROVEMENTS.md](IMPROVE
 - `drawFocusIfNeeded()` - no tests
 - Advanced edge cases (degenerate transforms, very large coordinates)
 - putImageData with dirty rectangles (all 7 parameters)
-- Pattern transformations
 - Unicode text rendering
 
 **Test Quality Issues:**
@@ -211,6 +210,7 @@ The test suite is designed to run in CI/CD environments:
 - Look for deadlocks in JavaFX Application thread
 - Check for missing Context.exit() in Rhino tests
 - Ensure proper cleanup in tearDown methods
+- **Headless Initialization:** JavaFX initialization can be slow in headless environments (xvfb). Tests extending `ApplicationTest` include a `@BeforeAll` warmup method and extended timeouts (`@Timeout`) to handle this.
 
 ### Flaky Tests
 

@@ -1,0 +1,14 @@
+[
+  {
+    "name": "com.w3canvas.javacanvas.core.CoreCanvasRenderingContext2D",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.w3canvas.javacanvas.backend.awt.AwtGraphicsBackend",
+    "allPublicConstructors": true
+  },
+  {
+    "name": "com.w3canvas.javacanvas.backend.awt.AwtCanvasSurface",
+    "allPublicMethods": true
+  }
+]
