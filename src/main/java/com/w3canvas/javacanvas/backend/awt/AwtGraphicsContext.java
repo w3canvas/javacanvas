@@ -23,6 +23,10 @@ import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.awt.image.LookupOp;
 import java.awt.image.RescaleOp;
+import java.text.AttributedString;
+import java.awt.font.TextAttribute;
+import java.util.Map;
+import java.util.HashMap;
 
 import com.w3canvas.javacanvas.interfaces.*;
 
@@ -83,6 +87,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
     private String textAlign = "start";
     private String textBaseline = "alphabetic";
     private String direction = "ltr";  // Default direction for start/end handling
+    private double letterSpacing = 0;
+    private double wordSpacing = 0;
 
     // Shadow blur constants
     private static final float ALPHA_CHANNEL_MAX = 255.0f;
@@ -134,9 +140,17 @@ public class AwtGraphicsContext implements IGraphicsContext {
         // Adjust y-coordinate based on textBaseline setting
         double adjustedY = adjustYForTextBaseline(y);
 
+        if (wordSpacing != 0) {
+            drawTextWithSpacing(text, adjustedX, adjustedY, maxWidth, true);
+            return;
+        }
+
+        java.awt.font.TextLayout tl = createTextLayout(text);
+        if (tl == null) return;
+
         // Handle maxWidth by scaling text horizontally when it exceeds the limit
         if (maxWidth > 0) {
-            int textWidth = g2d.getFontMetrics().stringWidth(text);
+            double textWidth = tl.getAdvance();
             if (textWidth > maxWidth) {
                 // Scale text to fit maxWidth
                 double scale = maxWidth / textWidth;
@@ -147,13 +161,13 @@ public class AwtGraphicsContext implements IGraphicsContext {
                 scaleTransform.translate(-adjustedX, -adjustedY);
                 g2d.setTransform(scaleTransform);
                 // Draw text
-                g2d.drawString(text, (float)adjustedX, (float)adjustedY);
+                tl.draw(g2d, (float)adjustedX, (float)adjustedY);
                 g2d.setTransform(oldTransform); // Restore
                 return; // Don't draw again
             }
         }
         // Normal drawing if maxWidth not exceeded or not specified
-        g2d.drawString(text, (float)adjustedX, (float)adjustedY);
+        tl.draw(g2d, (float)adjustedX, (float)adjustedY);
     }
 
     @Override
@@ -163,13 +177,18 @@ public class AwtGraphicsContext implements IGraphicsContext {
         // Adjust y-coordinate based on textBaseline setting
         double adjustedY = adjustYForTextBaseline(y);
 
-        // Handle maxWidth by scaling text horizontally when it exceeds the limit
-        Font font = g2d.getFont();
-        java.awt.font.FontRenderContext frc = g2d.getFontRenderContext();
-        java.awt.font.TextLayout tl = new java.awt.font.TextLayout(text, font, frc);
+        if (wordSpacing != 0) {
+            drawTextWithSpacing(text, adjustedX, adjustedY, maxWidth, false);
+            return;
+        }
 
+        // Create TextLayout using helper (handles direction/attributes)
+        java.awt.font.TextLayout tl = createTextLayout(text);
+        if (tl == null) return;
+
+        // Handle maxWidth by scaling text horizontally when it exceeds the limit
         if (maxWidth > 0) {
-            int textWidth = g2d.getFontMetrics().stringWidth(text);
+            double textWidth = tl.getAdvance();
             if (textWidth > maxWidth) {
                 // Scale text to fit maxWidth
                 double scale = maxWidth / textWidth;
@@ -179,16 +198,36 @@ public class AwtGraphicsContext implements IGraphicsContext {
                 scaleTransform.scale(scale, 1.0); // Only scale X, not Y
                 scaleTransform.translate(-adjustedX, -adjustedY);
                 g2d.setTransform(scaleTransform);
+
                 // Draw text outline
                 Shape shape = tl.getOutline(AffineTransform.getTranslateInstance(adjustedX, adjustedY));
-                g2d.draw(shape);
+                if (shouldApplyFilters()) {
+                    // Need to apply current g2d transform (which includes scale)
+                    Shape deviceShape = g2d.getTransform().createTransformedShape(shape);
+                    AffineTransform saved = g2d.getTransform();
+                    g2d.setTransform(new AffineTransform());
+                    strokeShapeWithFilters(deviceShape);
+                    g2d.setTransform(saved);
+                } else {
+                    g2d.draw(shape);
+                }
+
                 g2d.setTransform(oldTransform); // Restore
                 return; // Don't draw again
             }
         }
         // Normal drawing if maxWidth not exceeded or not specified
         Shape shape = tl.getOutline(AffineTransform.getTranslateInstance(adjustedX, adjustedY));
-        g2d.draw(shape);
+        if (shouldApplyFilters()) {
+            // Need to apply current g2d transform
+            Shape deviceShape = g2d.getTransform().createTransformedShape(shape);
+            AffineTransform saved = g2d.getTransform();
+            g2d.setTransform(new AffineTransform());
+            strokeShapeWithFilters(deviceShape);
+            g2d.setTransform(saved);
+        } else {
+            g2d.draw(shape);
+        }
     }
 
     @Override
@@ -348,7 +387,62 @@ public class AwtGraphicsContext implements IGraphicsContext {
     public void setFont(IFont font) {
         if (font instanceof AwtFont) {
             g2d.setFont(((AwtFont) font).getFont());
+            updateFontWithAttributes();
         }
+    }
+
+    @Override
+    public void setDirection(String direction) {
+        this.direction = direction;
+    }
+
+    @Override
+    public void setLetterSpacing(double spacing) {
+        this.letterSpacing = spacing;
+        updateFontWithAttributes();
+    }
+
+    @Override
+    public void setWordSpacing(double spacing) {
+        this.wordSpacing = spacing;
+    }
+
+    private void updateFontWithAttributes() {
+        Font f = g2d.getFont();
+        if (f == null) return;
+
+        Map<TextAttribute, Object> attributes = new HashMap<>();
+
+        // Apply tracking (letter spacing)
+        if (letterSpacing != 0) {
+            float size = f.getSize2D();
+            if (size > 0) {
+                double tracking = letterSpacing / size;
+                attributes.put(TextAttribute.TRACKING, tracking);
+            }
+        } else {
+            attributes.put(TextAttribute.TRACKING, 0.0);
+        }
+
+        g2d.setFont(f.deriveFont(attributes));
+    }
+
+    private java.awt.font.TextLayout createTextLayout(String text) {
+        if (text == null || text.isEmpty()) return null;
+
+        java.awt.font.FontRenderContext frc = g2d.getFontRenderContext();
+        Font font = g2d.getFont();
+
+        AttributedString as = new AttributedString(text);
+        as.addAttribute(TextAttribute.FONT, font);
+
+        if ("rtl".equals(direction)) {
+            as.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_RTL);
+        } else if ("ltr".equals(direction)) {
+            as.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_LTR);
+        }
+
+        return new java.awt.font.TextLayout(as.getIterator(), frc);
     }
 
     /**
@@ -465,7 +559,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
         if ("end".equals(textAlign)) {
             // In ltr mode, "end" means right; in rtl mode, "end" means left
             if ("ltr".equals(direction)) {
-                int textWidth = g2d.getFontMetrics().stringWidth(text);
+                double textWidth = getTextWidth(text);
                 return x - textWidth;
             } else {
                 // rtl: end means left-aligned
@@ -474,7 +568,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
         }
 
         // Measure text width for right and center alignment
-        int textWidth = g2d.getFontMetrics().stringWidth(text);
+        double textWidth = getTextWidth(text);
 
         if ("right".equals(textAlign)) {
             return x - textWidth;
@@ -587,7 +681,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
     @Override
     public ITextMetrics measureText(String text) {
-        return new AwtTextMetrics(text, g2d.getFont(), g2d);
+        return new AwtTextMetrics(text, g2d.getFont(), g2d, wordSpacing);
     }
 
     @Override
@@ -933,7 +1027,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
             g2d.setTransform(new AffineTransform());  // Identity transform
 
             // Apply shadow first
-            applyShadow(this.path, true);
+            applyShadow(g2d, this.path, true);
             // Then draw the actual shape
             g2d.fill(this.path);
 
@@ -983,29 +1077,15 @@ public class AwtGraphicsContext implements IGraphicsContext {
             // Translate graphics context to account for bounds offset
             offscreenG2d.translate(-bounds.x, -bounds.y);
 
-            // Copy relevant graphics state (composite, paint, stroke)
-            offscreenG2d.setComposite(g2d.getComposite());
+            // Copy relevant graphics state (paint, stroke)
+            // Use SrcOver for compositing shape and shadow onto offscreen buffer
+            // The global composite operation will be applied when drawing the result back to canvas
+            offscreenG2d.setComposite(AlphaComposite.SrcOver);
             offscreenG2d.setPaint(g2d.getPaint());
             offscreenG2d.setStroke(g2d.getStroke());
 
-            // Apply shadow to offscreen (temporarily swap g2d context)
-            Graphics2D originalG2d = this.g2d;
-            try {
-                // HACK: Temporarily replace g2d with offscreen graphics for shadow rendering
-                // This is necessary because applyShadow() uses the g2d field directly
-                java.lang.reflect.Field g2dField = AwtGraphicsContext.class.getDeclaredField("g2d");
-                g2dField.setAccessible(true);
-                g2dField.set(this, offscreenG2d);
-
-                // Apply shadow on the offscreen buffer
-                applyShadow(this.path, true);
-
-                // Restore original g2d
-                g2dField.set(this, originalG2d);
-            } catch (Exception e) {
-                // If reflection fails, just fill without shadow on offscreen
-                // The shadow will still be visible on subsequent non-filtered operations
-            }
+            // Apply shadow on the offscreen buffer
+            applyShadow(offscreenG2d, this.path, true);
 
             // Perform fill on offscreen buffer
             offscreenG2d.fill(this.path);
@@ -1064,6 +1144,66 @@ public class AwtGraphicsContext implements IGraphicsContext {
         return maxExpansion;
     }
 
+    /**
+     * Perform stroke operation with filters applied.
+     */
+    private void strokeShapeWithFilters(Shape shape) {
+        // Calculate bounds of the shape
+        Rectangle2D bounds2D = shape.getBounds2D();
+        java.awt.Rectangle bounds = bounds2D.getBounds();
+
+        // Expand bounds for line width
+        int strokeExpansion = (int) Math.ceil(this.lineWidth / 2.0);
+        // grow() expands in all directions (subtracts from x,y and adds to w,h)
+        bounds.grow(strokeExpansion, strokeExpansion);
+
+        // Expand bounds to account for filter effects (e.g., blur)
+        int expansion = calculateFilterExpansion();
+        bounds.grow(expansion, expansion);
+
+        // Ensure bounds are within canvas and non-empty
+        BufferedImage canvasImage = (BufferedImage) surface.getNativeImage();
+        bounds = bounds.intersection(new java.awt.Rectangle(0, 0, canvasImage.getWidth(), canvasImage.getHeight()));
+
+        if (bounds.width <= 0 || bounds.height <= 0) {
+            return; // Nothing to render
+        }
+
+        // Create off-screen buffer with alpha channel
+        BufferedImage offscreen = new BufferedImage(bounds.width, bounds.height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D offscreenG2d = offscreen.createGraphics();
+
+        try {
+            // Copy rendering hints
+            offscreenG2d.setRenderingHints(g2d.getRenderingHints());
+
+            // Translate graphics context to account for bounds offset
+            offscreenG2d.translate(-bounds.x, -bounds.y);
+
+            // Copy graphics state
+            // Use SrcOver for compositing shape and shadow onto offscreen buffer
+            offscreenG2d.setComposite(AlphaComposite.SrcOver);
+            offscreenG2d.setPaint(g2d.getPaint());
+            offscreenG2d.setStroke(g2d.getStroke());
+
+            // Apply shadow on the offscreen buffer
+            applyShadow(offscreenG2d, shape, false);
+
+            // Perform stroke on offscreen buffer
+            offscreenG2d.draw(shape);
+
+            // Apply filters
+            BufferedImage filtered = applyFiltersToImage(offscreen);
+
+            // Composite filtered result back to main canvas
+            // Assumes g2d is currently Identity transform (handled by caller)
+            g2d.drawImage(filtered, bounds.x, bounds.y, null);
+
+        } finally {
+            offscreenG2d.dispose();
+        }
+    }
+
     @Override
     public void stroke() {
         // IMPORTANT: The path has already been built with transformed coordinates
@@ -1072,10 +1212,14 @@ public class AwtGraphicsContext implements IGraphicsContext {
         AffineTransform savedTransform = g2d.getTransform();
         g2d.setTransform(new AffineTransform());  // Identity transform
 
-        // Apply shadow first
-        applyShadow(this.path, false);
-        // Then draw the actual shape
-        g2d.draw(this.path);
+        if (shouldApplyFilters()) {
+            strokeShapeWithFilters(this.path);
+        } else {
+            // Apply shadow first
+            applyShadow(g2d, this.path, false);
+            // Then draw the actual shape
+            g2d.draw(this.path);
+        }
 
         // Restore the transform
         g2d.setTransform(savedTransform);
@@ -1161,7 +1305,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
     }
 
     // Helper method to apply shadow effect
-    private void applyShadow(Shape shape, boolean isFill) {
+    private void applyShadow(Graphics2D g, Shape shape, boolean isFill) {
         // Check if shadow is active (non-zero offset or blur, and non-transparent color)
         boolean hasShadow = (shadowBlur > 0 || shadowOffsetX != 0 || shadowOffsetY != 0)
                           && shadowColor != null && !shadowColor.equals("rgba(0, 0, 0, 0)");
@@ -1177,8 +1321,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
         }
 
         // Save current state
-        Paint oldPaint = g2d.getPaint();
-        Composite oldComposite = g2d.getComposite();
+        Paint oldPaint = g.getPaint();
+        Composite oldComposite = g.getComposite();
 
         // Create transformed shape for shadow
         AffineTransform shadowTransform = AffineTransform.getTranslateInstance(shadowOffsetX, shadowOffsetY);
@@ -1207,7 +1351,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
 
             try {
                 // Configure rendering hints
-                shadowG2d.setRenderingHints(g2d.getRenderingHints());
+                shadowG2d.setRenderingHints(g.getRenderingHints());
 
                 // Translate to account for bounds offset
                 shadowG2d.translate(-x, -y);
@@ -1218,7 +1362,7 @@ public class AwtGraphicsContext implements IGraphicsContext {
                 if (isFill) {
                     shadowG2d.fill(shadowShape);
                 } else {
-                    shadowG2d.setStroke(g2d.getStroke());
+                    shadowG2d.setStroke(g.getStroke());
                     shadowG2d.draw(shadowShape);
                 }
 
@@ -1246,27 +1390,27 @@ public class AwtGraphicsContext implements IGraphicsContext {
                 }
 
                 // Composite blurred shadow onto main canvas
-                g2d.drawImage(shadowImage, x, y, null);
+                g.drawImage(shadowImage, x, y, null);
 
             } finally {
                 // Always dispose graphics resources
-                if (shadowG2d != null && !shadowG2d.equals(g2d)) {
+                if (shadowG2d != null && !shadowG2d.equals(g)) {
                     shadowG2d.dispose();
                 }
             }
         } else {
             // No blur, just draw shadow once
-            g2d.setPaint(shadowCol);
+            g.setPaint(shadowCol);
             if (isFill) {
-                g2d.fill(shadowShape);
+                g.fill(shadowShape);
             } else {
-                g2d.draw(shadowShape);
+                g.draw(shadowShape);
             }
         }
 
         // Restore state
-        g2d.setPaint(oldPaint);
-        g2d.setComposite(oldComposite);
+        g.setPaint(oldPaint);
+        g.setComposite(oldComposite);
     }
 
     /**
@@ -1341,9 +1485,8 @@ public class AwtGraphicsContext implements IGraphicsContext {
      * Apply CSS filters to an image using AWT BufferedImageOp operations.
      * This creates a filtered version of the current canvas content.
      *
-     * TODO: FILTER INTEGRATION - This method is fully implemented but not yet integrated
-     * into the rendering pipeline. To properly support the Canvas 2D filter API, this
-     * method needs to be called during fill(), stroke(), and drawImage() operations.
+     * This method is called during fill(), stroke(), and drawImage() operations to apply
+     * CSS filters to the rendered content.
      *
      * Implementation approach:
      * 1. Render the operation to a temporary BufferedImage
@@ -1786,6 +1929,65 @@ public class AwtGraphicsContext implements IGraphicsContext {
         }
 
         return null;
+    }
+
+    private double getTextWidth(String text) {
+        if (wordSpacing == 0) {
+            return g2d.getFontMetrics().stringWidth(text);
+        }
+        return measureText(text).getWidth();
+    }
+
+    private void drawTextWithSpacing(String text, double x, double y, double maxWidth, boolean fill) {
+        String[] words = text.split(" ", -1);
+        double spaceWidth = g2d.getFontMetrics().getStringBounds(" ", g2d).getWidth();
+
+        // Calculate total width for maxWidth scaling
+        double totalWidth = getTextWidth(text);
+
+        AffineTransform oldTransform = g2d.getTransform();
+        if (maxWidth > 0 && totalWidth > maxWidth) {
+            double scale = maxWidth / totalWidth;
+            AffineTransform scaleTransform = new AffineTransform(oldTransform);
+            scaleTransform.translate(x, y);
+            scaleTransform.scale(scale, 1.0);
+            scaleTransform.translate(-x, -y);
+            g2d.setTransform(scaleTransform);
+        }
+
+        double currentX = x;
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            if (!word.isEmpty()) {
+                java.awt.font.TextLayout tl = createTextLayout(word);
+                if (tl != null) {
+                    if (fill) {
+                        tl.draw(g2d, (float)currentX, (float)y);
+                    } else {
+                        Shape shape = tl.getOutline(AffineTransform.getTranslateInstance(currentX, y));
+                        if (shouldApplyFilters()) {
+                            // Need to apply current g2d transform
+                            Shape deviceShape = g2d.getTransform().createTransformedShape(shape);
+                            AffineTransform saved = g2d.getTransform();
+                            g2d.setTransform(new AffineTransform());
+                            strokeShapeWithFilters(deviceShape);
+                            g2d.setTransform(saved);
+                        } else {
+                            g2d.draw(shape);
+                        }
+                    }
+                    currentX += tl.getAdvance();
+                }
+            }
+
+            if (i < words.length - 1) {
+                currentX += spaceWidth + wordSpacing;
+            }
+        }
+
+        if (maxWidth > 0 && totalWidth > maxWidth) {
+            g2d.setTransform(oldTransform);
+        }
     }
 
     /**

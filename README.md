@@ -6,8 +6,8 @@ A Java implementation of the HTML5 Canvas 2D API with dual graphics backend supp
 
 **JavaCanvas** enables HTML5 Canvas drawing capabilities in Java applications by bridging JavaScript canvas code with Java graphics backends. This allows JavaScript-based canvas applications to run in Java environments with full 2D rendering support.
 
-**Status:** 🎉 **100% feature complete** for modern Canvas 2D API specification (updated 2025-11-19)
-**Test Status:** 147/147 tests passing (100% pass rate)
+**Status:** 🎉 **100% feature complete** for modern Canvas 2D API specification (updated 2025-11-20)
+**Test Status:** 149/149 tests passing (100% pass rate)
 **License:** Public Domain / CC0 (Creative Commons Zero)
 **Developed by:** Jumis, Inc.
 
@@ -84,6 +84,9 @@ All Canvas 2D API features are now fully implemented:
 - ✅ Canvas property: `.canvas` back-reference
 - ✅ Font kerning: `fontKerning` (read-only "auto" - Java handles automatically)
 - ✅ True conic gradients: Custom Paint implementation (not fallback)
+- ✅ Pattern transforms: `setTransform()` fully implemented in all layers
+- ✅ Filters on stroke: CSS filters now work for both fill and stroke operations
+- ✅ Text layout: Direction and letter-spacing support in AWT backend
 
 ## Architecture
 
@@ -107,7 +110,7 @@ JavaCanvas uses a three-layered "Trident" architecture:
 - **Language:** Java 11
 - **Build Tool:** Apache Maven
 - **Graphics:** AWT/Swing, JavaFX 21.0.8
-- **JavaScript Engine:** Mozilla Rhino 1.7.14
+- **JavaScript Engine:** Mozilla Rhino 1.7.14 (Legacy), GraalJS 23.0.0 (Modern)
 - **Testing:** JUnit 5, TestFX 4.0.18, Mockito 5.18.0
 - **Code Coverage:** JaCoCo 0.8.11
 - **Headless Testing:** xvfb (X Virtual Framebuffer)
@@ -143,7 +146,7 @@ mvn clean test
 
 ### Test Status
 
-**All Tests Passing (147/147 - 100%):**
+**All Tests Passing (149/149 - 100%):**
 - ✓ `TestCanvas2D` - 77 comprehensive Canvas 2D API tests
 - ✓ `TestImageBitmap` - 11 ImageBitmap API tests
 - ✓ `TestOffscreenCanvas` - 10 OffscreenCanvas API tests
@@ -161,6 +164,8 @@ mvn clean test
 - ✓ `TestJavaFXFont` - 1 JavaFX font integration test
 - ✓ `TestRhino` - 1 Rhino JavaScript integration test
 - ✓ `TestWorker` - 1 Worker API test
+- ✓ `TestJSFeatures` - 1 JavaScript feature integration test
+- ✓ `TestAwtStrokeWithFilter` - 1 AWT filter unit test
 
 **Note:** Path2D edge case bugs fixed - all tests passing with assertions enabled
 
@@ -224,6 +229,23 @@ See [REFACTOR.md](REFACTOR.md) for architectural details.
 
 - **[AGENTS.md](AGENTS.md)** - Instructions for AI agents and automated development
 - **[HEADLESS_TESTING_PLAN.md](HEADLESS_TESTING_PLAN.md)** - Headless testing strategy and setup
+
+## Native Image Support (Experimental)
+
+This project includes configuration for building a GraalVM Native Image. This allows for faster startup and lower memory footprint, particularly useful for serverless or CLI use cases.
+
+### Prerequisites
+- GraalVM JDK (Java 11+) installed and `native-image` tool available.
+
+### Building Native Image
+
+```bash
+mvn -Pnative package
+```
+
+### Limitations
+- The legacy Rhino integration (used by `JavaCanvas` default setup) may require additional configuration for AOT compilation due to dynamic bytecode generation.
+- The recommended path for Native Image is to use `CoreCanvasRenderingContext2D` directly with GraalJS or Java-only logic, bypassing the Rhino binding layer.
 
 ## Usage Example
 

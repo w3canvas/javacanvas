@@ -22,18 +22,74 @@ public class AwtTextMetrics implements ITextMetrics {
     private final double ideographicBaseline;
 
     public AwtTextMetrics(String text, Font font, Graphics2D g2d) {
+        this(text, font, g2d, 0);
+    }
+
+    public AwtTextMetrics(String text, Font font, Graphics2D g2d, double wordSpacing) {
         FontMetrics fm = g2d.getFontMetrics(font);
         LineMetrics lm = font.getLineMetrics(text, g2d.getFontRenderContext());
 
-        // Width calculation
-        this.width = fm.stringWidth(text);
+        // Width and Bounds calculation
+        if (wordSpacing == 0) {
+            this.width = fm.stringWidth(text);
 
-        // Get the actual bounding box for the specific text
-        Rectangle2D bounds = fm.getStringBounds(text, g2d);
-        this.actualBoundingBoxLeft = Math.abs(bounds.getX());
-        this.actualBoundingBoxRight = bounds.getX() + bounds.getWidth();
-        this.actualBoundingBoxAscent = Math.abs(bounds.getY());
-        this.actualBoundingBoxDescent = bounds.getY() + bounds.getHeight();
+            // Get the actual bounding box for the specific text
+            Rectangle2D bounds = fm.getStringBounds(text, g2d);
+            this.actualBoundingBoxLeft = Math.abs(bounds.getX());
+            this.actualBoundingBoxRight = bounds.getX() + bounds.getWidth();
+            this.actualBoundingBoxAscent = Math.abs(bounds.getY());
+            this.actualBoundingBoxDescent = bounds.getY() + bounds.getHeight();
+        } else {
+            // Calculate width with word spacing
+            String[] words = text.split(" ", -1);
+            double totalWidth = 0;
+            double spaceWidth = fm.getStringBounds(" ", g2d).getWidth();
+            Rectangle2D unionBounds = null;
+            double currentX = 0;
+
+            for (int i = 0; i < words.length; i++) {
+                String word = words[i];
+                if (!word.isEmpty()) {
+                    Rectangle2D wordBounds = fm.getStringBounds(word, g2d);
+                    // Adjust bounds to current position
+                    Rectangle2D placedBounds = new Rectangle2D.Double(
+                        wordBounds.getX() + currentX,
+                        wordBounds.getY(),
+                        wordBounds.getWidth(),
+                        wordBounds.getHeight()
+                    );
+
+                    if (unionBounds == null) {
+                        unionBounds = placedBounds;
+                    } else {
+                        unionBounds.add(placedBounds);
+                    }
+
+                    totalWidth += wordBounds.getWidth();
+                    currentX += wordBounds.getWidth();
+                }
+
+                if (i < words.length - 1) {
+                    totalWidth += spaceWidth + wordSpacing;
+                    currentX += spaceWidth + wordSpacing;
+                }
+            }
+
+            this.width = totalWidth;
+
+            if (unionBounds != null) {
+                this.actualBoundingBoxLeft = Math.abs(unionBounds.getX());
+                this.actualBoundingBoxRight = unionBounds.getX() + unionBounds.getWidth();
+                this.actualBoundingBoxAscent = Math.abs(unionBounds.getY());
+                this.actualBoundingBoxDescent = unionBounds.getY() + unionBounds.getHeight();
+            } else {
+                // Empty or just spaces
+                this.actualBoundingBoxLeft = 0;
+                this.actualBoundingBoxRight = 0;
+                this.actualBoundingBoxAscent = 0;
+                this.actualBoundingBoxDescent = 0;
+            }
+        }
 
         // Font-level metrics (maximum for the entire font)
         this.fontBoundingBoxAscent = fm.getAscent();

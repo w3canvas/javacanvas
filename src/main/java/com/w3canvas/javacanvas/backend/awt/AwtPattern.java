@@ -7,8 +7,8 @@ import java.awt.Paint;
 import java.awt.PaintContext;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.TexturePaint;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -18,6 +18,7 @@ import java.awt.image.WritableRaster;
 public class AwtPattern implements ICanvasPattern, IPaint {
     private final BufferedImage image;
     private final String repetition;
+    private AffineTransform transform = new AffineTransform();
 
     public AwtPattern(Object image, String repetition) {
         if (image instanceof BufferedImage) {
@@ -28,22 +29,31 @@ public class AwtPattern implements ICanvasPattern, IPaint {
         }
     }
 
+    @Override
+    public void setTransform(Object transform) {
+        if (transform instanceof AffineTransform) {
+            this.transform = (AffineTransform) transform;
+        }
+    }
+
     public Paint getPaint() {
-        return new CustomPatternPaint(image, repetition);
+        return new CustomPatternPaint(image, repetition, transform);
     }
 
     private static class CustomPatternPaint implements Paint {
         private final BufferedImage image;
         private final String repetition;
+        private final AffineTransform patternTransform;
 
-        public CustomPatternPaint(BufferedImage image, String repetition) {
+        public CustomPatternPaint(BufferedImage image, String repetition, AffineTransform patternTransform) {
             this.image = image;
             this.repetition = repetition;
+            this.patternTransform = patternTransform;
         }
 
         @Override
         public PaintContext createContext(ColorModel cm, Rectangle deviceBounds, Rectangle2D userBounds, AffineTransform xform, RenderingHints hints) {
-            return new CustomPatternPaintContext(image, repetition);
+            return new CustomPatternPaintContext(image, repetition, xform, patternTransform);
         }
 
         @Override
@@ -57,6 +67,7 @@ public class AwtPattern implements ICanvasPattern, IPaint {
         private final String repetition;
         private final int width;
         private final int height;
+        private final AffineTransform inverseTransform;
 
         // Cache for raster data to reduce memory allocation
         private static final int MAX_CACHE_SIZE = 1024 * 1024; // 1M pixels max
@@ -66,11 +77,22 @@ public class AwtPattern implements ICanvasPattern, IPaint {
         private int cachedW = -1;
         private int cachedH = -1;
 
-        public CustomPatternPaintContext(BufferedImage image, String repetition) {
+        public CustomPatternPaintContext(BufferedImage image, String repetition, AffineTransform deviceTransform, AffineTransform patternTransform) {
             this.image = image;
             this.repetition = repetition;
             this.width = image.getWidth();
             this.height = image.getHeight();
+
+            AffineTransform t = new AffineTransform(deviceTransform);
+            t.concatenate(patternTransform);
+            AffineTransform inv;
+            try {
+                inv = t.createInverse();
+            } catch (java.awt.geom.NoninvertibleTransformException e) {
+                // Fallback to identity if non-invertible
+                inv = new AffineTransform();
+            }
+            this.inverseTransform = inv;
         }
 
         @Override
@@ -127,13 +149,19 @@ public class AwtPattern implements ICanvasPattern, IPaint {
 
         private int[] generateRasterData(int x, int y, int w, int h) {
             int[] data = new int[w * h * 4];
+            Point2D.Double pt = new Point2D.Double();
+            Point2D.Double srcPt = new Point2D.Double();
+
             for (int j = 0; j < h; j++) {
                 for (int i = 0; i < w; i++) {
-                    int currentX = x + i;
-                    int currentY = y + j;
+                    // Use center of pixel for sampling
+                    pt.x = x + i + 0.5;
+                    pt.y = y + j + 0.5;
 
-                    int imageX = currentX;
-                    int imageY = currentY;
+                    inverseTransform.transform(pt, srcPt);
+
+                    int imageX = (int) Math.floor(srcPt.x);
+                    int imageY = (int) Math.floor(srcPt.y);
 
                     boolean draw = true;
                     if ("repeat-x".equalsIgnoreCase(repetition)) {

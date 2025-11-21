@@ -2,20 +2,20 @@ package com.w3canvas.javacanvas.backend.javafx;
 
 import com.w3canvas.javacanvas.interfaces.ICanvasPattern;
 import com.w3canvas.javacanvas.interfaces.IPaint;
-import com.w3canvas.javacanvas.interfaces.ICanvasPattern;
-import com.w3canvas.javacanvas.interfaces.IPaint;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.Paint;
+import javafx.scene.transform.Affine;
 
 public class JavaFXPattern implements ICanvasPattern, IPaint {
 
     private final Image image;
     private final String repetition;
     private final Paint paint;
+    private Affine transform = new Affine();
 
     // Cache for generated paint to reduce memory allocation
     private Paint cachedBoundsPaint = null;
@@ -81,12 +81,26 @@ public class JavaFXPattern implements ICanvasPattern, IPaint {
         cachedBoundsPaint = paint;
     }
 
+    @Override
+    public void setTransform(Object transform) {
+        if (transform instanceof java.awt.geom.AffineTransform) {
+            java.awt.geom.AffineTransform at = (java.awt.geom.AffineTransform) transform;
+            this.transform = new Affine(
+                at.getScaleX(), at.getShearX(), at.getTranslateX(),
+                at.getShearY(), at.getScaleY(), at.getTranslateY()
+            );
+            // Invalidate cache
+            cachedBoundsPaint = null;
+        }
+    }
+
     private Paint generatePaint(double boundsWidth, double boundsHeight) {
         double imgWidth = image.getWidth();
         double imgHeight = image.getHeight();
 
         Canvas tempCanvas = new Canvas(boundsWidth, boundsHeight);
         GraphicsContext gc = tempCanvas.getGraphicsContext2D();
+        gc.setTransform(transform);
 
         switch (repetition) {
             case "repeat":
