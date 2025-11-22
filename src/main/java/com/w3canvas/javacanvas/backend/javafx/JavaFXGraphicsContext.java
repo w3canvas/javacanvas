@@ -48,6 +48,12 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     // Fill rule
     private String fillRule = "nonzero";
 
+    // Text properties state
+    private String textAlign = "start";
+    private String direction = "ltr";
+    private double letterSpacing = 0;
+    private double wordSpacing = 0;
+
     public JavaFXGraphicsContext(GraphicsContext gc) {
         this.gc = gc;
         this.path = new Path();
@@ -62,20 +68,36 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fillText(String text, double x, double y, double maxWidth) {
+        if (wordSpacing != 0 || letterSpacing != 0) {
+            if (this.fillPaint instanceof JavaFXPaint) {
+                gc.setFill(((JavaFXPaint) this.fillPaint).getPaint());
+            }
+            drawTextWithSpacing(text, x, y, maxWidth, true);
+            return;
+        }
+
         gc.save();
         if (this.fillPaint instanceof JavaFXPaint) {
             gc.setFill(((JavaFXPaint) this.fillPaint).getPaint());
         }
-        gc.fillText(text, x, y);
+        gc.fillText(text, x, y, maxWidth > 0 ? maxWidth : Double.MAX_VALUE);
         gc.restore();
     }
 
     @Override
     public void strokeText(String text, double x, double y, double maxWidth) {
+        if (wordSpacing != 0 || letterSpacing != 0) {
+            if (this.strokePaint instanceof JavaFXPaint) {
+                gc.setStroke(((JavaFXPaint) this.strokePaint).getPaint());
+            }
+            drawTextWithSpacing(text, x, y, maxWidth, false);
+            return;
+        }
+
         if (this.strokePaint instanceof JavaFXPaint) {
             gc.setStroke(((JavaFXPaint) this.strokePaint).getPaint());
         }
-        gc.strokeText(text, x, y);
+        gc.strokeText(text, x, y, maxWidth > 0 ? maxWidth : Double.MAX_VALUE);
     }
 
     @Override
@@ -95,7 +117,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public ITextMetrics measureText(String text) {
-        return new JavaFXTextMetrics(gc.getFont(), text);
+        return new JavaFXTextMetrics(gc.getFont(), text, wordSpacing, letterSpacing);
     }
 
     @Override
@@ -243,6 +265,22 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
+    public void setDirection(String direction) {
+        this.direction = direction;
+        updateTextAlign();
+    }
+
+    @Override
+    public void setLetterSpacing(double spacing) {
+        this.letterSpacing = spacing;
+    }
+
+    @Override
+    public void setWordSpacing(double spacing) {
+        this.wordSpacing = spacing;
+    }
+
+    @Override
     public void setFont(IFont font) {
         if (font instanceof JavaFXFont) {
             gc.setFont(((JavaFXFont) font).getFont());
@@ -251,16 +289,29 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void setTextAlign(String textAlign) {
+        this.textAlign = textAlign;
+        updateTextAlign();
+    }
+
+    private void updateTextAlign() {
+        boolean isRtl = "rtl".equals(direction);
+
         switch (textAlign) {
             case "right":
-            case "end":
                 gc.setTextAlign(TextAlignment.RIGHT);
+                break;
+            case "left":
+                gc.setTextAlign(TextAlignment.LEFT);
                 break;
             case "center":
                 gc.setTextAlign(TextAlignment.CENTER);
                 break;
+            case "end":
+                gc.setTextAlign(isRtl ? TextAlignment.LEFT : TextAlignment.RIGHT);
+                break;
+            case "start":
             default:
-                gc.setTextAlign(TextAlignment.LEFT);
+                gc.setTextAlign(isRtl ? TextAlignment.RIGHT : TextAlignment.LEFT);
                 break;
         }
     }
@@ -1146,5 +1197,69 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         }
 
         return null;
+    }
+
+    private double getTextWidth(String text) {
+        return measureText(text).getWidth();
+    }
+
+    private void drawTextWithSpacing(String text, double x, double y, double maxWidth, boolean fill) {
+        gc.save();
+
+        // Apply alignment logic
+        double startX = x;
+        double totalWidth = getTextWidth(text);
+
+        TextAlignment align = gc.getTextAlign();
+        if (align == TextAlignment.CENTER) {
+            startX -= totalWidth / 2.0;
+        } else if (align == TextAlignment.RIGHT) {
+            startX -= totalWidth;
+        }
+
+        // Reset alignment to left for manual drawing
+        gc.setTextAlign(TextAlignment.LEFT);
+
+        // Apply maxWidth scaling
+        if (maxWidth > 0 && totalWidth > maxWidth) {
+            double scale = maxWidth / totalWidth;
+            gc.translate(x, y);
+            gc.scale(scale, 1.0);
+            gc.translate(-x, -y);
+        }
+
+        // Draw chars/words
+        double currentX = startX;
+        com.sun.javafx.tk.FontMetrics fm = com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().getFontMetrics(gc.getFont());
+        double spaceWidth = fm.getCharWidth(' ');
+
+        if (letterSpacing != 0) {
+            for (char c : text.toCharArray()) {
+                String s = String.valueOf(c);
+                if (fill) gc.fillText(s, currentX, y);
+                else gc.strokeText(s, currentX, y);
+
+                currentX += fm.getCharWidth(c) + letterSpacing;
+                if (c == ' ') currentX += wordSpacing;
+            }
+        } else {
+            // wordSpacing only
+            String[] words = text.split(" ", -1);
+            for (int i = 0; i < words.length; i++) {
+                String word = words[i];
+                if (fill) gc.fillText(word, currentX, y);
+                else gc.strokeText(word, currentX, y);
+
+                Text t = new Text(word);
+                t.setFont(gc.getFont());
+                currentX += t.getLayoutBounds().getWidth();
+
+                if (i < words.length - 1) {
+                    currentX += spaceWidth + wordSpacing;
+                }
+            }
+        }
+
+        gc.restore();
     }
 }

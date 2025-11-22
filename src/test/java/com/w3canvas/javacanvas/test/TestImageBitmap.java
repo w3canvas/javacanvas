@@ -8,6 +8,7 @@ import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
 import com.w3canvas.javacanvas.js.worker.OffscreenCanvas;
 import com.w3canvas.javacanvas.rt.JavaCanvas;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,12 +31,22 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests createImageBitmap() global function and ImageBitmap operations.
  */
 @ExtendWith(ApplicationExtension.class)
+@org.junit.jupiter.api.Timeout(value = 60, unit = java.util.concurrent.TimeUnit.SECONDS)
 public class TestImageBitmap extends ApplicationTest {
 
     private JavaCanvas javaCanvas;
     private ICanvasRenderingContext2D ctx;
     private HTMLCanvasElement canvas;
     private Scriptable scope;
+
+    @BeforeAll
+    public static void warmUp() {
+        try {
+            javafx.application.Platform.startup(() -> {});
+        } catch (IllegalStateException e) {
+            // Platform already started
+        }
+    }
 
     @Start
     public void start(Stage stage) {

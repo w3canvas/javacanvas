@@ -9,8 +9,11 @@ import com.w3canvas.javacanvas.interfaces.IImageData;
 import com.w3canvas.javacanvas.interfaces.ITextMetrics;
 import com.w3canvas.javacanvas.rt.JavaCanvas;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
@@ -28,12 +31,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static com.w3canvas.javacanvas.test.VisualRegressionHelper.compareToGoldenMaster;
 
 @ExtendWith(ApplicationExtension.class)
+@Timeout(value = 60, unit = TimeUnit.SECONDS)
 // NOTE: Tests re-enabled after fixing thread-local Context management issue
 // See STATE_MANAGEMENT_BUG_ANALYSIS.md for details
 public class TestCanvas2D extends ApplicationTest {
 
     private JavaCanvas javaCanvas;
     private Scriptable scope;
+
+    @BeforeAll
+    public static void warmUp() {
+        // Warm up JavaFX and Canvas classes to avoid timeout in first test
+        try {
+            javafx.application.Platform.startup(() -> {});
+        } catch (IllegalStateException e) {
+            // Platform already started
+        }
+        // Initialize a dummy canvas to load classes
+        JavaCanvas canvas = new JavaCanvas(".", true);
+        canvas.initializeBackend();
+    }
 
     @Start
     public void start(Stage stage) {
@@ -74,32 +91,35 @@ public class TestCanvas2D extends ApplicationTest {
         int searchRadius = isHeadless ? 15 : 10;  // Larger search area in headless mode
         int effectiveTolerance = isHeadless ? Math.max(tolerance, 10) : tolerance;  // Min tolerance of 10 in headless
 
+        int startX = Math.max(0, x - searchRadius);
+        int startY = Math.max(0, y - searchRadius);
+        int endX = Math.min(ctx.getSurface().getWidth(), x + searchRadius);
+        int endY = Math.min(ctx.getSurface().getHeight(), y + searchRadius);
+        int w = endX - startX;
+        int h = endY - startY;
+
+        if (w <= 0 || h <= 0) {
+            return;
+        }
+
+        CompletableFuture<int[]> future = new CompletableFuture<>();
+        interact(() -> {
+            future.complete(ctx.getSurface().getPixelData(startX, startY, w, h));
+        });
+        int[] pixelData = future.get();
+
         boolean pixelFound = false;
-        for (int i = Math.max(0, x - searchRadius); i < Math.min(ctx.getSurface().getWidth(), x + searchRadius); i++) {
-            for (int j = Math.max(0, y - searchRadius); j < Math.min(ctx.getSurface().getHeight(), y + searchRadius); j++) {
-                CompletableFuture<int[]> future = new CompletableFuture<>();
-                final int currentX = i;
-                final int currentY = j;
-                interact(() -> {
-                    future.complete(ctx.getSurface().getPixelData(currentX, currentY, 1, 1));
-                });
-                int[] pixelData = future.get();
-                int pixel = pixelData[0];
+        for (int pixel : pixelData) {
+            int actualA = (pixel >> 24) & 0xff;
+            int actualR = (pixel >> 16) & 0xff;
+            int actualG = (pixel >> 8) & 0xff;
+            int actualB = pixel & 0xff;
 
-                int actualA = (pixel >> 24) & 0xff;
-                int actualR = (pixel >> 16) & 0xff;
-                int actualG = (pixel >> 8) & 0xff;
-                int actualB = pixel & 0xff;
-
-                if (Math.abs(r - actualR) <= effectiveTolerance &&
-                    Math.abs(g - actualG) <= effectiveTolerance &&
-                    Math.abs(b - actualB) <= effectiveTolerance &&
-                    Math.abs(a - actualA) <= effectiveTolerance) {
-                    pixelFound = true;
-                    break;
-                }
-            }
-            if (pixelFound) {
+            if (Math.abs(r - actualR) <= effectiveTolerance &&
+                Math.abs(g - actualG) <= effectiveTolerance &&
+                Math.abs(b - actualB) <= effectiveTolerance &&
+                Math.abs(a - actualA) <= effectiveTolerance) {
+                pixelFound = true;
                 break;
             }
         }

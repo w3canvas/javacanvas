@@ -4,10 +4,13 @@ import com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
 import com.w3canvas.javacanvas.rt.JavaCanvas;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
+import java.util.concurrent.TimeUnit;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.framework.junit5.ApplicationTest;
@@ -23,9 +26,19 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(ApplicationExtension.class)
+@Timeout(value = 60, unit = TimeUnit.SECONDS)
 public class TestJavaFX extends ApplicationTest {
 
     private JavaCanvas javaCanvas;
+
+    @BeforeAll
+    public static void warmUp() {
+        try {
+            javafx.application.Platform.startup(() -> {});
+        } catch (IllegalStateException e) {
+            // Platform already started
+        }
+    }
 
     @Start
     public void start(Stage stage) {

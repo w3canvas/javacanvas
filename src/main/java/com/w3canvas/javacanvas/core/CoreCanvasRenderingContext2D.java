@@ -481,6 +481,11 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
         // Apply filter
         gc.setFilter(this.filter);
+
+        // Apply modern text properties
+        gc.setDirection(this.direction);
+        gc.setLetterSpacing(this.letterSpacing);
+        gc.setWordSpacing(this.wordSpacing);
     }
 
     @Override
@@ -878,17 +883,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     /**
      * Gets the text direction setting.
      *
-     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
-     * implemented in text rendering</strong>. The value is saved and restored with save()/restore()
-     * state management, but does not currently affect how text is drawn.
-     *
-     * <p><strong>Future Implementation:</strong> To fully support this property, backend implementations
-     * (AWT, JavaFX) would need to:
-     * <ul>
-     *   <li>Apply bidirectional text layout algorithms (Unicode Bidirectional Algorithm)</li>
-     *   <li>Respect the direction when calculating text metrics and positioning</li>
-     *   <li>Handle "inherit" by querying the canvas element's computed CSS direction</li>
-     * </ul>
+     * <p><strong>Implementation Status:</strong> This property is implemented in the AWT backend
+     * using TextLayout for bidirectional text support. The JavaFX backend currently stores the
+     * value but does not affect rendering.
      *
      * @return Current direction setting: "ltr", "rtl", or "inherit"
      */
@@ -900,10 +897,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     /**
      * Sets the text direction for rendering.
      *
-     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
-     * implemented in text rendering</strong>. Setting this value will be preserved across
-     * save()/restore() calls, but will not currently affect how fillText() or strokeText()
-     * render text.
+     * <p><strong>Implementation Status:</strong> This property is implemented in the AWT backend.
      *
      * <p><strong>Valid Values:</strong>
      * <ul>
@@ -919,18 +913,15 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         // Validate direction: "ltr", "rtl", "inherit"
         if ("ltr".equals(direction) || "rtl".equals(direction) || "inherit".equals(direction)) {
             this.direction = direction;
+            gc.setDirection(direction);
         }
     }
 
     /**
      * Gets the letter spacing for text rendering.
      *
-     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
-     * implemented in text rendering</strong>. The value is saved and restored with save()/restore()
-     * state management, but does not currently affect glyph spacing in fillText() or strokeText().
-     *
-     * <p><strong>Future Implementation:</strong> Backend implementations would need to adjust
-     * glyph positioning by applying the letter-spacing offset between each character.
+     * <p><strong>Implementation Status:</strong> This property is implemented in the AWT backend
+     * using TextAttributes. The JavaFX backend currently stores the value but does not affect rendering.
      *
      * @return Current letter spacing value in pixels (default: 0.0)
      */
@@ -942,11 +933,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     /**
      * Sets the letter spacing (tracking) for text rendering.
      *
-     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
-     * implemented in text rendering</strong>. Setting this value will be preserved across
-     * save()/restore() calls, but will not currently affect character spacing in rendered text.
+     * <p><strong>Implementation Status:</strong> This property is implemented in the AWT backend.
      *
-     * <p>When implemented, this property should add the specified spacing between each character,
+     * <p>This property adds the specified spacing between each character,
      * similar to CSS letter-spacing property.
      *
      * @param spacing Additional spacing between characters in pixels. Can be negative.
@@ -954,17 +943,14 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public void setLetterSpacing(double spacing) {
         this.letterSpacing = spacing;
+        gc.setLetterSpacing(spacing);
     }
 
     /**
      * Gets the word spacing for text rendering.
      *
-     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
-     * implemented in text rendering</strong>. The value is saved and restored with save()/restore()
-     * state management, but does not currently affect spacing between words.
-     *
-     * <p><strong>Future Implementation:</strong> Backend implementations would need to identify
-     * word boundaries (typically spaces) and apply additional spacing at those positions.
+     * <p><strong>Implementation Status:</strong> This property is stored but not currently implemented
+     * in either backend (AWT/JavaFX).
      *
      * @return Current word spacing value in pixels (default: 0.0)
      */
@@ -976,18 +962,15 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     /**
      * Sets the word spacing for text rendering.
      *
-     * <p><strong>Implementation Status:</strong> This property is <strong>stored but not yet
-     * implemented in text rendering</strong>. Setting this value will be preserved across
-     * save()/restore() calls, but will not currently affect spacing between words in rendered text.
-     *
-     * <p>When implemented, this property should add the specified spacing between words,
-     * similar to CSS word-spacing property.
+     * <p><strong>Implementation Status:</strong> This property is stored but not currently implemented
+     * in either backend.
      *
      * @param spacing Additional spacing between words in pixels. Can be negative.
      */
     @Override
     public void setWordSpacing(double spacing) {
         this.wordSpacing = spacing;
+        gc.setWordSpacing(spacing);
     }
 
     @Override

@@ -203,6 +203,27 @@ public interface IGraphicsContext {
      */
     void setTextBaseline(String textBaseline);
 
+    /**
+     * Sets the text direction.
+     *
+     * @param direction the text direction: "ltr", "rtl", or "inherit"
+     */
+    void setDirection(String direction);
+
+    /**
+     * Sets the letter spacing (tracking).
+     *
+     * @param spacing the letter spacing in pixels
+     */
+    void setLetterSpacing(double spacing);
+
+    /**
+     * Sets the word spacing.
+     *
+     * @param spacing the word spacing in pixels
+     */
+    void setWordSpacing(double spacing);
+
     // Shadow properties
 
     /**
