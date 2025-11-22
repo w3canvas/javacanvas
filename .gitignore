@@ -1,11 +1,14 @@
 # Compiled output
 bin/
 target/
+build/
+.gradle/
 
 # Build artifacts
 sources.txt
 *.class
 *.log
+build_log*.txt
 
 # Dependencies
 lib/
@@ -22,3 +25,4 @@ lib/
 
 # OS files
 .DS_Store
+Thumbs.db

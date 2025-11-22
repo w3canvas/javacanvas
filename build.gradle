@@ -1,0 +1,71 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+    // id 'org.graalvm.buildtools.native' version '0.9.28'
+    // id 'jacoco'
+}
+
+group = 'com.w3canvas'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+javafx {
+    version = "21.0.5" // Using a widely available version, can bump to 21.0.8 if needed
+    modules = [ 'javafx.controls', 'javafx.graphics', 'javafx.base', 'javafx.media', 'javafx.swing' ]
+}
+
+application {
+    mainClass = 'com.w3canvas.javacanvas.Main'
+}
+
+dependencies {
+    // Rhino
+    implementation 'org.mozilla:rhino:1.7.14'
+
+    // GraalJS
+    implementation 'org.graalvm.js:js:23.0.0'
+    implementation 'org.graalvm.sdk:graal-sdk:23.0.0'
+
+    // Testing
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    
+    testImplementation 'org.testfx:testfx-core:4.0.18'
+    testImplementation 'org.testfx:testfx-junit5:4.0.18'
+    
+    testImplementation 'org.mockito:mockito-core:5.18.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.18.0'
+    
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+    
+    testImplementation 'org.nanohttpd:nanohttpd:2.3.1'
+}
+
+test {
+    useJUnitPlatform()
+    
+    // Headless testing configuration
+    systemProperty 'java.awt.headless', 'false'
+}
+
+/*
+graalvmNative {
+    binaries {
+        main {
+            buildArgs.add('--no-fallback')
+            buildArgs.add('--allow-incomplete-classpath')
+            buildArgs.add('--initialize-at-build-time=com.w3canvas.javacanvas')
+            buildArgs.add('-H:+ReportExceptionStackTraces')
+        }
+    }
+}
+*/
