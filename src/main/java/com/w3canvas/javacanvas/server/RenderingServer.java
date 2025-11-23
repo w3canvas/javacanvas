@@ -78,16 +78,16 @@ public class RenderingServer {
 
                 // Create a canvas element for the script to use
                 // We provide a default 'canvas' variable of 800x600
-                HTMLCanvasElement canvas = (HTMLCanvasElement) javaCanvas.getDocument().jsFunction_createElement("canvas");
+                HTMLCanvasElement canvas = (HTMLCanvasElement) javaCanvas.getDocument()
+                        .jsFunction_createElement("canvas");
                 canvas.jsSet_width(800);
                 canvas.jsSet_height(600);
                 javaCanvas.getDocument().addElement("canvas", canvas);
 
                 // Expose 'canvas' and 'ctx' to the script
-                org.mozilla.javascript.Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
-                org.mozilla.javascript.ScriptableObject.putProperty(scope, "canvas", canvas);
+                javaCanvas.getRuntime().putProperty("canvas", canvas);
                 ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
-                org.mozilla.javascript.ScriptableObject.putProperty(scope, "ctx", ctx);
+                javaCanvas.getRuntime().putProperty("ctx", ctx);
 
                 // Execute the script
                 javaCanvas.executeCode(script);

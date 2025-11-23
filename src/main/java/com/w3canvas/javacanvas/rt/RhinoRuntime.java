@@ -7,19 +7,16 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ImporterTopLevel;
 import org.mozilla.javascript.Scriptable;
 
-public class RhinoRuntime
-{
+public class RhinoRuntime implements JSRuntime {
 
     private Hashtable<Integer, RhinoScheduler> intervals = new Hashtable<Integer, RhinoScheduler>();
     private int intervalId;
     private String currentUrl;
     private Scriptable scope;
 
-    public RhinoRuntime()
-    {
+    public RhinoRuntime() {
         Context context = Context.enter();
-        try
-        {
+        try {
             // Initialize the standard objects (Object, Function, etc.)
             // This must be done before scripts can be executed. Returns
             // a scope object that we use in later calls.
@@ -33,36 +30,40 @@ public class RhinoRuntime
             exec("importPackage(Packages.com.w3canvas.javacanvas.backend.rhino.impl.font)");
 
             try {
-                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFace.class);
-                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFaceSet.class);
-                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D.class);
-                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap.class);
-                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.node.Blob.class);
-                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData.class);
-                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.js.worker.OffscreenCanvas.class);
-                org.mozilla.javascript.ScriptableObject.defineClass(scope, com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasRenderingContext2D.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFace.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFaceSet.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoPath2D.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.backend.rhino.impl.node.Blob.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.js.worker.OffscreenCanvas.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasRenderingContext2D.class);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            defineProperty("setTimeout", new Callable()
-            {
-                public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args)
-                {
+            defineProperty("setTimeout", new Callable() {
+                public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
                     // Accepts both function and string parameters
                     new Thread(new RhinoScheduler(RhinoRuntime.this, args[0], ((Number) args[1]).intValue(), false))
-                        .start();
+                            .start();
                     return null;
                 }
             });
 
-            defineProperty("setInterval", new Callable()
-            {
-                public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args)
-                {
+            defineProperty("setInterval", new Callable() {
+                public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
                     // Accepts both function and string parameters
                     RhinoScheduler e = new RhinoScheduler(RhinoRuntime.this, args[0], ((Number) args[1]).intValue(),
-                        true);
+                            true);
                     Integer id = Integer.valueOf(intervalId++);
                     intervals.put(id, e);
                     new Thread(e).start();
@@ -70,10 +71,8 @@ public class RhinoRuntime
                 }
             });
 
-            defineProperty("clearInterval", new Callable()
-            {
-                public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args)
-                {
+            defineProperty("clearInterval", new Callable() {
+                public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
                     Integer id = Integer.valueOf(((Number) args[0]).intValue());
                     RhinoScheduler e = intervals.get(id);
                     if (e != null) {
@@ -84,10 +83,8 @@ public class RhinoRuntime
                 }
             });
 
-            defineProperty("createImageBitmap", new Callable()
-            {
-                public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args)
-                {
+            defineProperty("createImageBitmap", new Callable() {
+                public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
                     if (args.length == 0) {
                         throw new IllegalArgumentException("createImageBitmap requires at least 1 argument");
                     }
@@ -101,30 +98,27 @@ public class RhinoRuntime
                         if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.Image) {
                             // HTMLImageElement
                             coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(
-                                (com.w3canvas.javacanvas.backend.rhino.impl.node.Image) source);
+                                    (com.w3canvas.javacanvas.backend.rhino.impl.node.Image) source);
                         } else if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) {
                             // HTMLCanvasElement
                             coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(
-                                (com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) source);
+                                    (com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement) source);
                         } else if (source instanceof com.w3canvas.javacanvas.js.worker.OffscreenCanvas) {
                             // OffscreenCanvas - get BufferedImage
-                            java.awt.image.BufferedImage img =
-                                ((com.w3canvas.javacanvas.js.worker.OffscreenCanvas) source).getImage();
+                            java.awt.image.BufferedImage img = ((com.w3canvas.javacanvas.js.worker.OffscreenCanvas) source)
+                                    .getImage();
                             coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(img);
                         } else if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) {
                             // ImageData - unwrap to core
-                            com.w3canvas.javacanvas.interfaces.IImageData coreImageData =
-                                ((com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) source);
+                            com.w3canvas.javacanvas.interfaces.IImageData coreImageData = ((com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) source);
                             coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(coreImageData);
                         } else if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap) {
                             // ImageBitmap - create copy
-                            com.w3canvas.javacanvas.interfaces.IImageBitmap sourceImageBitmap =
-                                (com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap) source;
+                            com.w3canvas.javacanvas.interfaces.IImageBitmap sourceImageBitmap = (com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap) source;
                             coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(sourceImageBitmap);
                         } else if (source instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.Blob) {
                             // Blob - decode image from blob data
-                            com.w3canvas.javacanvas.backend.rhino.impl.node.Blob blob =
-                                (com.w3canvas.javacanvas.backend.rhino.impl.node.Blob) source;
+                            com.w3canvas.javacanvas.backend.rhino.impl.node.Blob blob = (com.w3canvas.javacanvas.backend.rhino.impl.node.Blob) source;
                             byte[] data = blob.getData();
                             java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(data);
                             java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(bais);
@@ -134,20 +128,19 @@ public class RhinoRuntime
                             coreImageBitmap = new com.w3canvas.javacanvas.core.ImageBitmap(img);
                         } else {
                             throw new IllegalArgumentException(
-                                "createImageBitmap: unsupported source type: " +
-                                (source != null ? source.getClass().getName() : "null"));
+                                    "createImageBitmap: unsupported source type: " +
+                                            (source != null ? source.getClass().getName() : "null"));
                         }
 
                         // Create Rhino wrapper
-                        com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap rhinoImageBitmap =
-                            new com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap();
+                        com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap rhinoImageBitmap = new com.w3canvas.javacanvas.backend.rhino.impl.node.ImageBitmap();
                         rhinoImageBitmap.init(coreImageBitmap);
 
                         // Set up scope and prototype
                         rhinoImageBitmap.setParentScope(scope);
                         try {
                             Scriptable proto = org.mozilla.javascript.ScriptableObject.getClassPrototype(
-                                scope, "ImageBitmap");
+                                    scope, "ImageBitmap");
                             if (proto != null) {
                                 rhinoImageBitmap.setPrototype(proto);
                             }
@@ -164,31 +157,32 @@ public class RhinoRuntime
                     }
                 }
             });
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void defineProperty(String key, Object value)
-    {
+    public void defineProperty(String key, Object value) {
         scope.put(key, scope, value);
     }
 
-    public void setSource(String url)
-    {
+    @Override
+    public void putProperty(String name, Object value) {
+        defineProperty(name, value);
+    }
+
+    public void setSource(String url) {
         this.currentUrl = url;
         defineProperty("documentBase", url);
     }
 
-    public Object exec(String expression)
-    {
+    @Override
+    public Object exec(String expression) {
         return new RhinoScriptRunner(this, expression).run(Context.getCurrentContext());
     }
 
-    public Object exec(java.io.Reader reader, String sourceName)
-    {
+    @Override
+    public Object exec(java.io.Reader reader, String sourceName) {
         try {
             return Context.getCurrentContext().evaluateReader(scope, reader, sourceName, 1, null);
         } catch (java.io.IOException e) {
@@ -196,14 +190,18 @@ public class RhinoRuntime
         }
     }
 
-    public Scriptable getScope()
-    {
+    @Override
+    public Scriptable getScope() {
         return scope;
     }
 
-    public String getCurrentUrl()
-    {
+    public String getCurrentUrl() {
         return currentUrl;
+    }
+
+    @Override
+    public void close() {
+        Context.exit();
     }
 
 }

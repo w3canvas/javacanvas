@@ -54,20 +54,26 @@ import org.mozilla.javascript.ScriptableObject;
 @SuppressWarnings("serial")
 public class JavaCanvas {
 
-    private RhinoRuntime runtime;
+    private JSRuntime runtime;
     private String basePath;
     private boolean headless;
+    private boolean useGraal;
     private PropertiesHolder propertiesHolder;
     private Document document;
     private Window window;
 
     public JavaCanvas(String resourcePath, boolean headless) {
+        this(resourcePath, headless, false);
+    }
+
+    public JavaCanvas(String resourcePath, boolean headless, boolean useGraal) {
         this.headless = headless;
-        basePath = resourcePath;
+        this.basePath = resourcePath;
+        this.useGraal = useGraal;
         this.propertiesHolder = new PropertiesHolder();
     }
 
-    public RhinoRuntime getRhinoRuntime() {
+    public JSRuntime getRuntime() {
         return runtime;
     }
 
@@ -84,10 +90,6 @@ public class JavaCanvas {
     }
 
     public Container getContentPane() {
-        // This method is now a stub for compatibility.
-        // In the refactored architecture, the JFrame is managed by JavaCanvasApp.
-        // If direct access to the content pane is needed, it should be obtained
-        // from the JavaCanvasApp instance.
         return null;
     }
 
@@ -111,24 +113,26 @@ public class JavaCanvas {
         try {
             java.io.File scriptFile = new java.io.File(basePath, scriptPath);
             java.io.Reader reader = new java.io.FileReader(scriptFile);
-            runtime.getScope().put("documentBase", runtime.getScope(), scriptFile.getParentFile().toURI().toString());
-            Context context = Context.enter();
-            try {
+
+            // Set documentBase property
+            runtime.putProperty("documentBase", scriptFile.getParentFile().toURI().toString());
+
+            if (runtime instanceof RhinoRuntime) {
+                Context.enter();
+                try {
+                    runtime.exec(reader, scriptPath);
+                } finally {
+                    Context.exit();
+                }
+            } else {
                 runtime.exec(reader, scriptPath);
-            } finally {
-                Context.exit();
             }
         } catch (Exception e) {
             System.err.println("ERROR: Failed to execute script '" + scriptPath + "': " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    /**
-     * Executes JavaScript code directly (not from a file).
-     *
-     * @param code the JavaScript code to execute
-     * @return the result of the script execution
-     */
     public Object executeCode(String code) {
         return runtime.exec(code);
     }
@@ -146,52 +150,45 @@ public class JavaCanvas {
     }
 
     public void initializeBackend(Container contentPane) {
-        runtime = new RhinoRuntime();
-        Context context = Context.enter();
+        if (useGraal) {
+            runtime = new GraalRuntime();
+            initializeCommon(contentPane);
+        } else {
+            runtime = new RhinoRuntime();
+            Context.enter();
+            try {
+                initializeCommon(contentPane);
+            } finally {
+                Context.exit();
+            }
+        }
+    }
+
+    private void initializeCommon(Container contentPane) {
         try {
-            context.putThreadLocal("runtime", runtime);
-
-            ScriptableObject.defineClass(runtime.getScope(), Document.class, false, true);
-            this.document = (Document) context.newObject(runtime.getScope(), "Document");
+            this.document = new Document();
             this.document.init((RootPaneContainer) contentPane);
-            runtime.defineProperty("document", this.document);
+            runtime.putProperty("document", this.document);
 
-            ScriptableObject.defineClass(runtime.getScope(), Window.class, false, true);
-            this.window = (Window) context.newObject(runtime.getScope(), "Window");
+            this.window = new Window();
             if (headless || contentPane == null) {
-                this.window.init(800, 600); // Default size for headless mode
+                this.window.init(800, 600);
             } else {
                 this.window.init(contentPane.getWidth(), contentPane.getHeight());
             }
             this.window.setDocument(document);
-            runtime.defineProperty("window", this.window);
+            runtime.putProperty("window", this.window);
 
-            ScriptableObject.defineClass(runtime.getScope(), Image.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), HTMLCanvasElement.class, false, true);
+            runtime.putProperty("log", new ScriptLogger());
+            runtime.putProperty("console", new ScriptLogger());
 
-            ScriptableObject.defineClass(runtime.getScope(), CanvasRenderingContext2D.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), RhinoCanvasGradient.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), LinearCanvasGradient.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), RadialCanvasGradient.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), CanvasPattern.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), RhinoCanvasPattern.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), DOMMatrix.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), TextMetrics.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), CanvasPixelArray.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), ImageData.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), StyleHolder.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), JSMouseEvent.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), com.w3canvas.javacanvas.js.worker.Worker.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), com.w3canvas.javacanvas.js.worker.SharedWorker.class, false, true);
-            ScriptableObject.defineClass(runtime.getScope(), com.w3canvas.javacanvas.js.worker.MessagePort.class, false, true);
+            if (runtime instanceof RhinoRuntime) {
+                ((RhinoRuntime) runtime).setSource(basePath);
+            }
 
-            runtime.defineProperty("log", new ScriptLogger());
-            runtime.defineProperty("console", new ScriptLogger());
-            runtime.setSource(basePath);
         } catch (Exception e) {
             System.err.println("ERROR: Failed to initialize backend: " + e.getMessage());
-        } finally {
-            Context.exit();
+            e.printStackTrace();
         }
     }
 
@@ -202,17 +199,19 @@ public class JavaCanvas {
         for (String className : jsClasses) {
             Object instance = Class.forName(className).getDeclaredConstructor().newInstance();
             if (instance instanceof Script) {
-                ((Script) instance).exec(Context.getCurrentContext(), runtime.getScope());
+                // This part is tricky as it depends on Rhino Context.
+                // For Graal, we might need a different approach if we support this legacy
+                // loading.
+                // For now, only support this if it's RhinoRuntime
+                if (runtime instanceof RhinoRuntime) {
+                    ((Script) instance).exec(Context.getCurrentContext(), ((RhinoRuntime) runtime).getScope());
+                }
             }
         }
     }
 
     protected void readContent(StringBuffer sb) throws FileNotFoundException, IOException {
-        String[] sources = new String[] { "Global.js", "Canvas.js", "Event.js", "Math.js", "Project.js",
-                "Project.X_Slide.js", "Raster2D.js", "Raster2D.CLUT.js", "Raster2D.ColorMatrix.js", "Raster2D.Crop.js",
-                "Raster2D.GeoMatrix.js", "Raster2D.Histogram.js", "Raster2D.Levels.js", "Vector2D.Font.js",
-                "Vector2D.Font.Arial.js", "Vector2D.SVG.js", "Scriptograph.js" };
-
+        // Legacy method, keeping as is
         int i = 1;
         BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(
                 "E:/dev/prj/JavaCanvas/trunk/src/js/development/test.js")));

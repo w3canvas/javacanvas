@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.1.0'
-    // id 'org.graalvm.buildtools.native' version '0.9.28'
+    id 'org.graalvm.buildtools.native' version '0.9.28'
     // id 'jacoco'
 }
 
@@ -14,12 +14,14 @@ repositories {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+        vendor = JvmVendorSpec.GRAAL_VM
+    }
 }
 
 javafx {
-    version = "21.0.5" // Using a widely available version, can bump to 21.0.8 if needed
+    version = "21.0.5"
     modules = [ 'javafx.controls', 'javafx.graphics', 'javafx.base', 'javafx.media', 'javafx.swing' ]
 }
 
@@ -57,10 +59,11 @@ test {
     systemProperty 'java.awt.headless', 'false'
 }
 
-/*
 graalvmNative {
     binaries {
         main {
+            imageName = 'javacanvas'
+            mainClass = 'com.w3canvas.javacanvas.Main'
             buildArgs.add('--no-fallback')
             buildArgs.add('--allow-incomplete-classpath')
             buildArgs.add('--initialize-at-build-time=com.w3canvas.javacanvas')
@@ -68,4 +71,3 @@ graalvmNative {
         }
     }
 }
-*/
