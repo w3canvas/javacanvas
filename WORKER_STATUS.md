@@ -103,6 +103,34 @@ The current DOM implementation (Document, Node, Element, etc.) is located in `co
 - Pros: Doesn't require full refactor
 - Cons: Complex, performance overhead, may not work with Rhino's restrictions
 
+## Progress: DOM Trident Refactoring (In Progress)
+
+### Completed
+1. **Core DOM Interfaces** (INode, IElement, IDocument) ✅
+2. **Core DOM Implementation** (CoreNode, CoreElement, CoreDocument, CoreTextNode) ✅
+3. **RhinoNodeAdapter** - Wraps Rhino Node to register in CoreDocument ✅
+4. **Cross-Context getElementById** - Partially working ✅
+
+### How Cross-Context getElementById Works
+- When `Node.jsSet_id()` is called, it creates a RhinoNodeAdapter
+- The adapter is registered in CoreDocument's ID registry (plain Java HashMap)
+- CoreDocument is NOT Context-bound - it's a regular Java object
+- When `getElementById` is called from any Context, it looks up in CoreDocument's registry
+- The adapter is unwrapped to return the original Rhino Node
+
+### Remaining Issue
+getElementById successfully finds and returns the DOM node, BUT the returned node itself
+(HTMLCanvasElement) is still a Rhino Scriptable bound to the original Context. When we call
+methods on it from a different Context (e.g., `canvas.getContext('2d')`), Rhino blocks it.
+
+**Example from test**:
+```javascript
+var canvas = document.getElementById('canvas'); // ✅ Works - returns canvas
+var ctx = canvas.getContext('2d');              // ❌ Fails - Context isolation
+```
+
+This proves that **every DOM node** needs to be decoupled from Rhino, not just getElementById.
+
 ## Attempted Solutions
 
 ### 1. Global Scope Injection ❌ FAILED
