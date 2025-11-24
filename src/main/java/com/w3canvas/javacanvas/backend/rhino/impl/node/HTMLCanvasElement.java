@@ -244,10 +244,20 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 		return coreCanvas.getWidth();
 	}
 
-	public void jsSet_width(int width) {
+	@Override
+	public void jsSet_width(Object width) {
 		// Update both Image superclass and core canvas
 		super.jsSet_width(width);
-		coreCanvas.setWidth(width);
+		// Convert to int for core canvas
+		if (width instanceof Number) {
+			coreCanvas.setWidth(((Number) width).intValue());
+		} else if (width instanceof String) {
+			try {
+				coreCanvas.setWidth(Integer.parseInt((String) width));
+			} catch (NumberFormatException e) {
+				// Ignore invalid values
+			}
+		}
 	}
 
 	@Override
@@ -256,19 +266,38 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 		return coreCanvas.getHeight();
 	}
 
-	public void jsSet_height(int height) {
+	@Override
+	public void jsSet_height(Object height) {
 		// Update both Image superclass and core canvas
 		super.jsSet_height(height);
-		coreCanvas.setHeight(height);
+		// Convert to int for core canvas
+		if (height instanceof Number) {
+			coreCanvas.setHeight(((Number) height).intValue());
+		} else if (height instanceof String) {
+			try {
+				coreCanvas.setHeight(Integer.parseInt((String) height));
+			} catch (NumberFormatException e) {
+				// Ignore invalid values
+			}
+		}
 	}
 
 	/**
-	 * CRITICAL: Get the underlying BufferedImage from core canvas.
-	 * This allows cross-Context access - other Contexts can call this method
-	 * because it delegates to CoreHTMLCanvasElement (plain Java, not Scriptable).
+	 * CRITICAL: Get the underlying BufferedImage.
+	 * If a rendering context exists, returns its surface image (where actual drawing happens).
+	 * Otherwise returns the core canvas image.
+	 * This allows cross-Context access because it delegates to plain Java objects.
 	 */
 	@Override
 	public BufferedImage getImage() {
+		// If we have a rendering context, return its surface's image (where rendering actually happens)
+		if (canvas != null && canvas.getSurface() != null) {
+			Object nativeImage = canvas.getSurface().getNativeImage();
+			if (nativeImage instanceof BufferedImage) {
+				return (BufferedImage) nativeImage;
+			}
+		}
+		// Otherwise fall back to coreCanvas image (for canvases without contexts)
 		return coreCanvas.getImage();
 	}
 }

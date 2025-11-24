@@ -1,0 +1,62 @@
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ----------------------< com.w3canvas:javacanvas >-----------------------
+[INFO] Building javacanvas 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- jacoco:0.8.11:prepare-agent (default) @ javacanvas ---
+[INFO] argLine set to -javaagent:/home/jules/.m2/repository/org/jacoco/org.jacoco.agent/0.8.11/org.jacoco.agent-0.8.11-runtime.jar=destfile=/app/target/jacoco.exec
+[INFO]
+[INFO] --- resources:3.3.1:resources (default-resources) @ javacanvas ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO]
+[INFO] --- compiler:3.13.0:compile (default-compile) @ javacanvas ---
+[INFO] Recompiling the module because of changed source code.
+[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
+[INFO] Compiling 113 source files with javac [debug target 11] to target/classes
+[WARNING] system modules path not set in conjunction with -source 11
+[INFO] /app/src/main/java/com/w3canvas/javacanvas/dom/FontFace.java: /app/src/main/java/com/w3canvas/javacanvas/dom/FontFace.java uses or overrides a deprecated API.
+[INFO] /app/src/main/java/com/w3canvas/javacanvas/dom/FontFace.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ javacanvas ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] Copying 12 resources from test to target/test-classes
+[INFO]
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ javacanvas ---
+[INFO] Recompiling the module because of changed dependency.
+[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
+[INFO] Compiling 24 source files with javac [debug target 11] to target/test-classes
+[WARNING] system modules path not set in conjunction with -source 11
+[INFO] /app/src/test/java/com/w3canvas/javacanvas/test/TestRenderingServer.java: /app/src/test/java/com/w3canvas/javacanvas/test/TestRenderingServer.java uses or overrides a deprecated API.
+[INFO] /app/src/test/java/com/w3canvas/javacanvas/test/TestRenderingServer.java: Recompile with -Xlint:deprecation for details.
+[INFO]
+[INFO] --- surefire:3.0.0-M5:test (default-test) @ javacanvas ---
+[INFO]
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.w3canvas.javacanvas.test.TestRenderingServer
+Rendering Server started on port 8081
+Rendering Server stopped
+Rendering Server started on port 8081
+Rendering Server stopped
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.968 s - in com.w3canvas.javacanvas.test.TestRenderingServer
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO]
+[INFO] --- jacoco:0.8.11:report (report) @ javacanvas ---
+[INFO] Loading execution data file /app/target/jacoco.exec
+[INFO] Analyzed bundle 'javacanvas' with 120 classes
+[WARNING] Classes in bundle 'javacanvas' do not match with execution data. For report generation the same class files must be used as at runtime.
+[WARNING] Execution data for class com/w3canvas/javacanvas/core/CoreCanvasRenderingContext2D$ContextState does not match.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  15.386 s
+[INFO] Finished at: 2025-11-20T16:42:33Z
+[INFO] ------------------------------------------------------------------------
