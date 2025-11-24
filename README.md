@@ -302,6 +302,16 @@ jbang export native JBangRunner.java
 
 **Fun Workaround:** You can force JBang to download a JDK that supports native image by specifying a version it doesn't find locally, e.g., `jbang export native --java 21 JBangRunner.java` (if you only have Java 17 installed).
 
+### Running Tests with JBang
+For a **faster feedback loop** during development (bypassing Gradle configuration time), you can run JUnit tests directly:
+```bash
+# Run all tests
+jbang TestRunner.java
+
+# Run a specific test class
+jbang TestRunner.java TestGraal
+```
+
 ## Contributing
 
 This is an open source project released under CC0 (public domain). Contributions are welcome.

@@ -51,10 +51,34 @@ public class MessagePort extends ProjectScriptableObject {
      */
     public void jsFunction_postMessage(Object data) {
         if (otherPort != null) {
+            // If the other port has started and has a handler, try to deliver immediately on current thread
+            // This avoids Context isolation issues
+            if (otherPort.started && otherPort.onmessage != null && otherPort.handlerScope != null) {
+                Context cx = Context.getCurrentContext();
+                if (cx != null) {
+                    // We're in a Context, deliver the message immediately
+                    try {
+                        if (otherPort.handlerRuntime != null) {
+                            cx.putThreadLocal("runtime", otherPort.handlerRuntime);
+                        }
+
+                        Scriptable event = cx.newObject(otherPort.handlerScope);
+                        event.put("data", event, data);
+                        Scriptable ports = cx.newArray(otherPort.handlerScope, new Object[]{otherPort});
+                        event.put("ports", event, ports);
+
+                        otherPort.onmessage.call(cx, otherPort.handlerScope, otherPort, new Object[]{event});
+                        return;  // Message delivered
+                    } catch (Exception e) {
+                        // Fall through to queue the message
+                        System.err.println("Error delivering message synchronously: " + e.getMessage());
+                    }
+                }
+            }
+
+            // Fall back to async delivery via queue
             try {
                 otherPort.messageQueue.put(data);
-                // Don't auto-start the other port - it should be started explicitly
-                // by calling start() or setting onmessage
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -78,26 +102,39 @@ public class MessagePort extends ProjectScriptableObject {
                     Object data = messageQueue.take();
 
                     if (onmessage != null && handlerScope != null) {
-                        Context cx = Context.enter();
-                        try {
-                            // Set the runtime in thread local so document, etc. are available
-                            if (handlerRuntime != null) {
-                                cx.putThreadLocal("runtime", handlerRuntime);
+                        // Marshal callback to JavaFX application thread to avoid Context isolation issues
+                        final Object finalData = data;
+                        javafx.application.Platform.runLater(() -> {
+                            // Check if there's already a Context on this thread
+                            Context cx = Context.getCurrentContext();
+                            boolean needToExit = false;
+                            if (cx == null) {
+                                cx = Context.enter();
+                                needToExit = true;
                             }
 
-                            // Use the captured handlerScope instead of getParentScope()
-                            // This ensures we use the scope from where onmessage was set
-                            Scriptable event = cx.newObject(handlerScope);
-                            event.put("data", event, data);
+                            try {
+                                // Set the runtime in thread local so document, etc. are available
+                                if (handlerRuntime != null) {
+                                    cx.putThreadLocal("runtime", handlerRuntime);
+                                }
 
-                            // Add ports array to event (this port)
-                            Scriptable ports = cx.newArray(handlerScope, new Object[]{this});
-                            event.put("ports", event, ports);
+                                // Use the captured handlerScope instead of getParentScope()
+                                // This ensures we use the scope from where onmessage was set
+                                Scriptable event = cx.newObject(handlerScope);
+                                event.put("data", event, finalData);
 
-                            onmessage.call(cx, handlerScope, this, new Object[]{event});
-                        } finally {
-                            Context.exit();
-                        }
+                                // Add ports array to event (this port)
+                                Scriptable ports = cx.newArray(handlerScope, new Object[]{MessagePort.this});
+                                event.put("ports", event, ports);
+
+                                onmessage.call(cx, handlerScope, MessagePort.this, new Object[]{event});
+                            } finally {
+                                if (needToExit) {
+                                    Context.exit();
+                                }
+                            }
+                        });
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
