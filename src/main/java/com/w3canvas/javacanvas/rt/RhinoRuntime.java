@@ -46,6 +46,13 @@ public class RhinoRuntime implements JSRuntime {
                         com.w3canvas.javacanvas.js.worker.OffscreenCanvas.class);
                 org.mozilla.javascript.ScriptableObject.defineClass(scope,
                         com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasRenderingContext2D.class);
+                // Register Worker, SharedWorker, and MessagePort classes
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.js.worker.Worker.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.js.worker.SharedWorker.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.js.worker.MessagePort.class);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -191,7 +198,10 @@ public class RhinoRuntime implements JSRuntime {
     @Override
     public Object exec(java.io.Reader reader, String sourceName) {
         try {
-            return Context.getCurrentContext().evaluateReader(scope, reader, sourceName, 1, null);
+            Context cx = Context.getCurrentContext();
+            // Set runtime in thread local so Worker/SharedWorker constructors can access it
+            cx.putThreadLocal("runtime", this);
+            return cx.evaluateReader(scope, reader, sourceName, 1, null);
         } catch (java.io.IOException e) {
             throw new RuntimeException(e);
         }
