@@ -315,9 +315,17 @@ public class SharedWorker extends ProjectScriptableObject {
                     pendingConnections.clear();
                 }
 
-                // Keep the worker alive (until interrupted)
+                // Worker event loop - process messages from all connected ports
+                // This is the WorkerGlobalScope event loop per HTML spec
                 while (!Thread.currentThread().isInterrupted()) {
-                    Thread.sleep(100);
+                    // Process messages from all connected ports
+                    synchronized (connections) {
+                        for (MessagePort port : connections) {
+                            port.processPendingMessages();
+                        }
+                    }
+                    // Sleep briefly to avoid busy-waiting
+                    Thread.sleep(10);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

@@ -27,6 +27,7 @@ public class MessagePort extends ProjectScriptableObject {
     private volatile boolean started = false;
     private Scriptable handlerScope;  // Capture scope where onmessage was set
     private com.w3canvas.javacanvas.rt.RhinoRuntime handlerRuntime;  // Capture runtime for thread local
+    private Thread handlerThread;  // Capture the Thread where onmessage was set
 
     public MessagePort() {
     }
@@ -51,32 +52,8 @@ public class MessagePort extends ProjectScriptableObject {
      */
     public void jsFunction_postMessage(Object data) {
         if (otherPort != null) {
-            // If the other port has started and has a handler, try to deliver immediately on current thread
-            // This avoids Context isolation issues
-            if (otherPort.started && otherPort.onmessage != null && otherPort.handlerScope != null) {
-                Context cx = Context.getCurrentContext();
-                if (cx != null) {
-                    // We're in a Context, deliver the message immediately
-                    try {
-                        if (otherPort.handlerRuntime != null) {
-                            cx.putThreadLocal("runtime", otherPort.handlerRuntime);
-                        }
-
-                        Scriptable event = cx.newObject(otherPort.handlerScope);
-                        event.put("data", event, data);
-                        Scriptable ports = cx.newArray(otherPort.handlerScope, new Object[]{otherPort});
-                        event.put("ports", event, ports);
-
-                        otherPort.onmessage.call(cx, otherPort.handlerScope, otherPort, new Object[]{event});
-                        return;  // Message delivered
-                    } catch (Exception e) {
-                        // Fall through to queue the message
-                        System.err.println("Error delivering message synchronously: " + e.getMessage());
-                    }
-                }
-            }
-
-            // Fall back to async delivery via queue
+            // Queue the message for async delivery via the event loop
+            // This ensures proper Context isolation per the HTML Worker spec
             try {
                 otherPort.messageQueue.put(data);
             } catch (InterruptedException e) {
@@ -88,62 +65,62 @@ public class MessagePort extends ProjectScriptableObject {
     /**
      * Start the port (begins dispatching messages).
      * In browsers, ports need to be explicitly started.
+     * Messages are queued and processed via processPendingMessages() or the event loop.
      */
     public void jsFunction_start() {
         if (started) {
             return;
         }
         started = true;
+        // Messages are now processed via processPendingMessages() call from the main thread's event loop
+        // No need for a separate listener thread since that causes Context isolation issues
+    }
 
-        // Start listening for messages
-        messageListener = new Thread(() -> {
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    Object data = messageQueue.take();
+    /**
+     * Process any pending messages in the current Context.
+     * This should be called from the thread that owns the Context where onmessage was set.
+     * This is part of the event loop pattern for Worker message delivery.
+     */
+    public void processPendingMessages() {
+        if (onmessage == null || handlerScope == null) {
+            return;
+        }
 
-                    if (onmessage != null && handlerScope != null) {
-                        // Marshal callback to JavaFX application thread to avoid Context isolation issues
-                        final Object finalData = data;
-                        javafx.application.Platform.runLater(() -> {
-                            // Check if there's already a Context on this thread
-                            Context cx = Context.getCurrentContext();
-                            boolean needToExit = false;
-                            if (cx == null) {
-                                cx = Context.enter();
-                                needToExit = true;
-                            }
+        // Only process messages if we're on the correct thread
+        // This ensures proper Context isolation per Rhino's thread-local design
+        if (handlerThread != null && Thread.currentThread() != handlerThread) {
+            // Different thread - don't process here
+            return;
+        }
 
-                            try {
-                                // Set the runtime in thread local so document, etc. are available
-                                if (handlerRuntime != null) {
-                                    cx.putThreadLocal("runtime", handlerRuntime);
-                                }
+        Context cx = Context.getCurrentContext();
+        if (cx == null) {
+            return;  // No Context, can't process messages
+        }
 
-                                // Use the captured handlerScope instead of getParentScope()
-                                // This ensures we use the scope from where onmessage was set
-                                Scriptable event = cx.newObject(handlerScope);
-                                event.put("data", event, finalData);
-
-                                // Add ports array to event (this port)
-                                Scriptable ports = cx.newArray(handlerScope, new Object[]{MessagePort.this});
-                                event.put("ports", event, ports);
-
-                                onmessage.call(cx, handlerScope, MessagePort.this, new Object[]{event});
-                            } finally {
-                                if (needToExit) {
-                                    Context.exit();
-                                }
-                            }
-                        });
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
+        // Process all available messages without blocking
+        Object data;
+        while ((data = messageQueue.poll()) != null) {
+            try {
+                if (handlerRuntime != null) {
+                    cx.putThreadLocal("runtime", handlerRuntime);
                 }
+
+                // Create event object
+                Scriptable event = cx.newObject(handlerScope);
+                event.put("data", event, data);
+
+                // Add ports array
+                Scriptable ports = cx.newArray(handlerScope, new Object[]{this});
+                event.put("ports", event, ports);
+
+                // Call the handler in the current Context
+                onmessage.call(cx, handlerScope, this, new Object[]{event});
+            } catch (Exception e) {
+                System.err.println("Error processing message: " + e.getMessage());
+                e.printStackTrace();
             }
-        });
-        messageListener.setDaemon(true);
-        messageListener.start();
+        }
     }
 
     /**
@@ -167,16 +144,22 @@ public class MessagePort extends ProjectScriptableObject {
      */
     public void jsSet_onmessage(Function onmessage) {
         this.onmessage = onmessage;
-        // Capture the scope from the current context where onmessage is being set
-        // This ensures the handler has access to the correct scope (e.g., document in main thread)
-        this.handlerScope = getParentScope();
-        // Also capture the runtime so we can set it in the listener thread's context
+        // Capture the Thread, scope, and runtime where onmessage is being set
+        // This is CRITICAL: the handler must execute in the SAME Thread to access document methods
+        this.handlerThread = Thread.currentThread();
+
         Context cx = Context.getCurrentContext();
         if (cx != null) {
+            // Get the top-level scope which should have document and other globals
+            this.handlerScope = org.mozilla.javascript.ScriptableObject.getTopLevelScope(this);
+
+            // Also capture the runtime so we can set it in the listener thread's context
             Object runtime = cx.getThreadLocal("runtime");
             if (runtime instanceof com.w3canvas.javacanvas.rt.RhinoRuntime) {
                 this.handlerRuntime = (com.w3canvas.javacanvas.rt.RhinoRuntime) runtime;
             }
+        } else {
+            this.handlerScope = getParentScope();
         }
         // Auto-start when onmessage is set
         if (!started) {
