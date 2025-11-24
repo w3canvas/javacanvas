@@ -10,7 +10,7 @@
   3. Registered Worker/SharedWorker classes in Rhino scope
   4. Set runtime in thread local for script execution
 
-## Remaining Failures (15 tests)
+## Remaining Failures (14 tests)
 
 ### 1. Worker/SharedWorker Tests (6 tests) - Rhino Context Isolation Issue
 
@@ -27,14 +27,20 @@
 **Attempted Fixes**:
 - ✅ Capture handlerScope where onmessage is set
 - ✅ Capture and set RhinoRuntime in listener thread's Context
-- ❌ Still can't access Document methods from different Context
+- ✅ Marshal callbacks via JavaFX `Platform.runLater()` to main thread
+- ✅ Reuse existing Context instead of always creating new one
+- ✅ Attempt synchronous delivery in `postMessage()` when Context available
+- ❌ All attempts still fail with Context isolation errors
 
-**Real Fix Needed**: Marshal callbacks to the owning thread instead of executing in listener thread:
-- Option A: Use JavaFX `Platform.runLater()` to execute on main thread
-- Option B: Implement event queue that main thread polls
-- Option C: Use synchronized access with proper Context switching
+**The Real Problem**: We're trying to work around Rhino's thread-local Context design, but that's the wrong approach. Per the HTML5 Worker specification, messages should be delivered through an **async event loop**, not via direct cross-thread Context access.
 
-The fundamental issue is Rhino Context thread-locality - each Context is bound to its thread and doesn't share method resolution with other Contexts even when using the same scope.
+**Proper Solution Per HTML Worker Spec**:
+- Implement an event queue/event loop system on the main thread
+- Worker threads queue messages into the main thread's event loop
+- Main thread processes messages in its own Context during its event loop tick
+- This matches browser behavior where Workers use message passing, not shared execution contexts
+
+The fundamental issue is architectural: we need event-driven async message delivery, not thread-safe Context sharing.
 
 **Affected Tests**:
 - `testSharedWorkerBasicCommunication()`
@@ -145,9 +151,19 @@ The fundamental issue is Rhino Context thread-locality - each Context is bound t
 - ❌ Worker/SharedWorker tests still fail due to Rhino Context isolation
 - **Result**: 149/163 passing (91.4%), up from 148/163
 
+### Session 3 (2025-11-23 Late Evening)
+- ✅ Implemented `Platform.runLater()` marshaling in MessagePort listener
+- ✅ Added synchronous delivery attempt in `postMessage()` when Context available
+- ✅ Improved Context reuse (check for existing before entering new)
+- ✅ Added JBang TestRunner documentation to README
+- ❌ All threading approaches still fail - confirmed architectural issue
+- **Key Realization**: Need event loop implementation per HTML Worker spec, not Context-level fixes
+
 ### Key Insight
-The Worker/SharedWorker issue is fundamentally about Rhino's thread-local Context design. Even with correct scope and runtime, a Context created on Thread A cannot properly resolve methods on objects from Thread B's Context. The solution requires callback marshaling to the owning thread, not just scope/runtime capture.
+The Worker/SharedWorker issue is fundamentally about Rhino's thread-local Context design. Even with correct scope and runtime, a Context created on Thread A cannot properly resolve methods on objects from Thread B's Context.
+
+**The Real Solution**: Implement an async event loop that follows the HTML5 Worker specification. Messages should be queued and dispatched through the main thread's event loop in its own Context, not executed directly from worker threads. This is how browsers handle Worker communication - via message passing through the event loop, not shared execution contexts.
 
 ---
 *Last Updated: 2025-11-23*
-*Test Results: 149/163 passing (91.4%), 1 skipped*
+*Test Results: 149/163 passing (91.4%), 1 skipped, 14 failing*
