@@ -163,6 +163,13 @@ public class RhinoRuntime implements JSRuntime {
     }
 
     public void defineProperty(String key, Object value) {
+        // If the value is a Scriptable, set its parent scope
+        if (value instanceof org.mozilla.javascript.Scriptable) {
+            org.mozilla.javascript.Scriptable scriptable = (org.mozilla.javascript.Scriptable) value;
+            if (scriptable.getParentScope() == null) {
+                scriptable.setParentScope(scope);
+            }
+        }
         scope.put(key, scope, value);
     }
 

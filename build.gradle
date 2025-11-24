@@ -21,7 +21,7 @@ java {
 }
 
 javafx {
-    version = "21.0.5"
+    version = "17.0.13"  // Match Java 17 toolchain
     modules = [ 'javafx.controls', 'javafx.graphics', 'javafx.base', 'javafx.media', 'javafx.swing' ]
 }
 
@@ -40,23 +40,35 @@ dependencies {
     // Testing
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-    
+
     testImplementation 'org.testfx:testfx-core:4.0.18'
     testImplementation 'org.testfx:testfx-junit5:4.0.18'
-    
+    testRuntimeOnly 'org.testfx:openjfx-monocle:17.0.10'  // Match Java 17
+
     testImplementation 'org.mockito:mockito-core:5.18.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.18.0'
-    
+
     testImplementation 'org.hamcrest:hamcrest:2.2'
-    
+
     testImplementation 'org.nanohttpd:nanohttpd:2.3.1'
 }
 
 test {
     useJUnitPlatform()
-    
-    // Headless testing configuration
-    systemProperty 'java.awt.headless', 'false'
+
+    // Headless testing configuration (matches pom.xml)
+    systemProperty 'java.awt.headless', 'true'
+    systemProperty 'testfx.robot', 'glass'
+    systemProperty 'testfx.headless', 'true'
+    systemProperty 'prism.order', 'sw'
+    systemProperty 'prism.text', 't2k'
+    // Additional Prism settings for consistent headless rendering
+    systemProperty 'prism.allowhidpi', 'false'
+    systemProperty 'prism.subpixeltext', 'false'
+    systemProperty 'prism.lcdtext', 'false'
+    systemProperty 'prism.fontsmoothing', 'false'
+    systemProperty 'prism.forceGPU', 'false'
+    systemProperty 'prism.vsync', 'false'
 }
 
 graalvmNative {

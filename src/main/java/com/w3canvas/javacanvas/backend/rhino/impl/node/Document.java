@@ -56,6 +56,7 @@ public class Document extends Node {
 
 		Node node = itemNodeType.getNode();
 		node.setDocument(this);
+		node.setParentScope(this.getParentScope());  // Set parent scope for Rhino
 		node.init();
 
 		return node;

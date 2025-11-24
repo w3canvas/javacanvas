@@ -26,6 +26,11 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
+@rem Use project-local .gradle directory to avoid Windows username issues
+if "%GRADLE_USER_HOME%"=="" (
+    set GRADLE_USER_HOME=%~dp0.gradle
+)
+
 set DIRNAME=%~dp0
 if "%DIRNAME%"=="" set DIRNAME=.
 @rem This is normally unused

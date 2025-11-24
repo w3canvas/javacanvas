@@ -111,7 +111,13 @@ public class JavaCanvas {
 
     public void executeScript(String scriptPath) {
         try {
-            java.io.File scriptFile = new java.io.File(basePath, scriptPath);
+            java.io.File scriptFile;
+            java.io.File inputFile = new java.io.File(scriptPath);
+            if (inputFile.isAbsolute()) {
+                scriptFile = inputFile;
+            } else {
+                scriptFile = new java.io.File(basePath, scriptPath);
+            }
             java.io.Reader reader = new java.io.FileReader(scriptFile);
 
             // Set documentBase property
@@ -167,6 +173,10 @@ public class JavaCanvas {
     private void initializeCommon(Container contentPane) {
         try {
             this.document = new Document();
+            // Set parent scope BEFORE calling init() because init() creates RhinoFontFaceSet which needs scope
+            if (runtime instanceof RhinoRuntime) {
+                this.document.setParentScope(((RhinoRuntime) runtime).getScope());
+            }
             this.document.init((RootPaneContainer) contentPane);
             runtime.putProperty("document", this.document);
 
