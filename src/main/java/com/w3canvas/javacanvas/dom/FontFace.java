@@ -20,7 +20,8 @@ public class FontFace {
     private IFont font;
     private byte[] fontData;
 
-    public FontFace(String family, String source, String style, String weight, String stretch, String unicodeRange, String variant, String featureSettings) {
+    public FontFace(String family, String source, String style, String weight, String stretch, String unicodeRange,
+            String variant, String featureSettings) {
         this.family = family;
         this.source = source;
         this.style = style;
@@ -82,8 +83,18 @@ public class FontFace {
 
         new Thread(() -> {
             try {
-                // Assuming source is a URL for now
-                URL url = new URL(this.source);
+                URL url;
+                try {
+                    url = new URL(this.source);
+                } catch (java.net.MalformedURLException e) {
+                    // If not a valid URL, try as a local file
+                    java.io.File file = new java.io.File(this.source);
+                    if (!file.exists()) {
+                        throw new java.io.FileNotFoundException("Font file not found: " + this.source);
+                    }
+                    url = file.toURI().toURL();
+                }
+
                 InputStream is = url.openStream();
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 byte[] buffer = new byte[4096];
@@ -91,6 +102,8 @@ public class FontFace {
                 while ((n = is.read(buffer)) > 0) {
                     baos.write(buffer, 0, n);
                 }
+                is.close();
+
                 this.fontData = baos.toByteArray();
                 this.status = "loaded";
                 // The promise resolves with the FontFace itself

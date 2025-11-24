@@ -112,9 +112,7 @@ public class TestSharedWorker extends ApplicationTest {
         long sleepTime = 10; // Start with 10ms
 
         while (System.currentTimeMillis() - startTime < timeoutMs) {
-            // Process any pending Worker messages - this is the event loop!
-            processWorkerMessages();
-
+            // The event loop runs automatically in its own thread, no need to manually pump it
             Scriptable scope = (Scriptable) javaCanvas.getRuntime().getScope();
             Object value = scope.get(varName, scope);
 
@@ -127,22 +125,6 @@ public class TestSharedWorker extends ApplicationTest {
         }
 
         fail("Timeout waiting for JavaScript flag '" + varName + "' after " + timeoutMs + "ms");
-    }
-
-    private void processWorkerMessages() {
-        // Process pending messages for the SharedWorker port (this implements the main thread event loop)
-        if (javaCanvas != null && javaCanvas.getRuntime() != null) {
-            Scriptable scope = (Scriptable) javaCanvas.getRuntime().getScope();
-            // Find all MessagePort objects in the scope and process their messages
-            Object worker = scope.get("worker", scope);
-            if (worker != Scriptable.NOT_FOUND && worker instanceof com.w3canvas.javacanvas.js.worker.SharedWorker) {
-                com.w3canvas.javacanvas.js.worker.SharedWorker sw = (com.w3canvas.javacanvas.js.worker.SharedWorker) worker;
-                Object port = sw.jsGet_port();
-                if (port instanceof com.w3canvas.javacanvas.js.worker.MessagePort) {
-                    ((com.w3canvas.javacanvas.js.worker.MessagePort) port).processPendingMessages();
-                }
-            }
-        }
     }
 
     private void assertPixel(int x, int y, int r, int g, int b, int a) throws ExecutionException, InterruptedException {

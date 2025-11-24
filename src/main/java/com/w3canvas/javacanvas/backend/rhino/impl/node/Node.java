@@ -727,21 +727,28 @@ public class Node extends ProjectScriptableObject implements EventTarget, INodeU
 	protected void redrawNodes() {
 		Collection<Node> nodes = zOrderNodes.values();
 
-		JRootPane root = this.document.getContentPane().getRootPane();
+		JRootPane root = null;
+		// Get root pane if using Swing backend
+		if (this.document.getWindowHost() instanceof com.w3canvas.javacanvas.backend.awt.SwingWindowHost) {
+			root = ((com.w3canvas.javacanvas.backend.awt.SwingWindowHost) this.document.getWindowHost()).getContainer().getRootPane();
+		}
 		int i = nodes.size();
 
-		for (Node node : nodes) {
-			if (node.getNodePanel() != null) {
-				root.setComponentZOrder(node.getNodePanel(), i);
+		if (root != null) {
+			for (Node node : nodes) {
+				Object panel = node.getNodePanel();
+				if (panel instanceof java.awt.Component) {
+					root.setComponentZOrder((java.awt.Component) panel, i);
+				}
+				i--;
 			}
-			i--;
-		}
 
-		root.validate();
-		root.repaint();
+			root.validate();
+			root.repaint();
+		}
 	}
 
-	public Component getNodePanel() {
+	public Object getNodePanel() {
 		return null;
 	}
 

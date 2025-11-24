@@ -75,6 +75,11 @@ public class SharedWorker extends ProjectScriptableObject {
             // Prototype not found, port will still work
         }
 
+        // Per HTML5 spec: "The port attribute must return the value it was assigned by the object's constructor.
+        // It represents the MessagePort for sending messages to and receiving messages from the shared worker."
+        // The port is implicitly started for the main thread.
+        port.jsFunction_start();
+
         // Notify the worker of the new connection
         // The worker thread will set up the workerPort's scope
         workerThread.addConnection(workerPort);
@@ -161,7 +166,8 @@ public class SharedWorker extends ProjectScriptableObject {
             // Set context classloader to ensure inner classes can be loaded
             Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
-            workerRuntime = new RhinoRuntime();
+            // Create worker runtime with WorkerThreadEventLoop
+            workerRuntime = new RhinoRuntime(true);  // true = worker context
             workerContext = Context.enter();
             workerContext.putThreadLocal("runtime", workerRuntime);
             workerScope = workerRuntime.getScope();
@@ -315,17 +321,16 @@ public class SharedWorker extends ProjectScriptableObject {
                     pendingConnections.clear();
                 }
 
-                // Worker event loop - process messages from all connected ports
-                // This is the WorkerGlobalScope event loop per HTML spec
-                while (!Thread.currentThread().isInterrupted()) {
-                    // Process messages from all connected ports
-                    synchronized (connections) {
-                        for (MessagePort port : connections) {
-                            port.processPendingMessages();
-                        }
+                // Worker script loaded successfully
+                // The WorkerThreadEventLoop (started when runtime was created) handles all
+                // message processing on its own thread. This thread just needs to stay alive
+                // until the worker is terminated.
+                // Use Object.wait() to park this thread without busy-waiting
+                final Object lock = new Object();
+                synchronized (lock) {
+                    while (!Thread.currentThread().isInterrupted()) {
+                        lock.wait();  // Block until interrupted - NO busy-waiting!
                     }
-                    // Sleep briefly to avoid busy-waiting
-                    Thread.sleep(10);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

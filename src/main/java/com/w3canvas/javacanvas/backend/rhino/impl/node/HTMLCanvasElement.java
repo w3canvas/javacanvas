@@ -21,6 +21,8 @@ import com.w3canvas.javacanvas.js.ICanvas;
 import com.w3canvas.javacanvas.js.IObserver;
 import com.w3canvas.javacanvas.backend.rhino.impl.event.CSSAttribute;
 import com.w3canvas.javacanvas.utils.RhinoCanvasUtils;
+import com.w3canvas.javacanvas.interfaces.ICanvasPeer;
+import com.w3canvas.javacanvas.interfaces.IWindowHost;
 
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
@@ -50,60 +52,16 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 		FORMATS.put("image/svg+xml", "svg");
 	}
 
-	private Helper helper;
-
-	private RootPaneContainer container;
-
+	private ICanvasPeer peer;
+	private IWindowHost windowHost;
 	private CanvasRenderingContext2D canvas;
 
 	private static final Color WHITE_TRANSPARENT = new Color(255, 255, 255, 0);
-
 	private static final Color BLACK_TRANSPARENT = new Color(0, 0, 0, 0);
 
 	@Override
-	public JPanel getNodePanel() {
-		return helper;
-	}
-
-	private class Helper extends JPanel // implements Comparable
-	{
-
-		@Override
-		public void paint(Graphics g) {
-			g.setColor(BLACK_TRANSPARENT);
-			g.fillRect(0, 0, getWidth(), getHeight());
-			g.drawImage(getImage(), 0, 0, (ImageObserver) container);
-		}
-
-		@Override
-		public void repaint(long tm, int x, int y, int width, int height) {
-			if (container != null) {
-				container.getRootPane().repaint(tm, x, y, width, height);
-			}
-		}
-
-		@Override
-		public void repaint(Rectangle r) {
-			if (container != null) {
-				container.getRootPane().repaint(r);
-			}
-		}
-
-		@Override
-		public Dimension getPreferredSize() {
-			return new Dimension(getRealWidth(), getRealHeight());
-		}
-
-		@Override
-		public Dimension getMinimumSize() {
-			return new Dimension(getRealWidth(), getRealHeight());
-		}
-
-		@Override
-		public boolean isOptimizedDrawingEnabled() {
-			return false;
-		}
-
+	public Object getNodePanel() {
+		return peer != null ? peer.getComponent() : null;
 	}
 
 	public HTMLCanvasElement() {
@@ -113,19 +71,33 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 	@Override
 	protected void init() {
 		super.init();
-		container = this.document.getContentPane();
-		if (container != null) {
-			helper = new Helper();
-			helper.setDoubleBuffered(true);
-			setOwner(this);
-			container.getRootPane().add(helper); // define layers here
-			helper.setBounds(0, 0, getWidth(), getHeight());
-			container.getRootPane().validate();
-			container.getRootPane().repaint();
+		windowHost = this.document.getWindowHost();
+
+		// Only create peer if we have a window host (not headless/pure logic)
+		if (windowHost != null) {
+			createPeer();
+			if (peer != null) {
+				setOwner(this);
+				windowHost.addComponent(peer.getComponent());
+				peer.setBounds(0, 0, getWidth(), getHeight());
+				windowHost.validate();
+				windowHost.repaint();
+			}
 		}
 
 		jsGet_style().registerObserver(this, CSSAttribute.Z_ORDER);
 		jsGet_style().registerObserver(this, CSSAttribute.DISPLAY);
+	}
+
+	private void createPeer() {
+		// Factory logic for creating the peer
+		// For now, we default to Swing if the host is a SwingWindowHost
+		if (windowHost instanceof com.w3canvas.javacanvas.backend.awt.SwingWindowHost) {
+			javax.swing.RootPaneContainer rpc = ((com.w3canvas.javacanvas.backend.awt.SwingWindowHost) windowHost)
+					.getContainer();
+			this.peer = new com.w3canvas.javacanvas.backend.awt.SwingCanvasPeer(this, rpc);
+		}
+		// Future: Add JavaFX peer creation here
 	}
 
 	public Scriptable jsFunction_getContext(String param) {
@@ -138,13 +110,15 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 				backend = new AwtGraphicsBackend();
 			}
 
-			// 2. Create the core rendering context, providing the backend and canvas dimensions
-			ICanvasRenderingContext2D coreContext = new CoreCanvasRenderingContext2D(getDocument(), backend, getWidth(), getHeight());
+			// 2. Create the core rendering context, providing the backend and canvas
+			// dimensions
+			ICanvasRenderingContext2D coreContext = new CoreCanvasRenderingContext2D(getDocument(), backend, getWidth(),
+					getHeight());
 
 			// 3. Create the Rhino adapter, passing the core context to it
 			canvas = new CanvasRenderingContext2D();
 			canvas.init(coreContext);
-            canvas.reset();
+			canvas.reset();
 
 			// 4. Initialize the Scriptable parts of the adapter
 			canvas.setParentScope(this.getParentScope());
@@ -161,15 +135,15 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 	protected void onResize() {
 		super.onResize();
 
-		if (helper == null) return;
+		if (peer == null)
+			return;
 
 		int width = RhinoCanvasUtils.getIntValue(this, "jsGet_width");
 		int height = RhinoCanvasUtils.getIntValue(this, "jsGet_height");
 		int left = RhinoCanvasUtils.getIntValue(this, "jsGet_left");
 		int top = RhinoCanvasUtils.getIntValue(this, "jsGet_top");
 
-		helper.setBounds(left, top, width, height);
-		// container.getRootPane().validate();
+		peer.setBounds(left, top, width, height);
 	}
 
 	public String jsFunction_toDataURL(String mimeType) throws Exception {
@@ -215,8 +189,8 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 			visible = true;
 		}
 
-		if (helper != null) {
-			helper.setVisible(visible);
+		if (peer != null) {
+			peer.setVisible(visible);
 		}
 	}
 
@@ -225,17 +199,17 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 		Object val = event.getValue();
 
 		switch (event.getEventType()) {
-		case Z_ORDER:
-			if (val instanceof String) {
-				setZOrderingPref(Integer.valueOf((String) val));
-			} else if (val instanceof Integer) {
-				setZOrderingPref((Integer) val);
-			}
-			break;
-		case DISPLAY:
-			if (val instanceof String) {
-				setDisplayPref((String) val);
-			}
+			case Z_ORDER:
+				if (val instanceof String) {
+					setZOrderingPref(Integer.valueOf((String) val));
+				} else if (val instanceof Integer) {
+					setZOrderingPref((Integer) val);
+				}
+				break;
+			case DISPLAY:
+				if (val instanceof String) {
+					setDisplayPref((String) val);
+				}
 		}
 	}
 

@@ -175,7 +175,10 @@ public class Image extends Node {
 
 	public void dirty() {
 		if (owner != null) {
-			owner.getNodePanel().repaint();
+			Object panel = owner.getNodePanel();
+			if (panel instanceof java.awt.Component) {
+				((java.awt.Component) panel).repaint();
+			}
 		}
 	}
 

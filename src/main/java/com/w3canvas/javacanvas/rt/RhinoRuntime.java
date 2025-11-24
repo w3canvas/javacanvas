@@ -13,8 +13,21 @@ public class RhinoRuntime implements JSRuntime {
     private int intervalId;
     private String currentUrl;
     private Scriptable scope;
+    private final EventLoop eventLoop;
 
     public RhinoRuntime() {
+        this(false);
+    }
+
+    /**
+     * Create a RhinoRuntime with optional worker event loop.
+     * @param isWorker true if this runtime is for a Worker/SharedWorker context
+     */
+    public RhinoRuntime(boolean isWorker) {
+        this.eventLoop = isWorker ? new WorkerThreadEventLoop() : new MainThreadEventLoop();
+        // Start the event loop - it will block on the queue until work arrives
+        this.eventLoop.start();
+
         Context context = Context.enter();
         try {
             // Initialize the standard objects (Object, Function, etc.)
@@ -46,6 +59,8 @@ public class RhinoRuntime implements JSRuntime {
                         com.w3canvas.javacanvas.js.worker.OffscreenCanvas.class);
                 org.mozilla.javascript.ScriptableObject.defineClass(scope,
                         com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasRenderingContext2D.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.backend.rhino.impl.node.Document.class);
                 // Register Worker, SharedWorker, and MessagePort classes
                 org.mozilla.javascript.ScriptableObject.defineClass(scope,
                         com.w3canvas.javacanvas.js.worker.Worker.class);
@@ -53,6 +68,8 @@ public class RhinoRuntime implements JSRuntime {
                         com.w3canvas.javacanvas.js.worker.SharedWorker.class);
                 org.mozilla.javascript.ScriptableObject.defineClass(scope,
                         com.w3canvas.javacanvas.js.worker.MessagePort.class);
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoPromise.class);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -219,6 +236,15 @@ public class RhinoRuntime implements JSRuntime {
     @Override
     public void close() {
         Context.exit();
+    }
+
+    /**
+     * Get the event loop for this runtime.
+     * The event loop processes messages from MessagePorts and other async tasks.
+     * @return The EventLoop instance
+     */
+    public EventLoop getEventLoop() {
+        return eventLoop;
     }
 
 }

@@ -73,14 +73,20 @@ public class RhinoFontFace extends ProjectScriptableObject {
     }
 
     public Object jsGet_loaded() {
-        // This is tricky. Rhino doesn't have built-in promises.
-        // We'll have to return a custom promise-like object.
-        // For now, we'll just return the CompletableFuture.
-        return fontFace.getLoaded();
+        return createPromise(fontFace.getLoaded());
     }
 
     public Object jsFunction_load() {
-        return fontFace.load();
+        fontFace.load();
+        return createPromise(fontFace.getLoaded());
+    }
+
+    private RhinoPromise createPromise(java.util.concurrent.CompletableFuture<?> future) {
+        RhinoPromise promise = new RhinoPromise(future);
+        Scriptable scope = ScriptableObject.getTopLevelScope(this);
+        promise.setParentScope(scope);
+        promise.setPrototype(ScriptableObject.getClassPrototype(scope, "Promise"));
+        return promise;
     }
 
     @Override

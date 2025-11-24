@@ -15,6 +15,8 @@
 */
 package com.w3canvas.javacanvas.rt;
 
+import com.w3canvas.javacanvas.interfaces.IWindowHost;
+import com.w3canvas.javacanvas.backend.awt.SwingWindowHost;
 import java.awt.Container;
 import javax.swing.RootPaneContainer;
 import java.awt.image.BufferedImage;
@@ -46,6 +48,7 @@ import com.w3canvas.javacanvas.backend.rhino.impl.node.Window;
 import com.w3canvas.javacanvas.utils.PropertiesHolder;
 import com.w3canvas.javacanvas.utils.RhinoCanvasUtils;
 import com.w3canvas.javacanvas.utils.ScriptLogger;
+import org.mozilla.javascript.Scriptable;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Script;
@@ -143,8 +146,12 @@ public class JavaCanvas {
         return runtime.exec(code);
     }
 
-    public void init(Container contentPane) {
-        initializeBackend(contentPane);
+    private IWindowHost windowHost;
+
+    // ... (constructors)
+
+    public void init(Object container) {
+        initializeBackend(container);
     }
 
     public void init() {
@@ -155,36 +162,50 @@ public class JavaCanvas {
         initializeBackend(null);
     }
 
-    public void initializeBackend(Container contentPane) {
+    public void initializeBackend(Object container) {
+        if (container instanceof IWindowHost) {
+            this.windowHost = (IWindowHost) container;
+        } else if (container instanceof RootPaneContainer) {
+            this.windowHost = new SwingWindowHost((RootPaneContainer) container);
+        }
+
         if (useGraal) {
             runtime = new GraalRuntime();
-            initializeCommon(contentPane);
+            initializeCommon();
         } else {
             runtime = new RhinoRuntime();
             Context.enter();
             try {
-                initializeCommon(contentPane);
+                initializeCommon();
             } finally {
                 Context.exit();
             }
         }
     }
 
-    private void initializeCommon(Container contentPane) {
+    private void initializeCommon() {
         try {
             this.document = new Document();
-            // Set parent scope BEFORE calling init() because init() creates RhinoFontFaceSet which needs scope
+            // Set parent scope BEFORE calling init() because init() creates
+            // RhinoFontFaceSet which needs scope
             if (runtime instanceof RhinoRuntime) {
-                this.document.setParentScope(((RhinoRuntime) runtime).getScope());
+                Scriptable scope = ((RhinoRuntime) runtime).getScope();
+                this.document.setParentScope(scope);
+                try {
+                    Scriptable proto = ScriptableObject.getClassPrototype(scope, "Document");
+                    this.document.setPrototype(proto);
+                } catch (Exception e) {
+                    System.err.println("Warning: Could not set Document prototype: " + e.getMessage());
+                }
             }
-            this.document.init((RootPaneContainer) contentPane);
+            this.document.init(this.windowHost);
             runtime.putProperty("document", this.document);
 
             this.window = new Window();
-            if (headless || contentPane == null) {
+            if (headless || windowHost == null) {
                 this.window.init(800, 600);
             } else {
-                this.window.init(contentPane.getWidth(), contentPane.getHeight());
+                this.window.init(windowHost.getWidth(), windowHost.getHeight());
             }
             this.window.setDocument(document);
             runtime.putProperty("window", this.window);

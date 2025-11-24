@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import javax.swing.RootPaneContainer;
 
+import com.w3canvas.javacanvas.interfaces.IWindowHost;
 import com.w3canvas.javacanvas.exception.IllegalNodeException;
 import com.w3canvas.javacanvas.js.AbstractView;
 
@@ -16,7 +17,7 @@ import com.w3canvas.javacanvas.dom.FontFaceSet;
 @SuppressWarnings("serial")
 public class Document extends Node {
 
-	private RootPaneContainer frame;
+	private IWindowHost windowHost;
 	private Map<String, Node> documentsNode = new HashMap<String, Node>();
 	private final static String NODE_NAME = "body";
 	private RhinoFontFaceSet fonts;
@@ -25,8 +26,8 @@ public class Document extends Node {
 		// No-arg constructor for Rhino
 	}
 
-	public void init(RootPaneContainer frame) {
-		this.frame = frame;
+	public void init(IWindowHost windowHost) {
+		this.windowHost = windowHost;
 		this.setDocument(this);
 		this.fonts = new RhinoFontFaceSet();
 		this.fonts.init(this.getParentScope(), new FontFaceSet());
@@ -56,14 +57,14 @@ public class Document extends Node {
 
 		Node node = itemNodeType.getNode();
 		node.setDocument(this);
-		node.setParentScope(this.getParentScope());  // Set parent scope for Rhino
+		node.setParentScope(this.getParentScope()); // Set parent scope for Rhino
 		node.init();
 
 		return node;
 	}
 
-	public RootPaneContainer getContentPane() {
-		return frame;
+	public IWindowHost getWindowHost() {
+		return windowHost;
 	}
 
 	public AbstractView jsGet_defaultView() {
@@ -89,7 +90,7 @@ public class Document extends Node {
 		Map<String, Node> nodes = getZNodes().descendingMap();
 		Node destinationNode = this;
 
-		for(Entry<String, Node> entry : nodes.entrySet()){
+		for (Entry<String, Node> entry : nodes.entrySet()) {
 			if (entry.getValue().isMineArea(xy)) {
 				destinationNode = entry.getValue();
 				break;

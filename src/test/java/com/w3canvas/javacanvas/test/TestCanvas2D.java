@@ -112,11 +112,19 @@ public class TestCanvas2D extends ApplicationTest {
         int[] pixelData = future.get();
 
         boolean pixelFound = false;
+        StringBuilder debugInfo = new StringBuilder();
+        int sampleCount = 0;
         for (int pixel : pixelData) {
             int actualA = (pixel >> 24) & 0xff;
             int actualR = (pixel >> 16) & 0xff;
             int actualG = (pixel >> 8) & 0xff;
             int actualB = pixel & 0xff;
+
+            // Log first few unique pixels for debugging
+            if (sampleCount < 5) {
+                debugInfo.append(String.format("  Sample pixel: R=%d G=%d B=%d A=%d%n", actualR, actualG, actualB, actualA));
+                sampleCount++;
+            }
 
             if (Math.abs(r - actualR) <= effectiveTolerance &&
                     Math.abs(g - actualG) <= effectiveTolerance &&
@@ -125,6 +133,12 @@ public class TestCanvas2D extends ApplicationTest {
                 pixelFound = true;
                 break;
             }
+        }
+        if (!pixelFound) {
+            System.err.println("Pixel assertion failed at (" + x + "," + y + "):");
+            System.err.println("  Expected: R=" + r + " G=" + g + " B=" + b + " A=" + a + " (tolerance=" + effectiveTolerance + ")");
+            System.err.println("  Searched area: " + w + "x" + h + " pixels");
+            System.err.println(debugInfo.toString());
         }
         assertTrue(pixelFound,
                 "Could not find a pixel with the expected color in the vicinity of (" + x + "," + y + ") " +

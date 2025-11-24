@@ -5,8 +5,21 @@ import org.graalvm.polyglot.HostAccess;
 
 public class GraalRuntime implements JSRuntime {
     private Context context;
+    private final EventLoop eventLoop;
 
     public GraalRuntime() {
+        this(false);
+    }
+
+    /**
+     * Create a GraalRuntime with optional worker event loop.
+     * @param isWorker true if this runtime is for a Worker/SharedWorker context
+     */
+    public GraalRuntime(boolean isWorker) {
+        this.eventLoop = isWorker ? new WorkerThreadEventLoop() : new MainThreadEventLoop();
+        // Start the event loop - it will block on the queue until work arrives
+        this.eventLoop.start();
+
         this.context = Context.newBuilder("js")
                 .allowHostAccess(HostAccess.newBuilder(HostAccess.ALL)
                         .targetTypeMapping(Double.class, Float.class, null, x -> x.floatValue())
@@ -48,5 +61,14 @@ public class GraalRuntime implements JSRuntime {
     @Override
     public Object getScope() {
         return context.getBindings("js");
+    }
+
+    /**
+     * Get the event loop for this runtime.
+     * The event loop processes messages from MessagePorts and other async tasks.
+     * @return The EventLoop instance
+     */
+    public EventLoop getEventLoop() {
+        return eventLoop;
     }
 }
