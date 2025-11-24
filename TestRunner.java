@@ -46,6 +46,11 @@ public class TestRunner {
         System.setProperty("prism.order", "sw");
         System.setProperty("prism.text", "t2k");
 
-        ConsoleLauncher.main(args);
+        // Prepend "execute" command to satisfy deprecation warning
+        String[] newArgs = new String[args.length + 1];
+        newArgs[0] = "execute";
+        System.arraycopy(args, 0, newArgs, 1, args.length);
+
+        ConsoleLauncher.main(newArgs);
     }
 }
