@@ -30,11 +30,25 @@ import org.mozilla.javascript.ScriptableObject;
 import com.w3canvas.javacanvas.backend.awt.AwtGraphicsBackend;
 import com.w3canvas.javacanvas.backend.javafx.JavaFXGraphicsBackend;
 import com.w3canvas.javacanvas.core.CoreCanvasRenderingContext2D;
+import com.w3canvas.javacanvas.core.dom.CoreHTMLCanvasElement;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
 import com.w3canvas.javacanvas.interfaces.IGraphicsBackend;
 
+/**
+ * Rhino adapter for HTMLCanvasElement - wraps CoreHTMLCanvasElement.
+ *
+ * This is a thin Rhino-specific wrapper around CoreHTMLCanvasElement. The CoreHTMLCanvasElement
+ * instance is NOT Context-bound and can be safely accessed from multiple threads and Contexts.
+ * This solves the Worker/SharedWorker cross-Context communication issue.
+ *
+ * CRITICAL for cross-Context access: getImage(), getWidth(), getHeight() all delegate to the
+ * wrapped core element, which is plain Java (not Scriptable) and accessible from any Context.
+ */
 @SuppressWarnings("serial")
 public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
+
+	// CRITICAL: Core canvas element (NOT Context-bound, thread-safe)
+	private final CoreHTMLCanvasElement coreCanvas;
 
 	private static final Map<String, String> FORMATS = new HashMap<String, String>();
 
@@ -66,6 +80,8 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 
 	public HTMLCanvasElement() {
 		super(CANVAS_WIDTH, CANVAS_HEIGHT);
+		// Initialize core canvas element (NOT Context-bound)
+		this.coreCanvas = new CoreHTMLCanvasElement(CANVAS_WIDTH, CANVAS_HEIGHT, null);
 	}
 
 	@Override
@@ -222,11 +238,37 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 		return canvas;
 	}
 
+	@Override
 	public Integer getWidth() {
-		return getRealWidth();
+		// Delegate to core canvas for cross-Context access
+		return coreCanvas.getWidth();
 	}
 
+	public void jsSet_width(int width) {
+		// Update both Image superclass and core canvas
+		super.jsSet_width(width);
+		coreCanvas.setWidth(width);
+	}
+
+	@Override
 	public Integer getHeight() {
-		return getRealHeight();
+		// Delegate to core canvas for cross-Context access
+		return coreCanvas.getHeight();
+	}
+
+	public void jsSet_height(int height) {
+		// Update both Image superclass and core canvas
+		super.jsSet_height(height);
+		coreCanvas.setHeight(height);
+	}
+
+	/**
+	 * CRITICAL: Get the underlying BufferedImage from core canvas.
+	 * This allows cross-Context access - other Contexts can call this method
+	 * because it delegates to CoreHTMLCanvasElement (plain Java, not Scriptable).
+	 */
+	@Override
+	public BufferedImage getImage() {
+		return coreCanvas.getImage();
 	}
 }
