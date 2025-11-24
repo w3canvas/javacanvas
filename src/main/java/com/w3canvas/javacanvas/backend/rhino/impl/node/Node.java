@@ -309,9 +309,33 @@ public class Node extends ProjectScriptableObject implements EventTarget, INodeU
 	}
 
 	public void jsSet_id(String id) {
+		// Remove old ID registration if changing ID
+		if (this.id != null && this.document != null) {
+			this.document.removeElementById(this.id);
+			// Also unregister from core document
+			if (this.document.getCoreDocument() != null) {
+				this.document.getCoreDocument().unregisterElementById(this.id);
+			}
+		}
+
 		this.id = id;
 
-		this.document.addElement(id, this);
+		// Register with legacy documentsNode map
+		if (this.document != null) {
+			this.document.addElement(id, this);
+
+			// CRITICAL: Also register with CoreDocument for cross-Context access
+			// The CoreDocument's ID registry is NOT Context-bound, so getElementById
+			// will work even when called from a different Rhino Context (e.g., when
+			// a message handler runs on JavaFX Application Thread)
+			if (this.document.getCoreDocument() != null) {
+				// Create a CoreElement wrapper for this Node
+				// For now, we use a simple adapter
+				com.w3canvas.javacanvas.core.dom.CoreElement coreElement =
+					new RhinoNodeAdapter(this);
+				this.document.getCoreDocument().registerElementById(id, coreElement);
+			}
+		}
 	}
 
 	public void jsSet_style(StyleHolder style) {

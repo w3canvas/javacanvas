@@ -77,8 +77,16 @@ public class Document extends Node {
 	}
 
 	public Node jsFunction_getElementById(String id) {
-		// Delegate to core document
+		// CRITICAL: Delegate to core document for cross-Context access
+		// The CoreDocument's ID registry is NOT Context-bound, so this works
+		// even when called from a different Rhino Context (e.g., message handlers)
 		IElement element = coreDocument.getElementById(id);
+
+		if (element instanceof RhinoNodeAdapter) {
+			// Unwrap the adapter to get the Rhino Node
+			return ((RhinoNodeAdapter) element).getRhinoNode();
+		}
+
 		if (element instanceof Node) {
 			return (Node) element;
 		}
