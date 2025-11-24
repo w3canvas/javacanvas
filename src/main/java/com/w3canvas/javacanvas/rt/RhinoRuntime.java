@@ -21,6 +21,11 @@ public class RhinoRuntime implements JSRuntime {
     private Object mainThreadDocument;
     private Object mainThreadWindow;
 
+    // Store the main thread's Context for cross-Context calling
+    // This allows message handlers on different threads to reuse the original Context
+    // where document/window/canvas were created, enabling proper method resolution
+    private Context mainThreadContext;
+
     public RhinoRuntime() {
         this(false);
     }
@@ -78,6 +83,9 @@ public class RhinoRuntime implements JSRuntime {
                         com.w3canvas.javacanvas.backend.rhino.impl.node.CanvasRenderingContext2D.class);
                 org.mozilla.javascript.ScriptableObject.defineClass(scope,
                         com.w3canvas.javacanvas.backend.rhino.impl.node.Document.class);
+                // Register HTMLCanvasElement for cross-Context method access
+                org.mozilla.javascript.ScriptableObject.defineClass(scope,
+                        com.w3canvas.javacanvas.backend.rhino.impl.node.HTMLCanvasElement.class);
                 // Register Worker, SharedWorker, and MessagePort classes
                 org.mozilla.javascript.ScriptableObject.defineClass(scope,
                         com.w3canvas.javacanvas.js.worker.Worker.class);
@@ -292,6 +300,28 @@ public class RhinoRuntime implements JSRuntime {
         if (!isWorker) {
             this.mainThreadWindow = window;
         }
+    }
+
+    /**
+     * Set the main thread Context.
+     * This allows cross-Context calling by reusing the original Context where
+     * document/window/canvas were created.
+     * Only valid for main thread runtimes (not workers).
+     * @param context The main thread Context
+     */
+    public void setMainThreadContext(Context context) {
+        if (!isWorker) {
+            this.mainThreadContext = context;
+            System.out.println("DEBUG: Stored main thread Context for cross-Context calling");
+        }
+    }
+
+    /**
+     * Get the main thread Context.
+     * @return The stored main thread Context, or null if not set
+     */
+    public Context getMainThreadContext() {
+        return mainThreadContext;
     }
 
     /**

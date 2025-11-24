@@ -94,7 +94,31 @@ public class MessagePort extends ProjectScriptableObject {
             if (cx == null) {
                 cx = Context.enter();
                 needToExit = true;
-                System.out.println("DEBUG: Entered new Context");
+                System.out.println("DEBUG: Entered new Context, Context@" + System.identityHashCode(cx));
+
+                // Debug: Check what's in the handler scope
+                System.out.println("DEBUG: handlerScope type: " + (handlerScope != null ? handlerScope.getClass().getName() : "null"));
+                if (handlerScope != null) {
+                    System.out.println("DEBUG: handlerScope has 'document': " + handlerScope.has("document", handlerScope));
+                    System.out.println("DEBUG: handlerScope has 'window': " + handlerScope.has("window", handlerScope));
+                    System.out.println("DEBUG: handlerScope has 'canvas': " + handlerScope.has("canvas", handlerScope));
+
+                    // Check canvas object details
+                    if (handlerScope.has("canvas", handlerScope)) {
+                        Object canvasObj = handlerScope.get("canvas", handlerScope);
+                        System.out.println("DEBUG: canvas object type: " + (canvasObj != null ? canvasObj.getClass().getName() : "null"));
+                        if (canvasObj instanceof org.mozilla.javascript.Scriptable) {
+                            org.mozilla.javascript.Scriptable canvasScriptable = (org.mozilla.javascript.Scriptable) canvasObj;
+                            System.out.println("DEBUG: canvas parent scope: " + (canvasScriptable.getParentScope() != null ?
+                                canvasScriptable.getParentScope().getClass().getName() : "null"));
+                            System.out.println("DEBUG: canvas parent scope == handlerScope: " +
+                                (canvasScriptable.getParentScope() == handlerScope));
+                            System.out.println("DEBUG: canvas has 'getContext': " + canvasScriptable.has("getContext", canvasScriptable));
+                            System.out.println("DEBUG: canvas prototype: " + (canvasScriptable.getPrototype() != null ?
+                                canvasScriptable.getPrototype().getClass().getName() : "null"));
+                        }
+                    }
+                }
 
                 // For main thread runtimes, ensure document/window are accessible in the new Context
                 // This solves the Rhino Context thread-locality issue where objects created in one

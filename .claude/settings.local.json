@@ -11,7 +11,9 @@
       "Bash(git reset:*)",
       "Bash(git checkout:*)",
       "Bash(tee:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git stash:*)",
+      "Bash(allow cross-context calling!\" - but objects need proper prototypes registered.\n\nRemaining work: 4 SharedWorker tests still fail (likely timeouts or different issues)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

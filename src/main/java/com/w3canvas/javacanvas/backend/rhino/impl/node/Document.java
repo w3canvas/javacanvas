@@ -7,6 +7,9 @@ import java.util.Map.Entry;
 
 import javax.swing.RootPaneContainer;
 
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
+
 import com.w3canvas.javacanvas.interfaces.IWindowHost;
 import com.w3canvas.javacanvas.interfaces.IElement;
 import com.w3canvas.javacanvas.interfaces.INode;
@@ -150,6 +153,25 @@ public class Document extends Node {
 		Node node = itemNodeType.getNode();
 		node.setDocument(this);
 		node.setParentScope(this.getParentScope()); // Set parent scope for Rhino
+
+		// CRITICAL: Set prototype for cross-Context method access
+		// This allows JavaScript to call methods on the node from different Contexts
+		try {
+			Scriptable scope = this.getParentScope();
+			if (scope != null) {
+				String className = node.getClass().getSimpleName();
+				Scriptable proto = ScriptableObject.getClassPrototype(scope, className);
+				if (proto != null) {
+					node.setPrototype(proto);
+					System.out.println("DEBUG: Set prototype for " + className);
+				} else {
+					System.out.println("WARN: No prototype found for " + className);
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Warning: Could not set prototype for " + node.getClass().getSimpleName() + ": " + e.getMessage());
+		}
+
 		node.init();
 
 		// TODO: Also register in core document for cross-Context access
