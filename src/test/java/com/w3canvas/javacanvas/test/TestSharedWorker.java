@@ -184,8 +184,8 @@ public class TestSharedWorker extends ApplicationTest {
         interact(() -> ctx.clearRect(0, 0, 400, 400));
 
         // Create two connections to the same shared worker
-        String script = "var worker1 = new SharedWorker('test-sharedworker.js');" +
-                "var worker2 = new SharedWorker('test-sharedworker.js');" +
+        String script = "var worker1 = new SharedWorker('test/test-sharedworker.js');" +
+                "var worker2 = new SharedWorker('test/test-sharedworker.js');" +
                 "var received1 = false;" +
                 "var received2 = false;" +
                 "var multiConnectionComplete = false;" +
@@ -228,7 +228,7 @@ public class TestSharedWorker extends ApplicationTest {
     public void testSharedWorkerWithImageBitmap() throws ExecutionException, InterruptedException, TimeoutException {
         interact(() -> ctx.clearRect(0, 0, 400, 400));
 
-        String script = "var worker = new SharedWorker('test-sharedworker-imagebitmap.js');" +
+        String script = "var worker = new SharedWorker('test/test-sharedworker-imagebitmap.js');" +
                 "var imageBitmapComplete = false;" +
                 "" +
                 "worker.port.onmessage = function(e) {" +
@@ -260,7 +260,7 @@ public class TestSharedWorker extends ApplicationTest {
      */
     @Test
     public void testMessagePortCommunication() throws InterruptedException, TimeoutException {
-        String script = "var worker = new SharedWorker('test-sharedworker.js');" +
+        String script = "var worker = new SharedWorker('test/test-sharedworker.js');" +
                 "var port = worker.port;" +
                 "var messageReceived = false;" +
                 "" +
@@ -299,7 +299,7 @@ public class TestSharedWorker extends ApplicationTest {
      */
     @Test
     public void testSharedWorkerTermination() throws InterruptedException, TimeoutException {
-        String script = "var worker = new SharedWorker('test-sharedworker.js');" +
+        String script = "var worker = new SharedWorker('test/test-sharedworker.js');" +
                 "var workerStarted = false;" +
                 "worker.port.onmessage = function(e) {" +
                 "  workerStarted = true;" +
