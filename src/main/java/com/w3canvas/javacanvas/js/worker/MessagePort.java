@@ -95,6 +95,17 @@ public class MessagePort extends ProjectScriptableObject {
                 cx = Context.enter();
                 needToExit = true;
                 System.out.println("DEBUG: Entered new Context");
+
+                // For main thread runtimes, ensure document/window are accessible in the new Context
+                // This solves the Rhino Context thread-locality issue where objects created in one
+                // Context cannot be accessed from another Context.
+                if (handlerRuntime instanceof com.w3canvas.javacanvas.rt.RhinoRuntime) {
+                    com.w3canvas.javacanvas.rt.RhinoRuntime rhinoRuntime =
+                        (com.w3canvas.javacanvas.rt.RhinoRuntime) handlerRuntime;
+                    rhinoRuntime.ensureMainThreadGlobals(handlerScope);
+                    System.out.println("DEBUG: Ensured main thread globals in new Context (isWorker=" +
+                        rhinoRuntime.isWorker() + ")");
+                }
             }
             try {
                 cx.putThreadLocal("runtime", handlerRuntime);

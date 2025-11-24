@@ -201,6 +201,11 @@ public class JavaCanvas {
             this.document.init(this.windowHost);
             runtime.putProperty("document", this.document);
 
+            // Store document in RhinoRuntime so it's accessible across Contexts
+            if (runtime instanceof RhinoRuntime) {
+                ((RhinoRuntime) runtime).setMainThreadDocument(this.document);
+            }
+
             this.window = new Window();
             if (headless || windowHost == null) {
                 this.window.init(800, 600);
@@ -209,6 +214,11 @@ public class JavaCanvas {
             }
             this.window.setDocument(document);
             runtime.putProperty("window", this.window);
+
+            // Store window in RhinoRuntime so it's accessible across Contexts
+            if (runtime instanceof RhinoRuntime) {
+                ((RhinoRuntime) runtime).setMainThreadWindow(this.window);
+            }
 
             runtime.putProperty("log", new ScriptLogger());
             runtime.putProperty("console", new ScriptLogger());

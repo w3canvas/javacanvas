@@ -41,59 +41,115 @@ DEBUG: Response sent back to main thread
 DEBUG: Main thread drainTask on JavaFX Application Thread
 ```
 
-## Remaining Issue: Rhino Context Thread-Locality
+## Remaining Issue: Rhino Context Thread-Locality (CRITICAL)
 
 ### The Problem
-Rhino's `Context` is thread-local and isolated. Objects created in one Context cannot be accessed from another Context, even if:
+Rhino's `Context` is thread-local and isolated. **Scriptable objects created in one Context cannot have methods called on them from another Context**, even if:
+- We inject the object reference into the new Context's scope ✅ TRIED - DOESN'T WORK
 - We reuse the same scope
 - We set the runtime in thread local
 - We're on the same or different threads
 
-### Current Situation
-1. Main thread script runs on "Test worker" thread (id=1), creates `document`
-2. Message handler queued to MainThreadEventLoop
-3. MainThreadEventLoop uses Platform.runLater(), runs on "JavaFX Application Thread" (id=33)
-4. NEW Context is created (getCurrentContext() returns null on JavaFX thread)
-5. New Context can't access `document` from old Context
-6. Error: "TypeError: Cannot find default value for object" when calling `document.getElementById()`
+### Current Situation (After GlobalScope Injection Attempt)
+1. Main thread script runs on "Test worker" thread (id=1), creates `document` as Scriptable object
+2. JavaCanvas stores `document` and `window` in RhinoRuntime fields
+3. Message handler queued to MainThreadEventLoop
+4. MainThreadEventLoop uses Platform.runLater(), runs on "JavaFX Application Thread" (id=36)
+5. NEW Context is created (getCurrentContext() returns null on JavaFX thread)
+6. RhinoRuntime.ensureMainThreadGlobals() injects `document` and `window` into new Context's scope
+7. **Rhino blocks method calls**: `document` reference is accessible, but calling `document.getElementById()` fails
+8. Error: "TypeError: Cannot find default value for object" at line 11 of test-sharedworker-main.js
 
-### Why This Happens
-- Test executes script on "Test worker" thread
-- Platform.runLater() executes on "JavaFX Application Thread"
-- These are different threads with different Contexts
-- Rhino doesn't allow cross-Context object access
+### Why Injection Doesn't Work
+- The `document` object is a Scriptable (extends ScriptableObject) created in the original Context
+- Rhino internally checks if method calls on Scriptable objects are from the same Context
+- Cross-Context method calls are blocked by Rhino's security/isolation design
+- Simply having the reference in scope is not sufficient
 
-### Potential Solutions
+### Root Cause: DOM Tightly Coupled to Rhino
+The current DOM implementation (Document, Node, Element, etc.) is located in `com.w3canvas.javacanvas.backend.rhino.impl.node` and extends ScriptableObject. This makes it inherently Context-bound.
 
-**Option 1: Run message handlers synchronously on same thread**
-- Don't use Platform.runLater() for main thread in tests
-- Keep handler on same thread as script execution
-- Pros: Would work for tests
-- Cons: Breaks async event loop model, not realistic
+### Potential Solutions (Ordered by Viability)
 
-**Option 2: Make document/window available in all Contexts**
-- Store document/window in a thread-safe global registry
-- When new Context is created, re-inject these objects
-- Pros: Maintains async model
-- Cons: Complex, may have serialization issues
+**Option 1: Refactor DOM to use "Trident" Architecture** ⭐ RECOMMENDED
+- Extract DOM logic to backend-agnostic core layer (like Canvas 2D)
+- Create `com.w3canvas.javacanvas.core.dom` with interface-based design
+- Create Rhino and GraalJS adapters
+- Pros: Clean architecture, enables GraalJS support, follows project patterns
+- Cons: Significant refactoring effort (but well-defined based on existing Canvas work)
+- Status: This aligns with user's observation about DOM coupling to Rhino
 
-**Option 3: Use GraalJS instead of Rhino**
-- GraalJS may have better cross-thread object sharing
-- Pros: Modern engine, better performance
-- Cons: Different API, requires refactoring
+**Option 2: MainThreadEventLoop Reuses Same Context**
+- Store the original Context in RhinoRuntime
+- MainThreadEventLoop reuses that Context instead of creating new ones
+- Pros: Minimal code changes, preserves async model
+- Cons: May have threading issues with Rhino, Context might not be thread-safe
 
-**Option 4: Keep all main thread work on one thread**
-- Don't delegate to Platform.runLater() at all
-- Run MainThreadEventLoop on the script execution thread
-- Pros: Simpler, avoids Context issues
-- Cons: Doesn't integrate with UI event loop
+**Option 3: Synchronous MainThreadEventLoop for Tests**
+- Add flag to disable Platform.runLater() in test environments
+- Main thread event loop runs synchronously on same thread
+- Pros: Quick fix for tests, maintains architecture for production
+- Cons: Tests don't exercise real async behavior
 
-## Next Steps
+**Option 4: Test with GraalJS**
+- Switch to GraalJS engine for tests
+- GraalJS may not have Context thread-locality restrictions
+- Pros: Modern engine, better performance, may "just work"
+- Cons: Requires GraalJS adapters for DOM (ties into Option 1)
 
-1. **Test with GraalJS** - See if it handles cross-thread better
-2. **Implement synchronous mode for tests** - Add flag to disable Platform.runLater()
-3. **Document injection** - Try re-injecting document/window in new Contexts
-4. **Architecture review** - May need fundamental redesign for Rhino's limitations
+**Option 5: Context-Agnostic Wrapper Pattern**
+- Create wrapper objects that delegate to original objects via reflection
+- Wrappers are created fresh in each Context
+- Pros: Doesn't require full refactor
+- Cons: Complex, performance overhead, may not work with Rhino's restrictions
+
+## Attempted Solutions
+
+### 1. Global Scope Injection ❌ FAILED
+- Stored document/window in RhinoRuntime fields
+- Injected references into new Context's scope
+- **Result**: References accessible, but Rhino blocks method calls on Scriptable objects from different Context
+- **Reason**: Rhino's internal security checks prevent cross-Context method invocations
+
+### 2. Synchronous Mode ❌ PARTIALLY FAILED
+- Added `synchronousMode` flag to MainThreadEventLoop
+- Tasks run immediately on calling thread if on main thread
+- Checks thread-local runtime to avoid running on worker thread
+- **Result**: Works for same-runtime calls, but cross-runtime calls still fail
+- **Reason**: When worker sends message to main thread, handler must run in main thread Context, not worker Context. Queuing it normally brings us back to the original Context isolation problem.
+
+## Conclusion
+
+**Rhino's Context thread-locality is a fundamental architectural limitation that cannot be worked around without significant refactoring.**
+
+The issue is not with the event loop architecture (which is correct per HTML5 spec), but with DOM objects (Document, Node, Element) being tightly coupled to Rhino's ScriptableObject, which is Context-bound.
+
+## Recommended Path Forward: DOM Trident Refactoring ⭐
+
+Following the successful Canvas 2D "Trident" architecture pattern:
+
+### Phase 1: Extract Core DOM Layer
+- Create `com.w3canvas.javacanvas.core.dom` package
+- Define interfaces: `ICoreDocument`, `ICoreElement`, `ICoreNode`, etc.
+- Implement backend-agnostic DOM logic (tree structure, event dispatch, etc.)
+
+### Phase 2: Create Rhino Adapter
+- `com.w3canvas.javacanvas.backend.rhino.dom`
+- Thin wrappers that extend ScriptableObject
+- Delegate to core DOM implementations
+- Similar to how CanvasRenderingContext2D wraps CoreCanvasRenderingContext2D
+
+### Phase 3: Add GraalJS Support
+- `com.w3canvas.javacanvas.backend.graal.dom`
+- GraalJS polyglot adapters
+- Enables testing if GraalJS handles cross-thread better
+
+### Benefits
+- ✅ Decouples DOM logic from JavaScript engine
+- ✅ Enables GraalJS support (may not have Context thread-locality)
+- ✅ Follows established project architecture patterns
+- ✅ Makes DOM testable independent of JS engine
+- ✅ Aligns with user's observation about DOM coupling to Rhino
 
 ## Architecture Summary
 

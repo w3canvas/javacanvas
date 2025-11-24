@@ -14,6 +14,12 @@ public class RhinoRuntime implements JSRuntime {
     private String currentUrl;
     private Scriptable scope;
     private final EventLoop eventLoop;
+    private final boolean isWorker;
+
+    // Main thread globals that need to be accessible across Contexts
+    // Workers don't have these (they have WorkerGlobalScope instead)
+    private Object mainThreadDocument;
+    private Object mainThreadWindow;
 
     public RhinoRuntime() {
         this(false);
@@ -24,7 +30,18 @@ public class RhinoRuntime implements JSRuntime {
      * @param isWorker true if this runtime is for a Worker/SharedWorker context
      */
     public RhinoRuntime(boolean isWorker) {
-        this.eventLoop = isWorker ? new WorkerThreadEventLoop() : new MainThreadEventLoop();
+        this.isWorker = isWorker;
+
+        // Check if we should use synchronous mode for tests
+        // This solves Rhino Context thread-locality by keeping all main thread code in same Context
+        boolean synchronousMode = "true".equalsIgnoreCase(System.getProperty("javacanvas.test.synchronous", "false"));
+
+        if (isWorker) {
+            this.eventLoop = new WorkerThreadEventLoop();
+        } else {
+            this.eventLoop = new MainThreadEventLoop(synchronousMode);
+        }
+
         // Start the event loop - it will block on the queue until work arrives
         this.eventLoop.start();
 
@@ -245,6 +262,57 @@ public class RhinoRuntime implements JSRuntime {
      */
     public EventLoop getEventLoop() {
         return eventLoop;
+    }
+
+    /**
+     * Check if this is a worker runtime.
+     * @return true if this runtime is for a Worker/SharedWorker context
+     */
+    public boolean isWorker() {
+        return isWorker;
+    }
+
+    /**
+     * Set the main thread document object.
+     * Only valid for main thread runtimes (not workers).
+     * @param document The document object
+     */
+    public void setMainThreadDocument(Object document) {
+        if (!isWorker) {
+            this.mainThreadDocument = document;
+        }
+    }
+
+    /**
+     * Set the main thread window object.
+     * Only valid for main thread runtimes (not workers).
+     * @param window The window object
+     */
+    public void setMainThreadWindow(Object window) {
+        if (!isWorker) {
+            this.mainThreadWindow = window;
+        }
+    }
+
+    /**
+     * Ensure main thread globals (document, window) are present in the given scope.
+     * This is called when a new Context is created on a different thread to ensure
+     * the main thread globals remain accessible.
+     *
+     * Workers don't have document/window, they have WorkerGlobalScope.
+     *
+     * @param targetScope The scope to inject globals into
+     */
+    public void ensureMainThreadGlobals(Scriptable targetScope) {
+        if (!isWorker && targetScope != null) {
+            // Only inject if they're not already there
+            if (mainThreadDocument != null && !targetScope.has("document", targetScope)) {
+                targetScope.put("document", targetScope, mainThreadDocument);
+            }
+            if (mainThreadWindow != null && !targetScope.has("window", targetScope)) {
+                targetScope.put("window", targetScope, mainThreadWindow);
+            }
+        }
     }
 
 }

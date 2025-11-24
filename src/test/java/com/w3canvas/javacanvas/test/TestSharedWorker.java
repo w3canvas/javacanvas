@@ -58,6 +58,8 @@ public class TestSharedWorker extends ApplicationTest {
     @BeforeEach
     public void setUp() {
         System.setProperty("w3canvas.backend", "awt");
+        // Enable synchronous event loop mode to solve Rhino Context thread-locality
+        System.setProperty("javacanvas.test.synchronous", "true");
 
         String basePath = ".";
         javaCanvas = new JavaCanvas(basePath, true);
