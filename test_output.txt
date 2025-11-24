@@ -1,0 +1,177 @@
+
+Thanks for using JUnit! Support its development at https://junit.org/sponsoring
+
+Test plan execution started. Number of static tests: [34m1
+[0m[36m.
+[0m+--[36m JUnit Jupiter[0m
+| +--[36m TestLocalFont[0m
+| | +--[34m testLocalFontLoading()
+[0m| | |      tags: []
+| | |  uniqueId: [engine:junit-jupiter]/[class:com.w3canvas.javacanvas.test.TestLocalFont]/[method:testLocalFontLoading()]
+| | |    parent: [engine:junit-jupiter]/[class:com.w3canvas.javacanvas.test.TestLocalFont]
+| | |    source: MethodSource [className = 'com.w3canvas.javacanvas.test.TestLocalFont', methodName = 'testLocalFontLoading', methodParameterTypes = '']
+Warning: could not load META-INF/config.properties. Using default values.
+Executing script...
+org.mozilla.javascript.EcmaError: TypeError: Cannot find function then in object java.util.concurrent.CompletableFuture@13d9b21f[Not completed]. (test-local-font.js#2)
+	at org.mozilla.javascript.ScriptRuntime.constructError(ScriptRuntime.java:4563)
+	at org.mozilla.javascript.ScriptRuntime.constructError(ScriptRuntime.java:4544)
+	at org.mozilla.javascript.ScriptRuntime.typeError(ScriptRuntime.java:4576)
+	at org.mozilla.javascript.ScriptRuntime.typeErrorById(ScriptRuntime.java:4581)
+	at org.mozilla.javascript.ScriptRuntime.notFunctionError(ScriptRuntime.java:4660)
+	at org.mozilla.javascript.ScriptRuntime.getPropFunctionAndThisHelper(ScriptRuntime.java:2585)
+	at org.mozilla.javascript.ScriptRuntime.getPropFunctionAndThis(ScriptRuntime.java:2568)
+	at org.mozilla.javascript.gen.test_local_font_js_6._c_script_0(test-local-font.js:2)
+	at org.mozilla.javascript.gen.test_local_font_js_6.call(test-local-font.js)
+	at org.mozilla.javascript.ContextFactory.doTopCall(ContextFactory.java:380)
+	at org.mozilla.javascript.ScriptRuntime.doTopCall(ScriptRuntime.java:3868)
+	at org.mozilla.javascript.gen.test_local_font_js_6.call(test-local-font.js)
+	at org.mozilla.javascript.gen.test_local_font_js_6.exec(test-local-font.js)
+	at org.mozilla.javascript.Context.evaluateReader(Context.java:1162)
+	at com.w3canvas.javacanvas.rt.RhinoRuntime.exec(RhinoRuntime.java:204)
+	at com.w3canvas.javacanvas.test.TestLocalFont.testLocalFontLoading(TestLocalFont.java:19)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:218)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:214)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:139)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.SessionPerRequestLauncher.execute(SessionPerRequestLauncher.java:63)
+	at org.junit.platform.console.tasks.ConsoleTestExecutor.executeTests(ConsoleTestExecutor.java:102)
+	at org.junit.platform.console.tasks.ConsoleTestExecutor.lambda$execute$1(ConsoleTestExecutor.java:71)
+	at org.junit.platform.console.tasks.CustomContextClassLoaderExecutor.invoke(CustomContextClassLoaderExecutor.java:35)
+	at org.junit.platform.console.tasks.ConsoleTestExecutor.execute(ConsoleTestExecutor.java:71)
+	at org.junit.platform.console.options.ExecuteTestsCommand.execute(ExecuteTestsCommand.java:61)
+	at org.junit.platform.console.options.ExecuteTestsCommand.execute(ExecuteTestsCommand.java:27)
+	at org.junit.platform.console.options.BaseCommand.call(BaseCommand.java:74)
+	at org.junit.platform.console.shadow.picocli.CommandLine.executeUserObject(CommandLine.java:2041)
+	at org.junit.platform.console.shadow.picocli.CommandLine.access$1500(CommandLine.java:148)
+	at org.junit.platform.console.shadow.picocli.CommandLine$RunLast.executeUserObjectOfLastSubcommandWithSameParent(CommandLine.java:2461)
+	at org.junit.platform.console.shadow.picocli.CommandLine$RunLast.handle(CommandLine.java:2453)
+	at org.junit.platform.console.shadow.picocli.CommandLine$RunLast.handle(CommandLine.java:2415)
+	at org.junit.platform.console.shadow.picocli.CommandLine$AbstractParseResultHandler.execute(CommandLine.java:2273)
+	at org.junit.platform.console.shadow.picocli.CommandLine$RunLast.execute(CommandLine.java:2417)
+	at org.junit.platform.console.shadow.picocli.CommandLine.execute(CommandLine.java:2170)
+	at org.junit.platform.console.options.MainCommand.runCommand(MainCommand.java:137)
+	at org.junit.platform.console.options.MainCommand.runCommand(MainCommand.java:129)
+	at org.junit.platform.console.options.MainCommand.runCommand(MainCommand.java:93)
+	at org.junit.platform.console.options.MainCommand.call(MainCommand.java:77)
+	at org.junit.platform.console.shadow.picocli.CommandLine.executeUserObject(CommandLine.java:2041)
+	at org.junit.platform.console.shadow.picocli.CommandLine.access$1500(CommandLine.java:148)
+	at org.junit.platform.console.shadow.picocli.CommandLine$RunLast.executeUserObjectOfLastSubcommandWithSameParent(CommandLine.java:2461)
+	at org.junit.platform.console.shadow.picocli.CommandLine$RunLast.handle(CommandLine.java:2453)
+	at org.junit.platform.console.shadow.picocli.CommandLine$RunLast.handle(CommandLine.java:2415)
+	at org.junit.platform.console.shadow.picocli.CommandLine$AbstractParseResultHandler.execute(CommandLine.java:2273)
+	at org.junit.platform.console.shadow.picocli.CommandLine$RunLast.execute(CommandLine.java:2417)
+	at org.junit.platform.console.shadow.picocli.CommandLine.execute(CommandLine.java:2170)
+	at org.junit.platform.console.options.MainCommand.runCommand(MainCommand.java:137)
+	at org.junit.platform.console.options.MainCommand.run(MainCommand.java:125)
+	at org.junit.platform.console.options.CommandFacade.run(CommandFacade.java:36)
+	at org.junit.platform.console.ConsoleLauncher.run(ConsoleLauncher.java:57)
+	at org.junit.platform.console.ConsoleLauncher.run(ConsoleLauncher.java:42)
+	at org.junit.platform.console.ConsoleLauncher.main(ConsoleLauncher.java:35)
+	at TestRunner.main(TestRunner.java:49)
+| | |    caught: [31morg.mozilla.javascript.EcmaError: TypeError: Cannot find function then in object java.util.concurrent.CompletableFuture@13d9b21f[Not completed]. (test-local-font.js#2)[0m
+| | |              [31m	at org.mozilla.javascript.ScriptRuntime.constructError(ScriptRuntime.java:4563)[0m
+| | |              [31m	at org.mozilla.javascript.ScriptRuntime.constructError(ScriptRuntime.java:4544)[0m
+| | |              [31m	at org.mozilla.javascript.ScriptRuntime.typeError(ScriptRuntime.java:4576)[0m
+| | |              [31m	at org.mozilla.javascript.ScriptRuntime.typeErrorById(ScriptRuntime.java:4581)[0m
+| | |              [31m	at org.mozilla.javascript.ScriptRuntime.notFunctionError(ScriptRuntime.java:4660)[0m
+| | |              [31m	at org.mozilla.javascript.ScriptRuntime.getPropFunctionAndThisHelper(ScriptRuntime.java:2585)[0m
+| | |              [31m	at org.mozilla.javascript.ScriptRuntime.getPropFunctionAndThis(ScriptRuntime.java:2568)[0m
+| | |              [31m	at org.mozilla.javascript.gen.test_local_font_js_6._c_script_0(test-local-font.js:2)[0m
+| | |              [31m	at org.mozilla.javascript.gen.test_local_font_js_6.call(test-local-font.js)[0m
+| | |              [31m	at org.mozilla.javascript.ContextFactory.doTopCall(ContextFactory.java:380)[0m
+| | |              [31m	at org.mozilla.javascript.ScriptRuntime.doTopCall(ScriptRuntime.java:3868)[0m
+| | |              [31m	at org.mozilla.javascript.gen.test_local_font_js_6.call(test-local-font.js)[0m
+| | |              [31m	at org.mozilla.javascript.gen.test_local_font_js_6.exec(test-local-font.js)[0m
+| | |              [31m	at org.mozilla.javascript.Context.evaluateReader(Context.java:1162)[0m
+| | |              [31m	at com.w3canvas.javacanvas.rt.RhinoRuntime.exec(RhinoRuntime.java:204)[0m
+| | |              [31m	at com.w3canvas.javacanvas.test.TestLocalFont.testLocalFontLoading(TestLocalFont.java:19)[0m
+| | |              [31m	at java.base/java.lang.reflect.Method.invoke(Method.java:568)[0m
+| | |              [31m	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)[0m
+| | |              [31m	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)[0m
+| | |  duration: 237 ms
+| | |    status: [31m[X] FAILED
+[0m| '--[36m TestLocalFont[0m finished after 252 ms.
+'--[36m JUnit Jupiter[0m finished after 268 ms.
++--[36m JUnit Vintage[0m
+'--[36m JUnit Vintage[0m finished after 1 ms.
++--[36m JUnit Platform Suite[0m
+'--[36m JUnit Platform Suite[0m finished after 1 ms.
+Test plan execution finished. Number of all tests: [34m1
+[0m
+Test run finished after 294 ms
+[         4 containers found      ]
+[         0 containers skipped    ]
+[         4 containers started    ]
+[         0 containers aborted    ]
+[         4 containers successful ]
+[         0 containers failed     ]
+[         1 tests found           ]
+[         0 tests skipped         ]
+[         1 tests started         ]
+[         0 tests aborted         ]
+[         0 tests successful      ]
+[         1 tests failed          ]
+
+
+WARNING: Delegated to the 'execute' command.
+         This behaviour has been deprecated and will be removed in a future release.
+         Please use the 'execute' command directly.
