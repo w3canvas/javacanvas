@@ -42,7 +42,8 @@ public class TestImageBitmap extends ApplicationTest {
     @BeforeAll
     public static void warmUp() {
         try {
-            javafx.application.Platform.startup(() -> {});
+            javafx.application.Platform.startup(() -> {
+            });
         } catch (IllegalStateException e) {
             // Platform already started
         }
@@ -62,7 +63,7 @@ public class TestImageBitmap extends ApplicationTest {
 
         Context.enter();
 
-        scope = javaCanvas.getRhinoRuntime().getScope();
+        scope = (Scriptable) javaCanvas.getRuntime().getScope();
         try {
             canvas = (HTMLCanvasElement) javaCanvas.getDocument().jsFunction_createElement("canvas");
         } catch (Exception e) {
@@ -122,12 +123,11 @@ public class TestImageBitmap extends ApplicationTest {
 
     @Test
     public void testCreateImageBitmapFromOffscreenCanvas() {
-        String script =
-            "var offscreen = new OffscreenCanvas(100, 100);" +
-            "var offscreenCtx = offscreen.getContext('2d');" +
-            "offscreenCtx.fillStyle = 'blue';" +
-            "offscreenCtx.fillRect(0, 0, 100, 100);" +
-            "var imageBitmap = createImageBitmap(offscreen);";
+        String script = "var offscreen = new OffscreenCanvas(100, 100);" +
+                "var offscreenCtx = offscreen.getContext('2d');" +
+                "offscreenCtx.fillStyle = 'blue';" +
+                "offscreenCtx.fillRect(0, 0, 100, 100);" +
+                "var imageBitmap = createImageBitmap(offscreen);";
 
         javaCanvas.executeCode(script);
 
@@ -139,15 +139,14 @@ public class TestImageBitmap extends ApplicationTest {
 
     @Test
     public void testCreateImageBitmapFromImageData() {
-        String script =
-            "var imageData = ctx.createImageData(50, 50);" +
-            "for (var i = 0; i < imageData.data.length; i += 4) {" +
-            "  imageData.data[i] = 255;" +     // Red
-            "  imageData.data[i+1] = 0;" +     // Green
-            "  imageData.data[i+2] = 0;" +     // Blue
-            "  imageData.data[i+3] = 255;" +   // Alpha
-            "}" +
-            "var imageBitmap = createImageBitmap(imageData);";
+        String script = "var imageData = ctx.createImageData(50, 50);" +
+                "for (var i = 0; i < imageData.data.length; i += 4) {" +
+                "  imageData.data[i] = 255;" + // Red
+                "  imageData.data[i+1] = 0;" + // Green
+                "  imageData.data[i+2] = 0;" + // Blue
+                "  imageData.data[i+3] = 255;" + // Alpha
+                "}" +
+                "var imageBitmap = createImageBitmap(imageData);";
 
         javaCanvas.executeCode(script);
 
@@ -159,10 +158,9 @@ public class TestImageBitmap extends ApplicationTest {
 
     @Test
     public void testCreateImageBitmapCopy() {
-        String script =
-            "var offscreen = new OffscreenCanvas(60, 60);" +
-            "var imageBitmap1 = createImageBitmap(offscreen);" +
-            "var imageBitmap2 = createImageBitmap(imageBitmap1);";
+        String script = "var offscreen = new OffscreenCanvas(60, 60);" +
+                "var imageBitmap1 = createImageBitmap(offscreen);" +
+                "var imageBitmap2 = createImageBitmap(imageBitmap1);";
 
         javaCanvas.executeCode(script);
 
@@ -178,10 +176,9 @@ public class TestImageBitmap extends ApplicationTest {
 
     @Test
     public void testImageBitmapClose() {
-        String script =
-            "var offscreen = new OffscreenCanvas(50, 50);" +
-            "var imageBitmap = createImageBitmap(offscreen);" +
-            "imageBitmap.close();";
+        String script = "var offscreen = new OffscreenCanvas(50, 50);" +
+                "var imageBitmap = createImageBitmap(offscreen);" +
+                "imageBitmap.close();";
 
         javaCanvas.executeCode(script);
 
@@ -194,14 +191,13 @@ public class TestImageBitmap extends ApplicationTest {
     @Test
     public void testDrawImageWithImageBitmap() throws ExecutionException, InterruptedException {
         // Create an OffscreenCanvas with green fill
-        String script =
-            "var offscreen = new OffscreenCanvas(100, 100);" +
-            "var offscreenCtx = offscreen.getContext('2d');" +
-            "offscreenCtx.fillStyle = '#00FF00';" +  // Green
-            "offscreenCtx.fillRect(0, 0, 100, 100);" +
-            "var imageBitmap = createImageBitmap(offscreen);" +
-            "ctx.clearRect(0, 0, 400, 400);" +
-            "ctx.drawImage(imageBitmap, 10, 10);";
+        String script = "var offscreen = new OffscreenCanvas(100, 100);" +
+                "var offscreenCtx = offscreen.getContext('2d');" +
+                "offscreenCtx.fillStyle = '#00FF00';" + // Green
+                "offscreenCtx.fillRect(0, 0, 100, 100);" +
+                "var imageBitmap = createImageBitmap(offscreen);" +
+                "ctx.clearRect(0, 0, 400, 400);" +
+                "ctx.drawImage(imageBitmap, 10, 10);";
 
         interact(() -> javaCanvas.executeCode(script));
 
@@ -211,12 +207,11 @@ public class TestImageBitmap extends ApplicationTest {
 
     @Test
     public void testOffscreenCanvasTransferToImageBitmap() {
-        String script =
-            "var offscreen = new OffscreenCanvas(80, 80);" +
-            "var offscreenCtx = offscreen.getContext('2d');" +
-            "offscreenCtx.fillStyle = 'red';" +
-            "offscreenCtx.fillRect(0, 0, 80, 80);" +
-            "var imageBitmap = offscreen.transferToImageBitmap();";
+        String script = "var offscreen = new OffscreenCanvas(80, 80);" +
+                "var offscreenCtx = offscreen.getContext('2d');" +
+                "offscreenCtx.fillStyle = 'red';" +
+                "offscreenCtx.fillRect(0, 0, 80, 80);" +
+                "var imageBitmap = offscreen.transferToImageBitmap();";
 
         javaCanvas.executeCode(script);
 
@@ -228,12 +223,11 @@ public class TestImageBitmap extends ApplicationTest {
 
     @Test
     public void testOffscreenCanvasConvertToBlob() {
-        String script =
-            "var offscreen = new OffscreenCanvas(100, 100);" +
-            "var offscreenCtx = offscreen.getContext('2d');" +
-            "offscreenCtx.fillStyle = 'blue';" +
-            "offscreenCtx.fillRect(0, 0, 100, 100);" +
-            "var blob = offscreen.convertToBlobSync('image/png');";
+        String script = "var offscreen = new OffscreenCanvas(100, 100);" +
+                "var offscreenCtx = offscreen.getContext('2d');" +
+                "offscreenCtx.fillStyle = 'blue';" +
+                "offscreenCtx.fillRect(0, 0, 100, 100);" +
+                "var blob = offscreen.convertToBlobSync('image/png');";
 
         javaCanvas.executeCode(script);
 
@@ -246,13 +240,12 @@ public class TestImageBitmap extends ApplicationTest {
     @Test
     public void testCreateImageBitmapFromBlob() {
         // First create a blob from canvas
-        String script =
-            "var offscreen = new OffscreenCanvas(100, 100);" +
-            "var offscreenCtx = offscreen.getContext('2d');" +
-            "offscreenCtx.fillStyle = 'red';" +
-            "offscreenCtx.fillRect(0, 0, 100, 100);" +
-            "var blob = offscreen.convertToBlobSync('image/png');" +
-            "var imageBitmap = createImageBitmap(blob);";
+        String script = "var offscreen = new OffscreenCanvas(100, 100);" +
+                "var offscreenCtx = offscreen.getContext('2d');" +
+                "offscreenCtx.fillStyle = 'red';" +
+                "offscreenCtx.fillRect(0, 0, 100, 100);" +
+                "var blob = offscreen.convertToBlobSync('image/png');" +
+                "var imageBitmap = createImageBitmap(blob);";
 
         javaCanvas.executeCode(script);
 
@@ -265,44 +258,42 @@ public class TestImageBitmap extends ApplicationTest {
     @Test
     public void testImageBitmapWithDrawImageVariants() throws ExecutionException, InterruptedException {
         // Test all drawImage() signatures with ImageBitmap
-        String script =
-            "var offscreen = new OffscreenCanvas(100, 100);" +
-            "var offscreenCtx = offscreen.getContext('2d');" +
-            "offscreenCtx.fillStyle = '#FF0000';" +  // Red
-            "offscreenCtx.fillRect(0, 0, 100, 100);" +
-            "var imageBitmap = createImageBitmap(offscreen);" +
-            "ctx.clearRect(0, 0, 400, 400);" +
+        String script = "var offscreen = new OffscreenCanvas(100, 100);" +
+                "var offscreenCtx = offscreen.getContext('2d');" +
+                "offscreenCtx.fillStyle = '#FF0000';" + // Red
+                "offscreenCtx.fillRect(0, 0, 100, 100);" +
+                "var imageBitmap = createImageBitmap(offscreen);" +
+                "ctx.clearRect(0, 0, 400, 400);" +
 
-            // Test drawImage(image, dx, dy)
-            "ctx.drawImage(imageBitmap, 0, 0);" +
+                // Test drawImage(image, dx, dy)
+                "ctx.drawImage(imageBitmap, 0, 0);" +
 
-            // Test drawImage(image, dx, dy, dWidth, dHeight) - scaled
-            "ctx.drawImage(imageBitmap, 150, 0, 50, 50);" +
+                // Test drawImage(image, dx, dy, dWidth, dHeight) - scaled
+                "ctx.drawImage(imageBitmap, 150, 0, 50, 50);" +
 
-            // Test drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
-            "ctx.drawImage(imageBitmap, 25, 25, 50, 50, 250, 0, 50, 50);";
+                // Test drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+                "ctx.drawImage(imageBitmap, 25, 25, 50, 50, 250, 0, 50, 50);";
 
         interact(() -> javaCanvas.executeCode(script));
 
         // Verify pixels at different locations
-        assertPixel(50, 50, 255, 0, 0, 255);    // First draw (full size)
-        assertPixel(175, 25, 255, 0, 0, 255);   // Second draw (scaled)
-        assertPixel(275, 25, 255, 0, 0, 255);   // Third draw (cropped and scaled)
+        assertPixel(50, 50, 255, 0, 0, 255); // First draw (full size)
+        assertPixel(175, 25, 255, 0, 0, 255); // Second draw (scaled)
+        assertPixel(275, 25, 255, 0, 0, 255); // Third draw (cropped and scaled)
     }
 
     @Test
     public void testCreateImageBitmapErrorHandling() {
         // Test error when creating from closed ImageBitmap
-        String script =
-            "var offscreen = new OffscreenCanvas(50, 50);" +
-            "var imageBitmap1 = createImageBitmap(offscreen);" +
-            "imageBitmap1.close();" +
-            "var errorThrown = false;" +
-            "try {" +
-            "  var imageBitmap2 = createImageBitmap(imageBitmap1);" +
-            "} catch (e) {" +
-            "  errorThrown = true;" +
-            "}";
+        String script = "var offscreen = new OffscreenCanvas(50, 50);" +
+                "var imageBitmap1 = createImageBitmap(offscreen);" +
+                "imageBitmap1.close();" +
+                "var errorThrown = false;" +
+                "try {" +
+                "  var imageBitmap2 = createImageBitmap(imageBitmap1);" +
+                "} catch (e) {" +
+                "  errorThrown = true;" +
+                "}";
 
         javaCanvas.executeCode(script);
 

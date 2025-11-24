@@ -1,33 +1,56 @@
 # Agent Instructions for JavaCanvas
 
-This document provides instructions for developers and agents working on the JavaCanvas project.
+This document provides context and instructions for AI agents (Claude, Gemini, etc.) working on the JavaCanvas project.
 
-## Project State
+## Project Overview
 
-This project is a **complete** Java implementation of the HTML5 Canvas API, supporting both AWT and JavaFX backends.
-While some original JavaScript application logic files are missing, the Canvas 2D API implementation is fully functional and verified.
+JavaCanvas is a **100% feature-complete** Java implementation of the HTML5 Canvas 2D API. It supports dual graphics backends (AWT/Swing and JavaFX) and integrates with JavaScript engines (Rhino and GraalJS).
 
-## Dependencies
+**Key Capabilities:**
+- Full Canvas 2D API (paths, images, text, gradients, patterns)
+- Modern features: `roundRect`, `conicGradient`, `filter`, `Path2D`
+- Headless testing support
+- Native Image support (GraalVM)
 
-To build and test this project in a headless environment (e.g. CI/CD), you will need to install `xvfb` to support JavaFX/AWT testing:
+## Architecture ("Trident" Model)
 
-```bash
-sudo apt-get update
-sudo apt-get install xvfb
-```
+The project is structured into three layers:
+1.  **Interfaces** (`com.w3canvas.javacanvas.interfaces`): Pure Java contracts.
+2.  **Core** (`com.w3canvas.javacanvas.core`): Backend-agnostic business logic. **NEVER import AWT/JavaFX here.**
+3.  **Backends** (`com.w3canvas.javacanvas.backend`):
+    - `backend.awt`: Production-ready AWT implementation.
+    - `backend.javafx`: JavaFX implementation.
+    - `backend.rhino`: JavaScript bindings.
 
-## Building and Testing
+## Build System (Gradle)
 
-Use Maven wrapper:
+The project has been migrated to **Gradle** (Kotlin DSL).
 
-```bash
-./mvnw clean test
-```
+### Essential Commands
 
-For headless environments, use `run-tests.sh`:
+-   **Build:** `.\gradle-safe.ps1 build` (Windows) / `./gradlew build` (Linux/Mac)
+-   **Test:** `.\gradle-safe.ps1 test` / `./gradlew test`
+-   **Run (Rhino):** `.\gradle-safe.ps1 run --args="examples/hello.js"`
+-   **Run (GraalJS):** `.\gradle-safe.ps1 run --args="--graal examples/hello.js"`
+-   **Native Image:** `.\gradle-safe.ps1 nativeCompile`
 
-```bash
-./run-tests.sh
-```
+### ⚠️ Critical Windows Environment Note
 
-Note: Tests include warmup logic to handle JavaFX initialization latency in headless environments.
+**Issue:** Java/Gradle has a known bug handling user paths with special characters (e.g., `C:\Users\Char'les`).
+**Fix:** ALWAYS use the `.\gradle-safe.ps1` wrapper script on Windows. It automatically sets `GRADLE_USER_HOME` to `c:\wip\gradle_home` to bypass the issue.
+**Do NOT** run `./gradlew` directly on Windows if the user path contains an apostrophe.
+
+## Development Guidelines
+
+1.  **State Management:** Canvas state is deep-copied in `ContextState`. Never modify state objects after pushing to the stack.
+2.  **Resource Disposal:** AWT `Graphics2D` objects must be disposed. Use `try-finally` blocks when obtaining graphics contexts.
+3.  **Headless Testing:** Tests are designed to run headlessly. On Linux, this requires `xvfb`. On Windows, it works out of the box but may require the `gradle-safe.ps1` wrapper.
+4.  **Test Suite:** All 149 tests must pass. Use `VisualRegressionHelper` for pixel-perfect rendering checks.
+
+## Documentation References
+
+-   `README.md`: General overview and usage.
+-   `CLAUDE.md`: Detailed developer guide and architecture deep-dive.
+-   `REFACTOR.md`: Architectural decisions.
+-   `TESTING.md`: Test suite documentation.
+

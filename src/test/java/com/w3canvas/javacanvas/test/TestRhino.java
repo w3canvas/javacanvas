@@ -45,7 +45,7 @@ public class TestRhino extends ApplicationTest {
 
         Context.enter();
 
-        Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
+        Scriptable scope = (Scriptable) javaCanvas.getRuntime().getScope();
         try {
             canvas = (HTMLCanvasElement) javaCanvas.getDocument().jsFunction_createElement("canvas");
         } catch (Exception e) {

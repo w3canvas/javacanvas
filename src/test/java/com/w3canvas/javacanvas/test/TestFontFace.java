@@ -37,9 +37,10 @@ public class TestFontFace {
         JavaCanvas canvas = new JavaCanvas("test", true);
         canvas.init();
 
-        canvas.getRhinoRuntime().exec(new FileReader("test/test-font-face.js"), "test-font-face.js");
+        canvas.getRuntime().exec(new FileReader("test/test-font-face.js"), "test-font-face.js");
 
-        com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFaceSet fontFaceSet = canvas.getDocument().jsGet_fonts();
+        com.w3canvas.javacanvas.backend.rhino.impl.font.RhinoFontFaceSet fontFaceSet = canvas.getDocument()
+                .jsGet_fonts();
         assertEquals(1, fontFaceSet.getFaces().size());
 
         FontFace fontFace = fontFaceSet.getFaces().iterator().next();
@@ -62,7 +63,8 @@ public class TestFontFace {
                     InputStream is = new FileInputStream(fontFile);
                     return newChunkedResponse(Response.Status.OK, "font/ttf", is);
                 } catch (IOException e) {
-                    return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, "text/plain", "Could not load font file.");
+                    return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, "text/plain",
+                            "Could not load font file.");
                 }
             }
             return newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", "Not Found");

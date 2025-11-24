@@ -15,7 +15,6 @@ import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.framework.junit5.ApplicationTest;
 
-
 import javafx.stage.Stage;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -34,7 +33,8 @@ public class TestJavaFX extends ApplicationTest {
     @BeforeAll
     public static void warmUp() {
         try {
-            javafx.application.Platform.startup(() -> {});
+            javafx.application.Platform.startup(() -> {
+            });
         } catch (IllegalStateException e) {
             // Platform already started
         }
@@ -65,7 +65,7 @@ public class TestJavaFX extends ApplicationTest {
 
     @Test
     public void testFillRect() throws Exception {
-        Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
+        Scriptable scope = (Scriptable) javaCanvas.getRuntime().getScope();
 
         HTMLCanvasElement canvas = (HTMLCanvasElement) javaCanvas.getDocument().jsFunction_createElement("canvas");
         ScriptableObject.putProperty(scope, "canvas", canvas);

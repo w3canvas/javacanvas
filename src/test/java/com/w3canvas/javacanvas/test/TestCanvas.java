@@ -13,10 +13,11 @@ public class TestCanvas {
 
     @Test
     public void testCanvasInitialization() {
-        // Test that the JavaCanvas can be initialized in headless mode without crashing.
+        // Test that the JavaCanvas can be initialized in headless mode without
+        // crashing.
         JavaCanvas canvas = new JavaCanvas(null, true);
         canvas.initializeBackend();
         assertNotNull(canvas, "JavaCanvas instance should not be null");
-        assertNotNull(canvas.getRhinoRuntime(), "RhinoRuntime should not be null");
+        assertNotNull(canvas.getRuntime(), "Runtime should not be null");
     }
 }

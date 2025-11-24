@@ -60,7 +60,7 @@ public class TestFontLoading extends ApplicationTest {
         javaCanvas.initializeBackend();
 
         Context.enter();
-        scope = javaCanvas.getRhinoRuntime().getScope();
+        scope = (Scriptable) javaCanvas.getRuntime().getScope();
     }
 
     @AfterEach
@@ -77,7 +77,8 @@ public class TestFontLoading extends ApplicationTest {
         }
     }
 
-    private void assertPixel(ICanvasRenderingContext2D ctx, int x, int y, int r, int g, int b, int a, int tolerance) throws ExecutionException, InterruptedException {
+    private void assertPixel(ICanvasRenderingContext2D ctx, int x, int y, int r, int g, int b, int a, int tolerance)
+            throws ExecutionException, InterruptedException {
         boolean pixelFound = false;
         for (int i = Math.max(0, x - 10); i < Math.min(ctx.getSurface().getWidth(), x + 10); i++) {
             for (int j = Math.max(0, y - 10); j < Math.min(ctx.getSurface().getHeight(), y + 10); j++) {
@@ -96,9 +97,9 @@ public class TestFontLoading extends ApplicationTest {
                 int actualB = pixel & 0xff;
 
                 if (Math.abs(r - actualR) <= tolerance &&
-                    Math.abs(g - actualG) <= tolerance &&
-                    Math.abs(b - actualB) <= tolerance &&
-                    Math.abs(a - actualA) <= tolerance) {
+                        Math.abs(g - actualG) <= tolerance &&
+                        Math.abs(b - actualB) <= tolerance &&
+                        Math.abs(a - actualA) <= tolerance) {
                     pixelFound = true;
                     break;
                 }
@@ -107,7 +108,8 @@ public class TestFontLoading extends ApplicationTest {
                 break;
             }
         }
-        assertTrue(pixelFound, "Could not find a pixel with the expected color in the vicinity of (" + x + "," + y + ")");
+        assertTrue(pixelFound,
+                "Could not find a pixel with the expected color in the vicinity of (" + x + "," + y + ")");
     }
 
     @Test
@@ -117,12 +119,11 @@ public class TestFontLoading extends ApplicationTest {
 
         Context.enter();
         try {
-            javaCanvas.getRhinoRuntime().getScope().put("ctx", javaCanvas.getRhinoRuntime().getScope(), ctx);
-            javaCanvas.getRhinoRuntime().exec(
-                "var f = new FontFace('DejaVuSans', 'url(http://localhost:8080/DejaVuSans.ttf)');" +
-                "document.fonts.add(f);" +
-                "f.load();"
-            );
+            javaCanvas.getRuntime().putProperty("ctx", ctx);
+            javaCanvas.getRuntime().exec(
+                    "var f = new FontFace('DejaVuSans', 'url(http://localhost:8080/DejaVuSans.ttf)');" +
+                            "document.fonts.add(f);" +
+                            "f.load();");
         } finally {
             Context.exit();
         }

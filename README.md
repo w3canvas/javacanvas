@@ -142,6 +142,15 @@ mvn clean test
 # View report at: target/site/jacoco/index.html
 ```
 
+### Windows Troubleshooting
+If your Windows username contains special characters (like an apostrophe, e.g., `Char'les`), Gradle may fail with `ClassNotFoundException` or file access errors.
+The `gradlew.bat` script has been patched to automatically detect this and use `c:\wip\gradle_home` as the Gradle User Home.
+If you still encounter issues, you can manually set the environment variable:
+```powershell
+$env:GRADLE_USER_HOME="c:\wip\gradle_home"
+./gradlew build
+```
+
 ## Testing
 
 ### Test Status
@@ -267,6 +276,31 @@ ctx.fillRect(10, 10, 100, 100);
 // Execute JavaScript
 javaCanvas.executeScript("path/to/canvas-script.js");
 ```
+
+## JBang Support (Experimental)
+
+You can run JavaCanvas without installing Gradle or Maven using [JBang](https://www.jbang.dev/).
+
+### Running Directly
+```bash
+jbang JBangRunner.java examples/hello.js
+```
+
+### Exporting to JAR
+Create a standalone executable JAR:
+```bash
+jbang export portable JBangRunner.java
+java -jar JBangRunner.jar examples/hello.js
+```
+
+### Exporting to Native Image
+Create a standalone native executable (no JVM required):
+```bash
+jbang export native JBangRunner.java
+```
+**Note:** This requires a GraalVM JDK with `native-image` installed. If JBang picks up a standard JDK (like Eclipse Adoptium), the build will fail. You may need to ensure `JAVA_HOME` points to a GraalVM installation or use JBang's `--java` flag to request a specific version if configured.
+
+**Fun Workaround:** You can force JBang to download a JDK that supports native image by specifying a version it doesn't find locally, e.g., `jbang export native --java 21 JBangRunner.java` (if you only have Java 17 installed).
 
 ## Contributing
 

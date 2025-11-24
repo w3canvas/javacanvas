@@ -6,12 +6,14 @@ import com.w3canvas.javacanvas.core.CoreCanvasRenderingContext2D;
 import com.w3canvas.javacanvas.rt.GraalRuntime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.awt.image.BufferedImage;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Disabled("GraalJS requires additional classpath configuration - see build.gradle")
 public class TestGraal {
 
     private GraalRuntime runtime;

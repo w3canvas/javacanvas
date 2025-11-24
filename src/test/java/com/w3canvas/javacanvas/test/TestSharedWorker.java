@@ -30,7 +30,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test suite for SharedWorker and MessagePort API.
- * Tests shared worker creation, MessagePort communication, and multi-connection scenarios.
+ * Tests shared worker creation, MessagePort communication, and multi-connection
+ * scenarios.
  */
 @ExtendWith(ApplicationExtension.class)
 @Timeout(value = 60, unit = TimeUnit.SECONDS)
@@ -43,7 +44,8 @@ public class TestSharedWorker extends ApplicationTest {
     @BeforeAll
     public static void warmUp() {
         try {
-            javafx.application.Platform.startup(() -> {});
+            javafx.application.Platform.startup(() -> {
+            });
         } catch (IllegalStateException e) {
             // Platform already started
         }
@@ -63,7 +65,7 @@ public class TestSharedWorker extends ApplicationTest {
 
         Context.enter();
 
-        Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
+        Scriptable scope = (Scriptable) javaCanvas.getRuntime().getScope();
 
         // Set documentBase to resolve worker script paths
         try {
@@ -99,9 +101,10 @@ public class TestSharedWorker extends ApplicationTest {
      * Waits for a JavaScript global variable to be set to true, with timeout.
      * Uses polling with exponential backoff for better performance.
      *
-     * @param varName The name of the global variable to wait for
+     * @param varName   The name of the global variable to wait for
      * @param timeoutMs Maximum time to wait in milliseconds
-     * @throws TimeoutException if the variable is not set within the timeout period
+     * @throws TimeoutException     if the variable is not set within the timeout
+     *                              period
      * @throws InterruptedException if the wait is interrupted
      */
     private void waitForJSFlag(String varName, long timeoutMs) throws TimeoutException, InterruptedException {
@@ -109,7 +112,7 @@ public class TestSharedWorker extends ApplicationTest {
         long sleepTime = 10; // Start with 10ms
 
         while (System.currentTimeMillis() - startTime < timeoutMs) {
-            Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
+            Scriptable scope = (Scriptable) javaCanvas.getRuntime().getScope();
             Object value = scope.get(varName, scope);
 
             if (value != Scriptable.NOT_FOUND && value instanceof Boolean && (Boolean) value) {
@@ -143,7 +146,8 @@ public class TestSharedWorker extends ApplicationTest {
     }
 
     /**
-     * Tests basic SharedWorker communication by creating a shared worker and verifying
+     * Tests basic SharedWorker communication by creating a shared worker and
+     * verifying
      * that messages can be sent and received through MessagePort. Verifies:
      * 1. SharedWorker can be created and initialized
      * 2. MessagePort communication is functional
@@ -177,27 +181,26 @@ public class TestSharedWorker extends ApplicationTest {
         interact(() -> ctx.clearRect(0, 0, 400, 400));
 
         // Create two connections to the same shared worker
-        String script =
-            "var worker1 = new SharedWorker('test-sharedworker.js');" +
-            "var worker2 = new SharedWorker('test-sharedworker.js');" +
-            "var received1 = false;" +
-            "var received2 = false;" +
-            "var multiConnectionComplete = false;" +
-            "" +
-            "worker1.port.onmessage = function(e) {" +
-            "  console.log('Worker 1 received:', e.data);" +
-            "  received1 = true;" +
-            "  if (received2) multiConnectionComplete = true;" +
-            "};" +
-            "" +
-            "worker2.port.onmessage = function(e) {" +
-            "  console.log('Worker 2 received:', e.data);" +
-            "  received2 = true;" +
-            "  if (received1) multiConnectionComplete = true;" +
-            "};" +
-            "" +
-            "worker1.port.postMessage('hello from connection 1');" +
-            "worker2.port.postMessage('hello from connection 2');";
+        String script = "var worker1 = new SharedWorker('test-sharedworker.js');" +
+                "var worker2 = new SharedWorker('test-sharedworker.js');" +
+                "var received1 = false;" +
+                "var received2 = false;" +
+                "var multiConnectionComplete = false;" +
+                "" +
+                "worker1.port.onmessage = function(e) {" +
+                "  console.log('Worker 1 received:', e.data);" +
+                "  received1 = true;" +
+                "  if (received2) multiConnectionComplete = true;" +
+                "};" +
+                "" +
+                "worker2.port.onmessage = function(e) {" +
+                "  console.log('Worker 2 received:', e.data);" +
+                "  received2 = true;" +
+                "  if (received1) multiConnectionComplete = true;" +
+                "};" +
+                "" +
+                "worker1.port.postMessage('hello from connection 1');" +
+                "worker2.port.postMessage('hello from connection 2');";
 
         javaCanvas.executeCode(script);
 
@@ -206,11 +209,12 @@ public class TestSharedWorker extends ApplicationTest {
 
         // Should only have one shared worker instance (shared between connections)
         assertEquals(1, SharedWorker.getActiveWorkerCount(),
-            "Should have exactly one SharedWorker instance for multiple connections");
+                "Should have exactly one SharedWorker instance for multiple connections");
     }
 
     /**
-     * Tests SharedWorker's ability to transfer ImageBitmap objects between contexts.
+     * Tests SharedWorker's ability to transfer ImageBitmap objects between
+     * contexts.
      * Verifies that:
      * 1. SharedWorker can create an OffscreenCanvas and draw to it
      * 2. ImageBitmap can be created from OffscreenCanvas
@@ -221,18 +225,17 @@ public class TestSharedWorker extends ApplicationTest {
     public void testSharedWorkerWithImageBitmap() throws ExecutionException, InterruptedException, TimeoutException {
         interact(() -> ctx.clearRect(0, 0, 400, 400));
 
-        String script =
-            "var worker = new SharedWorker('test-sharedworker-imagebitmap.js');" +
-            "var imageBitmapComplete = false;" +
-            "" +
-            "worker.port.onmessage = function(e) {" +
-            "  var imageBitmap = e.data;" +
-            "  ctx.drawImage(imageBitmap, 0, 0);" +
-            "  console.log('ImageBitmap received and drawn');" +
-            "  imageBitmapComplete = true;" +
-            "};" +
-            "" +
-            "worker.port.postMessage({command: 'create', width: 100, height: 100, color: 'blue'});";
+        String script = "var worker = new SharedWorker('test-sharedworker-imagebitmap.js');" +
+                "var imageBitmapComplete = false;" +
+                "" +
+                "worker.port.onmessage = function(e) {" +
+                "  var imageBitmap = e.data;" +
+                "  ctx.drawImage(imageBitmap, 0, 0);" +
+                "  console.log('ImageBitmap received and drawn');" +
+                "  imageBitmapComplete = true;" +
+                "};" +
+                "" +
+                "worker.port.postMessage({command: 'create', width: 100, height: 100, color: 'blue'});";
 
         interact(() -> javaCanvas.executeCode(script));
 
@@ -244,7 +247,8 @@ public class TestSharedWorker extends ApplicationTest {
     }
 
     /**
-     * Tests direct MessagePort communication without relying on implicit message passing.
+     * Tests direct MessagePort communication without relying on implicit message
+     * passing.
      * Verifies that:
      * 1. MessagePort can be accessed from SharedWorker
      * 2. Messages can be posted directly through port
@@ -253,24 +257,23 @@ public class TestSharedWorker extends ApplicationTest {
      */
     @Test
     public void testMessagePortCommunication() throws InterruptedException, TimeoutException {
-        String script =
-            "var worker = new SharedWorker('test-sharedworker.js');" +
-            "var port = worker.port;" +
-            "var messageReceived = false;" +
-            "" +
-            "port.onmessage = function(e) {" +
-            "  messageReceived = true;" +
-            "  console.log('Received:', e.data);" +
-            "};" +
-            "" +
-            "port.postMessage('test message');";
+        String script = "var worker = new SharedWorker('test-sharedworker.js');" +
+                "var port = worker.port;" +
+                "var messageReceived = false;" +
+                "" +
+                "port.onmessage = function(e) {" +
+                "  messageReceived = true;" +
+                "  console.log('Received:', e.data);" +
+                "};" +
+                "" +
+                "port.postMessage('test message');";
 
         javaCanvas.executeCode(script);
 
         // Wait for message processing using flag
         waitForJSFlag("messageReceived", 5000);
 
-        Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
+        Scriptable scope = (Scriptable) javaCanvas.getRuntime().getScope();
         Object messageReceivedObj = scope.get("messageReceived", scope);
 
         // Handle Rhino's NOT_FOUND tag when property doesn't exist
@@ -281,7 +284,7 @@ public class TestSharedWorker extends ApplicationTest {
 
         // The worker should echo back the message
         assertTrue(messageReceived,
-            "Should receive message through MessagePort");
+                "Should receive message through MessagePort");
     }
 
     /**
@@ -293,13 +296,12 @@ public class TestSharedWorker extends ApplicationTest {
      */
     @Test
     public void testSharedWorkerTermination() throws InterruptedException, TimeoutException {
-        String script =
-            "var worker = new SharedWorker('test-sharedworker.js');" +
-            "var workerStarted = false;" +
-            "worker.port.onmessage = function(e) {" +
-            "  workerStarted = true;" +
-            "};" +
-            "worker.port.postMessage('ping');";
+        String script = "var worker = new SharedWorker('test-sharedworker.js');" +
+                "var workerStarted = false;" +
+                "worker.port.onmessage = function(e) {" +
+                "  workerStarted = true;" +
+                "};" +
+                "worker.port.postMessage('ping');";
 
         javaCanvas.executeCode(script);
 
@@ -307,12 +309,12 @@ public class TestSharedWorker extends ApplicationTest {
         waitForJSFlag("workerStarted", 5000);
 
         assertTrue(SharedWorker.getActiveWorkerCount() > 0,
-            "Worker should be active before termination");
+                "Worker should be active before termination");
 
         // Terminate all workers
         SharedWorker.terminateAll();
 
         assertEquals(0, SharedWorker.getActiveWorkerCount(),
-            "No workers should be active after termination");
+                "No workers should be active after termination");
     }
 }

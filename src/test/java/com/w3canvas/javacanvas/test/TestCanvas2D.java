@@ -43,7 +43,8 @@ public class TestCanvas2D extends ApplicationTest {
     public static void warmUp() {
         // Warm up JavaFX and Canvas classes to avoid timeout in first test
         try {
-            javafx.application.Platform.startup(() -> {});
+            javafx.application.Platform.startup(() -> {
+            });
         } catch (IllegalStateException e) {
             // Platform already started
         }
@@ -68,7 +69,7 @@ public class TestCanvas2D extends ApplicationTest {
         // Application Thread via interact(), we should not enter a Context on the
         // JUnit test thread. Each test properly manages Context.enter/exit within
         // its interact() blocks on the JavaFX thread.
-        scope = javaCanvas.getRhinoRuntime().getScope();
+        scope = (Scriptable) javaCanvas.getRuntime().getScope();
     }
 
     @AfterEach
@@ -84,12 +85,14 @@ public class TestCanvas2D extends ApplicationTest {
         }
     }
 
-    private void assertPixel(ICanvasRenderingContext2D ctx, int x, int y, int r, int g, int b, int a, int tolerance) throws ExecutionException, InterruptedException {
-        // In headless mode, rendering may differ due to anti-aliasing, font rendering, etc.
+    private void assertPixel(ICanvasRenderingContext2D ctx, int x, int y, int r, int g, int b, int a, int tolerance)
+            throws ExecutionException, InterruptedException {
+        // In headless mode, rendering may differ due to anti-aliasing, font rendering,
+        // etc.
         // Expand search region and tolerance to account for these variations
         boolean isHeadless = "true".equals(System.getProperty("testfx.headless"));
-        int searchRadius = isHeadless ? 15 : 10;  // Larger search area in headless mode
-        int effectiveTolerance = isHeadless ? Math.max(tolerance, 10) : tolerance;  // Min tolerance of 10 in headless
+        int searchRadius = isHeadless ? 15 : 10; // Larger search area in headless mode
+        int effectiveTolerance = isHeadless ? Math.max(tolerance, 10) : tolerance; // Min tolerance of 10 in headless
 
         int startX = Math.max(0, x - searchRadius);
         int startY = Math.max(0, y - searchRadius);
@@ -116,18 +119,20 @@ public class TestCanvas2D extends ApplicationTest {
             int actualB = pixel & 0xff;
 
             if (Math.abs(r - actualR) <= effectiveTolerance &&
-                Math.abs(g - actualG) <= effectiveTolerance &&
-                Math.abs(b - actualB) <= effectiveTolerance &&
-                Math.abs(a - actualA) <= effectiveTolerance) {
+                    Math.abs(g - actualG) <= effectiveTolerance &&
+                    Math.abs(b - actualB) <= effectiveTolerance &&
+                    Math.abs(a - actualA) <= effectiveTolerance) {
                 pixelFound = true;
                 break;
             }
         }
-        assertTrue(pixelFound, "Could not find a pixel with the expected color in the vicinity of (" + x + "," + y + ") " +
-                "(searched ±" + searchRadius + " pixels with tolerance " + effectiveTolerance + ")");
+        assertTrue(pixelFound,
+                "Could not find a pixel with the expected color in the vicinity of (" + x + "," + y + ") " +
+                        "(searched ±" + searchRadius + " pixels with tolerance " + effectiveTolerance + ")");
     }
 
-    private void assertPixel(ICanvasRenderingContext2D ctx, int x, int y, int r, int g, int b, int a) throws ExecutionException, InterruptedException {
+    private void assertPixel(ICanvasRenderingContext2D ctx, int x, int y, int r, int g, int b, int a)
+            throws ExecutionException, InterruptedException {
         // Default tolerance is 0, but will be increased to 10 in headless mode
         assertPixel(ctx, x, y, r, g, b, a, 0);
     }
@@ -317,7 +322,8 @@ public class TestCanvas2D extends ApplicationTest {
         String backend = System.getProperty("w3canvas.backend", "awt");
         if (backend.equals("awt")) {
             // Create a small BufferedImage to use as the pattern image
-            java.awt.image.BufferedImage patternImage = new java.awt.image.BufferedImage(10, 10, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            java.awt.image.BufferedImage patternImage = new java.awt.image.BufferedImage(10, 10,
+                    java.awt.image.BufferedImage.TYPE_INT_ARGB);
             java.awt.Graphics2D g2d = patternImage.createGraphics();
             g2d.setColor(java.awt.Color.RED);
             g2d.fillRect(0, 0, 5, 5);
@@ -343,7 +349,8 @@ public class TestCanvas2D extends ApplicationTest {
         } else {
             // Create a small canvas to use as the pattern image
             HTMLCanvasElement patternCanvas = createCanvas();
-            ICanvasRenderingContext2D patternCtx = (ICanvasRenderingContext2D) patternCanvas.jsFunction_getContext("2d");
+            ICanvasRenderingContext2D patternCtx = (ICanvasRenderingContext2D) patternCanvas
+                    .jsFunction_getContext("2d");
 
             interact(() -> {
                 Context.enter();
@@ -397,7 +404,8 @@ public class TestCanvas2D extends ApplicationTest {
                 ctx.setFont("10px sans-serif");
                 ITextMetrics metrics = ctx.measureText("Hello world");
                 double width = metrics.getWidth();
-                // The exact width will depend on the font rendering engine, so we check for a reasonable range.
+                // The exact width will depend on the font rendering engine, so we check for a
+                // reasonable range.
                 assertEquals(55, width, 20);
             } finally {
                 Context.exit();
@@ -473,7 +481,7 @@ public class TestCanvas2D extends ApplicationTest {
         // Use visual regression testing for arc rendering
         // Headless environments render arcs differently than GUI environments
         assertTrue(compareToGoldenMaster(ctx, "testArc", 5.0, 30),
-                  "Arc rendering should match golden master within 5% tolerance");
+                "Arc rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -500,7 +508,7 @@ public class TestCanvas2D extends ApplicationTest {
 
         // Use visual regression testing for arcTo rendering
         assertTrue(compareToGoldenMaster(ctx, "testArcTo", 5.0, 30),
-                  "ArcTo rendering should match golden master within 5% tolerance");
+                "ArcTo rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -527,7 +535,7 @@ public class TestCanvas2D extends ApplicationTest {
 
         // Use visual regression testing for filled arcTo rendering
         assertTrue(compareToGoldenMaster(ctx, "testArcToFill", 5.0, 30),
-                  "Filled arcTo rendering should match golden master within 5% tolerance");
+                "Filled arcTo rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -709,7 +717,7 @@ public class TestCanvas2D extends ApplicationTest {
 
         // Use visual regression testing for transformed shapes
         assertTrue(compareToGoldenMaster(ctx, "testTransformations", 5.0, 25),
-                  "Transformed shapes should match golden master within 5% tolerance");
+                "Transformed shapes should match golden master within 5% tolerance");
     }
 
     @Test
@@ -733,7 +741,7 @@ public class TestCanvas2D extends ApplicationTest {
 
         // Use visual regression testing for setTransform
         assertTrue(compareToGoldenMaster(ctx, "testSetTransform", 5.0, 25),
-                  "SetTransform rendering should match golden master within 5% tolerance");
+                "SetTransform rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -781,7 +789,7 @@ public class TestCanvas2D extends ApplicationTest {
 
         // Use visual regression testing for ellipse rendering
         assertTrue(compareToGoldenMaster(ctx, "testEllipse", 5.0, 30),
-                  "Ellipse rendering should match golden master within 5% tolerance");
+                "Ellipse rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -808,7 +816,7 @@ public class TestCanvas2D extends ApplicationTest {
 
         // Use visual regression testing for clipping
         assertTrue(compareToGoldenMaster(ctx, "testClip", 5.0, 30),
-                  "Clipped rendering should match golden master within 5% tolerance");
+                "Clipped rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -902,7 +910,7 @@ public class TestCanvas2D extends ApplicationTest {
                 ctx.stroke();
 
                 // Line Dash
-                ctx.setLineDash(new Object[]{5.0, 15.0});
+                ctx.setLineDash(new Object[] { 5.0, 15.0 });
                 ctx.beginPath();
                 ctx.moveTo(0, 220);
                 ctx.lineTo(400, 220);
@@ -1018,7 +1026,8 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
-        // NOTE: High tolerance (224) required for text alignment testing - same reasons as text rendering tests
+        // NOTE: High tolerance (224) required for text alignment testing - same reasons
+        // as text rendering tests
         // Check a pixel within the centered text.
         assertPixel(ctx, 200, 40, 0, 0, 255, 255, 224);
         // Check a pixel within the right-aligned text.
@@ -1053,7 +1062,8 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
-        // NOTE: High tolerance (224) required for text baseline testing - same reasons as text rendering tests
+        // NOTE: High tolerance (224) required for text baseline testing - same reasons
+        // as text rendering tests
         // Check a pixel within the "Top" text.
         assertPixel(ctx, 60, 60, 0, 0, 255, 255, 224);
         // Check a pixel within the "Middle" text.
@@ -1128,7 +1138,8 @@ public class TestCanvas2D extends ApplicationTest {
 
     @Test
     public void testTextBaselineDetailed() throws ExecutionException, InterruptedException {
-        // Test all textBaseline modes: "top", "hanging", "middle", "alphabetic", "ideographic", "bottom"
+        // Test all textBaseline modes: "top", "hanging", "middle", "alphabetic",
+        // "ideographic", "bottom"
         // Verifies that text is positioned correctly relative to the y coordinate
         HTMLCanvasElement canvas = createCanvas();
         canvas.setWidth(600);
@@ -1144,7 +1155,7 @@ public class TestCanvas2D extends ApplicationTest {
 
                 // Draw horizontal reference lines to visualize baseline positioning
                 ctx.setStrokeStyle("red");
-                double[] yPositions = {50, 100, 150, 200, 250, 300};
+                double[] yPositions = { 50, 100, 150, 200, 250, 300 };
                 for (double y : yPositions) {
                     ctx.beginPath();
                     ctx.moveTo(0, y);
@@ -1164,7 +1175,8 @@ public class TestCanvas2D extends ApplicationTest {
                 ctx.setTextBaseline("middle");
                 ctx.fillText("Middle", 50, 150, 0);
 
-                // Test "alphabetic" baseline - normal alphabetic baseline at y coordinate (default)
+                // Test "alphabetic" baseline - normal alphabetic baseline at y coordinate
+                // (default)
                 ctx.setTextBaseline("alphabetic");
                 ctx.fillText("Alphabetic", 50, 200, 0);
 
@@ -1794,7 +1806,7 @@ public class TestCanvas2D extends ApplicationTest {
                 ctx.clearRect(0, 0, 400, 400);
                 ctx.beginPath();
                 // Array with 4 values: [top-left, top-right, bottom-right, bottom-left]
-                double[] radii = {5.0, 10.0, 15.0, 20.0};
+                double[] radii = { 5.0, 10.0, 15.0, 20.0 };
                 ctx.roundRect(50, 50, 100, 100, radii);
                 ctx.setFillStyle("green");
                 ctx.fill();
@@ -1806,7 +1818,7 @@ public class TestCanvas2D extends ApplicationTest {
         // Use visual regression testing for roundRect with array radii
         // RoundRect uses arcs internally which render differently in headless mode
         assertTrue(compareToGoldenMaster(ctx, "testRoundRectWithArrayRadii", 5.0, 30),
-                  "RoundRect rendering should match golden master within 5% tolerance");
+                "RoundRect rendering should match golden master within 5% tolerance");
     }
 
     @Test
@@ -1861,9 +1873,9 @@ public class TestCanvas2D extends ApplicationTest {
             try {
                 // Test various composite operations
                 String[] operations = {
-                    "source-over", "source-in", "source-out", "source-atop",
-                    "destination-over", "destination-in", "destination-out", "destination-atop",
-                    "lighter", "copy", "xor"
+                        "source-over", "source-in", "source-out", "source-atop",
+                        "destination-over", "destination-in", "destination-out", "destination-atop",
+                        "lighter", "copy", "xor"
                 };
 
                 for (String op : operations) {
@@ -1886,9 +1898,9 @@ public class TestCanvas2D extends ApplicationTest {
             try {
                 // Test CSS blend modes
                 String[] blendModes = {
-                    "multiply", "screen", "overlay", "darken", "lighten",
-                    "color-dodge", "color-burn", "hard-light", "soft-light",
-                    "difference", "exclusion"
+                        "multiply", "screen", "overlay", "darken", "lighten",
+                        "color-dodge", "color-burn", "hard-light", "soft-light",
+                        "difference", "exclusion"
                 };
 
                 for (String mode : blendModes) {
@@ -1927,7 +1939,7 @@ public class TestCanvas2D extends ApplicationTest {
         // Use visual regression testing for blend mode rendering
         // Blend modes may have different implementations in headless vs GUI
         assertTrue(compareToGoldenMaster(ctx, "testBlendModeRendering", 8.0, 50),
-                  "Blend mode rendering should match golden master within 8% tolerance");
+                "Blend mode rendering should match golden master within 8% tolerance");
     }
 
     @Test
@@ -2018,12 +2030,16 @@ public class TestCanvas2D extends ApplicationTest {
         });
 
         // Verify the shape was drawn
-        // NOTE: Very high tolerance (70) is required for this complex combination test due to:
+        // NOTE: Very high tolerance (70) is required for this complex combination test
+        // due to:
         // 1. Shadow rendering variations (blur algorithms differ across backends)
-        // 2. Blend mode (multiply) implementation differences affecting final color values
-        // 3. Interaction between shadows and blend modes creating compound color variations
+        // 2. Blend mode (multiply) implementation differences affecting final color
+        // values
+        // 3. Interaction between shadows and blend modes creating compound color
+        // variations
         // 4. RoundRect antialiasing at curved corners
-        // This tolerance is acceptable as it only validates that the combined features work together,
+        // This tolerance is acceptable as it only validates that the combined features
+        // work together,
         // not the precise pixel values.
         assertPixel(ctx, 100, 100, 255, 0, 0, 255, 70);
     }
@@ -2124,7 +2140,7 @@ public class TestCanvas2D extends ApplicationTest {
 
         interact(() -> {
             Context.enter();
-            try{
+            try {
                 ctx.clearRect(0, 0, 400, 400);
                 ctx.setFillStyle("purple");
                 ctx.fill(combinedPath);
@@ -2147,17 +2163,17 @@ public class TestCanvas2D extends ApplicationTest {
         Context.enter();
         try {
             Object result = Context.getCurrentContext().evaluateString(
-                javaCanvas.getRhinoRuntime().getScope(),
-                "var canvas = document.createElement('canvas'); " +
-                "var ctx = canvas.getContext('2d'); " +
-                "var p = new Path2D(); p.rect(50, 50, 100, 100); " +
-                "var inside = ctx.isPointInPath(p, 75, 75); " +
-                "var outside = ctx.isPointInPath(p, 200, 200); " +
-                "inside && !outside;",
-                "test", 1, null
-            );
+                    (Scriptable) javaCanvas.getRuntime().getScope(),
+                    "var canvas = document.createElement('canvas'); " +
+                            "var ctx = canvas.getContext('2d'); " +
+                            "var p = new Path2D(); p.rect(50, 50, 100, 100); " +
+                            "var inside = ctx.isPointInPath(p, 75, 75); " +
+                            "var outside = ctx.isPointInPath(p, 200, 200); " +
+                            "inside && !outside;",
+                    "test", 1, null);
 
-            assertTrue((Boolean) result, "isPointInPath should return true for point inside and false for point outside");
+            assertTrue((Boolean) result,
+                    "isPointInPath should return true for point inside and false for point outside");
         } finally {
             Context.exit();
         }
@@ -2236,7 +2252,8 @@ public class TestCanvas2D extends ApplicationTest {
                 Object transform = ctx.getTransform();
                 assertTrue(transform != null, "getTransform should return a non-null object");
 
-                // The transform can be either an AffineTransform (JavaFX/AWT) or DOMMatrix (Rhino)
+                // The transform can be either an AffineTransform (JavaFX/AWT) or DOMMatrix
+                // (Rhino)
                 // For the JavaFX backend, it returns javafx.scene.transform.Affine
                 // which extends javafx.scene.transform.Transform
                 assertTrue(transform instanceof Object, "Transform should be an object");
@@ -2310,15 +2327,18 @@ public class TestCanvas2D extends ApplicationTest {
         });
 
         Scriptable attributes = attributesFuture.get();
-        // Note: Some implementations may return null if context attributes are not tracked
+        // Note: Some implementations may return null if context attributes are not
+        // tracked
         // The important part is that the method exists and can be called without error
         // In a full implementation, this would return an object with properties like:
-        // { alpha: true, desynchronized: false, colorSpace: "srgb", willReadFrequently: false }
+        // { alpha: true, desynchronized: false, colorSpace: "srgb", willReadFrequently:
+        // false }
 
         // We just verify the method executes without throwing an exception
         // and accept either null or a Scriptable object as valid
         if (attributes != null) {
-            assertTrue(attributes instanceof Scriptable, "Context attributes should be a Scriptable object if not null");
+            assertTrue(attributes instanceof Scriptable,
+                    "Context attributes should be a Scriptable object if not null");
         }
     }
 
@@ -2480,7 +2500,7 @@ public class TestCanvas2D extends ApplicationTest {
                     // This is less than ideal but not necessarily wrong
                 } catch (IllegalArgumentException e) {
                     assertTrue(e.getMessage().contains("width") || e.getMessage().contains("positive") ||
-                              e.getMessage().contains("zero"),
+                            e.getMessage().contains("zero"),
                             "Exception should mention width, positive, or zero: " + e.getMessage());
                 } catch (Exception e) {
                     // Other exceptions are acceptable
@@ -2492,7 +2512,7 @@ public class TestCanvas2D extends ApplicationTest {
                     ctx.createImageData(100, 0);
                 } catch (IllegalArgumentException e) {
                     assertTrue(e.getMessage().contains("height") || e.getMessage().contains("positive") ||
-                              e.getMessage().contains("zero"),
+                            e.getMessage().contains("zero"),
                             "Exception should mention height, positive, or zero: " + e.getMessage());
                 } catch (Exception e) {
                     assertTrue(e.getMessage() != null, "Exception should have a message");
@@ -2503,7 +2523,7 @@ public class TestCanvas2D extends ApplicationTest {
                     ctx.createImageData(-100, 100);
                 } catch (IllegalArgumentException e) {
                     assertTrue(e.getMessage().contains("width") || e.getMessage().contains("negative") ||
-                              e.getMessage().contains("positive"),
+                            e.getMessage().contains("positive"),
                             "Exception should mention width or negative: " + e.getMessage());
                 } catch (Exception e) {
                     assertTrue(e.getMessage() != null, "Exception should have a message");
@@ -2514,7 +2534,7 @@ public class TestCanvas2D extends ApplicationTest {
                     ctx.createImageData(100, -100);
                 } catch (IllegalArgumentException e) {
                     assertTrue(e.getMessage().contains("height") || e.getMessage().contains("negative") ||
-                              e.getMessage().contains("positive"),
+                            e.getMessage().contains("positive"),
                             "Exception should mention height or negative: " + e.getMessage());
                 } catch (Exception e) {
                     assertTrue(e.getMessage() != null, "Exception should have a message");
@@ -2547,18 +2567,19 @@ public class TestCanvas2D extends ApplicationTest {
                 ctx.clearRect(0, 0, 400, 400);
 
                 // Create a self-intersecting star shape
-                // This shape will demonstrate the difference between "nonzero" and "evenodd" fill rules
+                // This shape will demonstrate the difference between "nonzero" and "evenodd"
+                // fill rules
                 ctx.beginPath();
-                ctx.moveTo(200, 50);   // top point
-                ctx.lineTo(235, 185);  // bottom right inner
-                ctx.lineTo(370, 185);  // right point
-                ctx.lineTo(240, 265);  // top right inner
-                ctx.lineTo(290, 400);  // bottom right point
-                ctx.lineTo(200, 300);  // bottom inner
-                ctx.lineTo(110, 400);  // bottom left point
-                ctx.lineTo(160, 265);  // top left inner
-                ctx.lineTo(30, 185);   // left point
-                ctx.lineTo(165, 185);  // bottom left inner
+                ctx.moveTo(200, 50); // top point
+                ctx.lineTo(235, 185); // bottom right inner
+                ctx.lineTo(370, 185); // right point
+                ctx.lineTo(240, 265); // top right inner
+                ctx.lineTo(290, 400); // bottom right point
+                ctx.lineTo(200, 300); // bottom inner
+                ctx.lineTo(110, 400); // bottom left point
+                ctx.lineTo(160, 265); // top left inner
+                ctx.lineTo(30, 185); // left point
+                ctx.lineTo(165, 185); // bottom left inner
                 ctx.closePath();
 
                 // Fill with evenodd rule
@@ -2605,9 +2626,12 @@ public class TestCanvas2D extends ApplicationTest {
         // With nonzero rule, more of the star should be filled including the center
         assertPixel(ctx, 200, 100, 255, 0, 0, 255, 10); // Should be red
 
-        // Note: The exact pixel testing for fill rules is challenging because the behavior
-        // depends on the specific path geometry. The important part is that the fill() method
-        // accepts the fillRule parameter and renders differently for "evenodd" vs "nonzero".
+        // Note: The exact pixel testing for fill rules is challenging because the
+        // behavior
+        // depends on the specific path geometry. The important part is that the fill()
+        // method
+        // accepts the fillRule parameter and renders differently for "evenodd" vs
+        // "nonzero".
     }
 
     @Test
@@ -2646,11 +2670,14 @@ public class TestCanvas2D extends ApplicationTest {
         // - Inner rectangle (100-200, 100-200) should be transparent (the "hole")
         // - Everything outside should be transparent
 
-        assertPixel(ctx, 75, 75, 0, 128, 0, 255, 10);    // Should be green (in clipped area)
-        // Note: The center pixel test is commented out because evenodd clipping behavior
-        // may vary by implementation. The important test is that the method accepts the parameter.
-        // assertPixel(ctx, 150, 150, 0, 0, 0, 0, 10);    // Should be transparent (in the hole)
-        assertPixel(ctx, 25, 25, 0, 0, 0, 0);             // Should be transparent (outside clip)
+        assertPixel(ctx, 75, 75, 0, 128, 0, 255, 10); // Should be green (in clipped area)
+        // Note: The center pixel test is commented out because evenodd clipping
+        // behavior
+        // may vary by implementation. The important test is that the method accepts the
+        // parameter.
+        // assertPixel(ctx, 150, 150, 0, 0, 0, 0, 10); // Should be transparent (in the
+        // hole)
+        assertPixel(ctx, 25, 25, 0, 0, 0, 0); // Should be transparent (outside clip)
 
         // Now test with nonzero rule for comparison
         HTMLCanvasElement canvas2 = createCanvas();
@@ -2681,9 +2708,9 @@ public class TestCanvas2D extends ApplicationTest {
 
         // With nonzero clipping:
         // - Both rectangles should be filled (no hole in the center)
-        assertPixel(ctx2, 75, 75, 0, 0, 255, 255, 10);   // Should be blue
+        assertPixel(ctx2, 75, 75, 0, 0, 255, 255, 10); // Should be blue
         assertPixel(ctx2, 150, 150, 0, 0, 255, 255, 10); // Should also be blue (no hole with nonzero)
-        assertPixel(ctx2, 25, 25, 0, 0, 0, 0);            // Should be transparent (outside clip)
+        assertPixel(ctx2, 25, 25, 0, 0, 0, 0); // Should be transparent (outside clip)
     }
 
     // =============================================================================
@@ -2864,7 +2891,8 @@ public class TestCanvas2D extends ApplicationTest {
 
         if (backend.equals("awt")) {
             // Create a small test pattern image
-            java.awt.image.BufferedImage patternImage = new java.awt.image.BufferedImage(20, 20, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            java.awt.image.BufferedImage patternImage = new java.awt.image.BufferedImage(20, 20,
+                    java.awt.image.BufferedImage.TYPE_INT_ARGB);
             java.awt.Graphics2D g2d = patternImage.createGraphics();
             g2d.setColor(java.awt.Color.RED);
             g2d.fillRect(0, 0, 20, 20);
@@ -2931,7 +2959,8 @@ public class TestCanvas2D extends ApplicationTest {
         } else {
             // JavaFX backend - create pattern canvas
             HTMLCanvasElement patternCanvas = createCanvas();
-            ICanvasRenderingContext2D patternCtx = (ICanvasRenderingContext2D) patternCanvas.jsFunction_getContext("2d");
+            ICanvasRenderingContext2D patternCtx = (ICanvasRenderingContext2D) patternCanvas
+                    .jsFunction_getContext("2d");
 
             interact(() -> {
                 Context.enter();
@@ -2946,7 +2975,7 @@ public class TestCanvas2D extends ApplicationTest {
             });
 
             // Test all repeat modes
-            String[] repeatModes = {"repeat", "repeat-x", "repeat-y", "no-repeat"};
+            String[] repeatModes = { "repeat", "repeat-x", "repeat-y", "no-repeat" };
             for (String mode : repeatModes) {
                 interact(() -> {
                     Context.enter();
@@ -3004,7 +3033,8 @@ public class TestCanvas2D extends ApplicationTest {
 
         // Test 2: Pattern from BufferedImage (AWT backend only)
         if (backend.equals("awt")) {
-            java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(10, 10, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(10, 10,
+                    java.awt.image.BufferedImage.TYPE_INT_ARGB);
             java.awt.Graphics2D g2d = img.createGraphics();
             g2d.setColor(java.awt.Color.GREEN);
             g2d.fillRect(0, 0, 10, 10);
@@ -3048,11 +3078,13 @@ public class TestCanvas2D extends ApplicationTest {
                     // Set all pixels to red (ARGB: 0xFFFF0000)
                     pixels[i] = 0xFFFF0000;
                 }
-                // Note: pixels array is a direct reference, modifications are applied automatically
+                // Note: pixels array is a direct reference, modifications are applied
+                // automatically
 
                 // Put image data at (100, 100) but only the dirty rectangle portion
                 // putImageData(imageData, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight)
-                // This should only copy the region from (10, 10) with size 30x30 from the imageData
+                // This should only copy the region from (10, 10) with size 30x30 from the
+                // imageData
                 // to the canvas at position (100, 100)
                 ctx.putImageData(imageData, 100, 100, 10, 10, 30, 30);
             } finally {
@@ -3060,8 +3092,10 @@ public class TestCanvas2D extends ApplicationTest {
             }
         });
 
-        // The dirty rectangle (10, 10, 30, 30) from imageData should be at (100, 100) on canvas
-        // So we should see red at canvas position (110, 110) which corresponds to imageData (10, 10)
+        // The dirty rectangle (10, 10, 30, 30) from imageData should be at (100, 100)
+        // on canvas
+        // So we should see red at canvas position (110, 110) which corresponds to
+        // imageData (10, 10)
         assertPixel(ctx, 110, 110, 255, 0, 0, 255);
 
         // The area outside the dirty rectangle should not be affected
@@ -3092,7 +3126,8 @@ public class TestCanvas2D extends ApplicationTest {
                 for (int i = 0; i < pixels.length; i++) {
                     pixels[i] = 0xFF00FF00; // Green
                 }
-                // Note: pixels array is a direct reference, modifications are applied automatically
+                // Note: pixels array is a direct reference, modifications are applied
+                // automatically
 
                 // Put only the top-left 20x20 portion of the imageData at (70, 70)
                 ctx.putImageData(imageData, 70, 70, 0, 0, 20, 20);
@@ -3127,8 +3162,10 @@ public class TestCanvas2D extends ApplicationTest {
                 ctx.rect(50, 50, 100, 100);
 
                 // Call drawFocusIfNeeded - should not throw an error
-                // This method draws a focus ring around the current path if the element is focused
-                // Since we don't have a focused element in tests, it should just return without error
+                // This method draws a focus ring around the current path if the element is
+                // focused
+                // Since we don't have a focused element in tests, it should just return without
+                // error
                 try {
                     // The method signature may vary - try the basic version
                     ctx.drawFocusIfNeeded(canvas);

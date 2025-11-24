@@ -25,6 +25,8 @@ public class MessagePort extends ProjectScriptableObject {
     private MessagePort otherPort;
     private Thread messageListener;
     private volatile boolean started = false;
+    private Scriptable handlerScope;  // Capture scope where onmessage was set
+    private com.w3canvas.javacanvas.rt.RhinoRuntime handlerRuntime;  // Capture runtime for thread local
 
     public MessagePort() {
     }
@@ -75,18 +77,24 @@ public class MessagePort extends ProjectScriptableObject {
                 try {
                     Object data = messageQueue.take();
 
-                    if (onmessage != null) {
+                    if (onmessage != null && handlerScope != null) {
                         Context cx = Context.enter();
                         try {
-                            Scriptable scope = getParentScope();
-                            Scriptable event = cx.newObject(scope);
+                            // Set the runtime in thread local so document, etc. are available
+                            if (handlerRuntime != null) {
+                                cx.putThreadLocal("runtime", handlerRuntime);
+                            }
+
+                            // Use the captured handlerScope instead of getParentScope()
+                            // This ensures we use the scope from where onmessage was set
+                            Scriptable event = cx.newObject(handlerScope);
                             event.put("data", event, data);
 
                             // Add ports array to event (this port)
-                            Scriptable ports = cx.newArray(scope, new Object[]{this});
+                            Scriptable ports = cx.newArray(handlerScope, new Object[]{this});
                             event.put("ports", event, ports);
 
-                            onmessage.call(cx, scope, this, new Object[]{event});
+                            onmessage.call(cx, handlerScope, this, new Object[]{event});
                         } finally {
                             Context.exit();
                         }
@@ -122,6 +130,17 @@ public class MessagePort extends ProjectScriptableObject {
      */
     public void jsSet_onmessage(Function onmessage) {
         this.onmessage = onmessage;
+        // Capture the scope from the current context where onmessage is being set
+        // This ensures the handler has access to the correct scope (e.g., document in main thread)
+        this.handlerScope = getParentScope();
+        // Also capture the runtime so we can set it in the listener thread's context
+        Context cx = Context.getCurrentContext();
+        if (cx != null) {
+            Object runtime = cx.getThreadLocal("runtime");
+            if (runtime instanceof com.w3canvas.javacanvas.rt.RhinoRuntime) {
+                this.handlerRuntime = (com.w3canvas.javacanvas.rt.RhinoRuntime) runtime;
+            }
+        }
         // Auto-start when onmessage is set
         if (!started) {
             jsFunction_start();

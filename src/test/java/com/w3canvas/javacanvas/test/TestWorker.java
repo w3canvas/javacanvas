@@ -37,7 +37,8 @@ public class TestWorker extends ApplicationTest {
     @BeforeAll
     public static void warmUp() {
         try {
-            javafx.application.Platform.startup(() -> {});
+            javafx.application.Platform.startup(() -> {
+            });
         } catch (IllegalStateException e) {
             // Platform already started
         }
@@ -57,7 +58,7 @@ public class TestWorker extends ApplicationTest {
 
         Context.enter();
 
-        Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
+        Scriptable scope = (Scriptable) javaCanvas.getRuntime().getScope();
         try {
             canvas = (HTMLCanvasElement) javaCanvas.getDocument().jsFunction_createElement("canvas");
         } catch (Exception e) {
@@ -79,9 +80,10 @@ public class TestWorker extends ApplicationTest {
      * Waits for a JavaScript global variable to be set to true, with timeout.
      * Uses polling with exponential backoff for better performance.
      *
-     * @param varName The name of the global variable to wait for
+     * @param varName   The name of the global variable to wait for
      * @param timeoutMs Maximum time to wait in milliseconds
-     * @throws TimeoutException if the variable is not set within the timeout period
+     * @throws TimeoutException     if the variable is not set within the timeout
+     *                              period
      * @throws InterruptedException if the wait is interrupted
      */
     private void waitForJSFlag(String varName, long timeoutMs) throws TimeoutException, InterruptedException {
@@ -89,7 +91,7 @@ public class TestWorker extends ApplicationTest {
         long sleepTime = 10; // Start with 10ms
 
         while (System.currentTimeMillis() - startTime < timeoutMs) {
-            Scriptable scope = javaCanvas.getRhinoRuntime().getScope();
+            Scriptable scope = (Scriptable) javaCanvas.getRuntime().getScope();
             Object value = scope.get(varName, scope);
 
             if (value != Scriptable.NOT_FOUND && value instanceof Boolean && (Boolean) value) {

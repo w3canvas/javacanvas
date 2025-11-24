@@ -33,9 +33,9 @@ dependencies {
     // Rhino
     implementation 'org.mozilla:rhino:1.7.14'
 
-    // GraalJS
-    implementation 'org.graalvm.js:js:23.0.0'
-    implementation 'org.graalvm.sdk:graal-sdk:23.0.0'
+    // GraalJS - using community edition with JS language support
+    implementation 'org.graalvm.polyglot:polyglot:24.1.0'
+    implementation 'org.graalvm.polyglot:js-community:24.1.0'
 
     // Testing
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
