@@ -6,7 +6,7 @@ A Java implementation of the HTML5 Canvas 2D API with dual graphics backend supp
 
 **JavaCanvas** enables HTML5 Canvas drawing capabilities in Java applications by bridging JavaScript canvas code with Java graphics backends. This allows JavaScript-based canvas applications to run in Java environments with full 2D rendering support.
 
-**Status:** 🎉 **100% feature complete** for modern Canvas 2D API specification (updated 2025-11-20)
+**Status:** 🎉 **100% feature complete** for modern Canvas 2D API specification (updated 2025-11-25)
 **Test Status:** 149/149 tests passing (100% pass rate)
 **License:** Public Domain / CC0 (Creative Commons Zero)
 **Developed by:** Jumis, Inc.
@@ -251,7 +251,6 @@ See [REFACTOR.md](REFACTOR.md) for architectural details.
 ## Developer Resources
 
 - **[AGENTS.md](AGENTS.md)** - Instructions for AI agents and automated development
-- **[HEADLESS_TESTING_PLAN.md](HEADLESS_TESTING_PLAN.md)** - Headless testing strategy and setup
 
 ## Native Image Support (Experimental)
 
