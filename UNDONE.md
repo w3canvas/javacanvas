@@ -87,7 +87,7 @@ The codebase targets JDK 17+ but has a `-Plegacy` build mode for JDK 8. Some arc
 - `testMaxWidthScaling`
 - `testTextAlignDetailed`
 - `testTextBaselineDetailed`
-- `testFontFace`
+- `testFontFace` ✅ Fixed (uses local DejaVuSans.ttf)
 
 These are environment-dependent and may need:
 - More tolerant pixel comparison
@@ -112,6 +112,6 @@ Build configuration exists but not tested:
 
 ## Documentation Gaps
 
-- [ ] Update README with new build modes
-- [ ] Document JBangRunner and JBangAwtRunner usage
-- [ ] API documentation for new CompositeOperation enum
+- [x] Update README with new build modes
+- [x] Document JBangRunner and JBangAwtRunner usage
+- [x] API documentation for new CompositeOperation enum

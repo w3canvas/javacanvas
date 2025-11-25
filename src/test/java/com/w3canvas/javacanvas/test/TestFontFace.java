@@ -60,6 +60,9 @@ public class TestFontFace {
             if (session.getUri().equals("/DejaVuSans.ttf")) {
                 try {
                     File fontFile = new File("fonts/DejaVuSans.ttf");
+                    if (!fontFile.exists()) {
+                        fontFile = new File("javacanvas/fonts/DejaVuSans.ttf");
+                    }
                     InputStream is = new FileInputStream(fontFile);
                     return newChunkedResponse(Response.Status.OK, "font/ttf", is);
                 } catch (IOException e) {

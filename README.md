@@ -140,7 +140,21 @@ mvn test
 # Generate test coverage report
 mvn clean test
 # View report at: target/site/jacoco/index.html
+# View report at: target/site/jacoco/index.html
 ```
+
+### Build Modes
+The project supports different build modes via Gradle properties:
+
+- **Standard Build** (Default): Targets JDK 17+, includes JavaFX and GraalVM support.
+- **Legacy Build** (`-Plegacy`): Targets JDK 8, excludes JavaFX and GraalVM. Useful for verifying AWT backend independence.
+  ```bash
+  ./gradlew clean build -Plegacy
+  ```
+- **Native Build** (`-Pgraalvm`): Enables GraalVM Native Image generation (requires GraalVM JDK).
+  ```bash
+  ./gradlew nativeCompile -Pgraalvm
+  ```
 
 ### Windows Troubleshooting
 If your Windows username contains special characters (like an apostrophe, e.g., `Char'les`), Gradle may fail with `ClassNotFoundException` or file access errors.
@@ -297,6 +311,12 @@ Then you can send JavaScript to it to render images:
 curl -X POST --data-binary @examples/render_chart.js http://localhost:8080/render --output chart.png
 ```
 *Note: `RestRunner` automatically provides `canvas` and `ctx` variables to your script.*
+
+### Running with AWT Backend
+To force the AWT backend (useful for headless environments or testing without JavaFX):
+```bash
+jbang JBangAwtRunner.java examples/hello.js
+```
 
 ### Running Tests with JBang
 For a **faster feedback loop** during development (bypassing Gradle configuration time), you can run JUnit tests directly:
