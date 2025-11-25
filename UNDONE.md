@@ -51,13 +51,8 @@ The Canvas 2D `globalCompositeOperation` property supports CSS blend modes that 
    https://www.w3.org/TR/compositing-1/#blending
 
 ### Remaining Work
-- ✅ **Needs Build Verification**: AwtBlendComposite.java verified via `-Plegacy` build
 - ⚠️ **JavaFX HSL modes**: hue, saturation, color, luminosity still fall back to source-over in JavaFX backend
 - Consider visual regression tests for blend modes
-
-### Files Modified
-- `src/main/java/com/w3canvas/javacanvas/backend/awt/AwtComposite.java` - Routes blend modes to AwtBlendComposite
-- `src/main/java/com/w3canvas/javacanvas/backend/awt/AwtBlendComposite.java` - NEW: Full blend mode implementation
 
 ---
 
@@ -66,16 +61,9 @@ The Canvas 2D `globalCompositeOperation` property supports CSS blend modes that 
 ### Problem
 The codebase targets JDK 17+ but has a `-Plegacy` build mode for JDK 8. Some architectural cleanups remain.
 
-### Current Status
-- ✅ `CompositeFactory.java` - Refactored to be backend-agnostic
-- ✅ `CanvasRenderingContext2D.java` (Rhino) - Removed unused JavaFX imports
-- ✅ Build tested with Gradle `-Plegacy`
-- ❓ JDK 8 actual compilation not tested (but Gradle enforces language level)
-
 ### Remaining Work
-1. Test actual compilation on JDK 8
-2. Verify Gradle `-Plegacy` build works
-3. Consider JDK 1.6 support (would require removing lambdas, streams, etc.)
+1. Test actual compilation on JDK 8 (Low Priority)
+2. Consider JDK 1.6 support (would require removing lambdas, streams, etc.)
 
 ---
 
@@ -83,10 +71,10 @@ The codebase targets JDK 17+ but has a `-Plegacy` build mode for JDK 8. Some arc
 
 ### Font Rendering Tests
 5 tests fail in CI due to font rendering differences:
-- `testMaxWidthEdgeCases`
-- `testMaxWidthScaling`
-- `testTextAlignDetailed`
-- `testTextBaselineDetailed`
+- `testMaxWidthEdgeCases` ✅ Fixed (uses local DejaVuSans.ttf)
+- `testMaxWidthScaling` ✅ Fixed (uses local DejaVuSans.ttf)
+- `testTextAlignDetailed` ✅ Fixed (uses local DejaVuSans.ttf)
+- `testTextBaselineDetailed` ✅ Fixed (uses local DejaVuSans.ttf)
 - `testFontFace` ✅ Fixed (uses local DejaVuSans.ttf)
 
 These are environment-dependent and may need:
@@ -110,8 +98,4 @@ Build configuration exists but not tested:
 
 ---
 
-## Documentation Gaps
-
-- [x] Update README with new build modes
-- [x] Document JBangRunner and JBangAwtRunner usage
-- [x] API documentation for new CompositeOperation enum
+- None currently identified.

@@ -51,6 +51,35 @@ public class TestCanvas2D extends ApplicationTest {
         // Initialize a dummy canvas to load classes
         JavaCanvas canvas = new JavaCanvas(".", true);
         canvas.initializeBackend();
+
+        loadTestFont();
+    }
+
+    private static void loadTestFont() {
+        try {
+            String[] paths = {
+                    "fonts/DejaVuSans.ttf",
+                    "javacanvas/fonts/DejaVuSans.ttf"
+            };
+
+            java.io.File fontFile = null;
+            for (String path : paths) {
+                java.io.File f = new java.io.File(path);
+                if (f.exists()) {
+                    fontFile = f;
+                    break;
+                }
+            }
+
+            if (fontFile != null) {
+                javafx.scene.text.Font.loadFont(new java.io.FileInputStream(fontFile), 10);
+                System.out.println("Loaded test font: " + fontFile.getAbsolutePath());
+            } else {
+                System.err.println("Could not find DejaVuSans.ttf for testing");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Start
@@ -122,7 +151,8 @@ public class TestCanvas2D extends ApplicationTest {
 
             // Log first few unique pixels for debugging
             if (sampleCount < 5) {
-                debugInfo.append(String.format("  Sample pixel: R=%d G=%d B=%d A=%d%n", actualR, actualG, actualB, actualA));
+                debugInfo.append(
+                        String.format("  Sample pixel: R=%d G=%d B=%d A=%d%n", actualR, actualG, actualB, actualA));
                 sampleCount++;
             }
 
@@ -136,7 +166,8 @@ public class TestCanvas2D extends ApplicationTest {
         }
         if (!pixelFound) {
             System.err.println("Pixel assertion failed at (" + x + "," + y + "):");
-            System.err.println("  Expected: R=" + r + " G=" + g + " B=" + b + " A=" + a + " (tolerance=" + effectiveTolerance + ")");
+            System.err.println("  Expected: R=" + r + " G=" + g + " B=" + b + " A=" + a + " (tolerance="
+                    + effectiveTolerance + ")");
             System.err.println("  Searched area: " + w + "x" + h + " pixels");
             System.err.println(debugInfo.toString());
         }
@@ -1099,7 +1130,7 @@ public class TestCanvas2D extends ApplicationTest {
             Context.enter();
             try {
                 ctx.clearRect(0, 0, 500, 400);
-                ctx.setFont("20px sans-serif");
+                ctx.setFont("20px 'DejaVu Sans'");
                 ctx.setFillStyle("blue");
 
                 // Draw a vertical reference line at x=250
@@ -1164,7 +1195,7 @@ public class TestCanvas2D extends ApplicationTest {
             Context.enter();
             try {
                 ctx.clearRect(0, 0, 600, 500);
-                ctx.setFont("30px sans-serif");
+                ctx.setFont("30px 'DejaVu Sans'");
                 ctx.setFillStyle("blue");
 
                 // Draw horizontal reference lines to visualize baseline positioning
@@ -1239,7 +1270,7 @@ public class TestCanvas2D extends ApplicationTest {
             Context.enter();
             try {
                 ctx.clearRect(0, 0, 500, 300);
-                ctx.setFont("30px sans-serif");
+                ctx.setFont("30px 'DejaVu Sans'");
                 ctx.setFillStyle("blue");
 
                 // Measure normal text width
@@ -1292,7 +1323,7 @@ public class TestCanvas2D extends ApplicationTest {
             Context.enter();
             try {
                 ctx.clearRect(0, 0, 400, 400);
-                ctx.setFont("25px sans-serif");
+                ctx.setFont("25px 'DejaVu Sans'");
                 ctx.setFillStyle("green");
 
                 // Draw reference point at center
@@ -1343,7 +1374,7 @@ public class TestCanvas2D extends ApplicationTest {
             Context.enter();
             try {
                 ctx.clearRect(0, 0, 500, 300);
-                ctx.setFont("30px sans-serif");
+                ctx.setFont("30px 'DejaVu Sans'");
                 ctx.setFillStyle("purple");
 
                 // Draw vertical reference line at x=250
@@ -1453,7 +1484,7 @@ public class TestCanvas2D extends ApplicationTest {
             Context.enter();
             try {
                 ctx.clearRect(0, 0, 500, 400);
-                ctx.setFont("25px sans-serif");
+                ctx.setFont("25px 'DejaVu Sans'");
                 ctx.setFillStyle("orange");
 
                 // Measure normal text width
