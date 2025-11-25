@@ -97,6 +97,7 @@
             <groupId>org.graalvm.polyglot</groupId>
             <artifactId>js-community</artifactId>
             <version>24.1.0</version>
+            <type>pom</type>
         </dependency>
 
         <!-- TestFX -->

@@ -5,7 +5,7 @@ import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 
 import com.w3canvas.javacanvas.rt.EventLoop;
-import com.w3canvas.javacanvas.rt.GraalRuntime;
+import com.w3canvas.javacanvas.backend.graal.GraalRuntime;
 import com.w3canvas.javacanvas.rt.WorkerThreadEventLoop;
 
 import java.io.File;

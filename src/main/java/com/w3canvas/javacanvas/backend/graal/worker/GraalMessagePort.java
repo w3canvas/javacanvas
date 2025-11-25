@@ -3,7 +3,7 @@ package com.w3canvas.javacanvas.backend.graal.worker;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 
-import com.w3canvas.javacanvas.rt.GraalRuntime;
+import com.w3canvas.javacanvas.backend.graal.GraalRuntime;
 
 import java.util.HashMap;
 import java.util.Map;

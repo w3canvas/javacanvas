@@ -2,7 +2,7 @@ package com.w3canvas.javacanvas.backend.graal.worker;
 
 import org.graalvm.polyglot.HostAccess;
 
-import com.w3canvas.javacanvas.rt.GraalRuntime;
+import com.w3canvas.javacanvas.backend.graal.GraalRuntime;
 
 /**
  * Wrapper for GraalSharedWorker to enable JavaScript 'new' operator usage.
