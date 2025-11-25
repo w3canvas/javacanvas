@@ -1,13 +1,13 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS org.junit.platform:junit-platform-console-standalone:1.10.1
-//DEPS org.openjfx:javafx-controls:17.0.8:${os.detected.jfxname}
-//DEPS org.openjfx:javafx-graphics:17.0.8:${os.detected.jfxname}
-//DEPS org.openjfx:javafx-base:17.0.8:${os.detected.jfxname}
-//DEPS org.openjfx:javafx-media:17.0.8:${os.detected.jfxname}
-//DEPS org.openjfx:javafx-swing:17.0.8:${os.detected.jfxname}
+//DEPS org.openjfx:javafx-controls:17.0.13:${os.detected.jfxname}
+//DEPS org.openjfx:javafx-graphics:17.0.13:${os.detected.jfxname}
+//DEPS org.openjfx:javafx-base:17.0.13:${os.detected.jfxname}
+//DEPS org.openjfx:javafx-media:17.0.13:${os.detected.jfxname}
+//DEPS org.openjfx:javafx-swing:17.0.13:${os.detected.jfxname}
 //DEPS org.mozilla:rhino:1.7.14
-//DEPS org.graalvm.js:js:23.0.0
-//DEPS org.graalvm.sdk:graal-sdk:23.0.0
+//DEPS org.graalvm.polyglot:polyglot:24.1.0
+//DEPS org.graalvm.js:js-language:24.1.0
 //DEPS org.testfx:testfx-core:4.0.18
 //DEPS org.testfx:testfx-junit5:4.0.18
 //DEPS org.testfx:openjfx-monocle:17.0.10

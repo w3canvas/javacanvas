@@ -40,6 +40,14 @@ The project has been migrated to **Gradle** (Kotlin DSL).
 **Fix:** ALWAYS use the `.\gradle-safe.ps1` wrapper script on Windows. It automatically sets `GRADLE_USER_HOME` to `c:\wip\gradle_home` to bypass the issue.
 **Do NOT** run `./gradlew` directly on Windows if the user path contains an apostrophe.
 
+### JBang Support (Alternative Build/Run)
+
+For Windows users or quick tasks, **JBang** is the preferred way to run the project, avoiding Gradle path issues.
+- **Run:** `jbang JBangRunner.java examples/hello.js`
+- **Test:** `jbang TestRunner.java`
+- **Server:** `jbang RestRunner.java 8080`
+- **Native Build:** `jbang export native JBangRunner.java` (requires GraalVM)
+
 ## Development Guidelines
 
 1.  **State Management:** Canvas state is deep-copied in `ContextState`. Never modify state objects after pushing to the stack.

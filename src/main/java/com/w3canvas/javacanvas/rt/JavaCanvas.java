@@ -63,7 +63,9 @@ public class JavaCanvas {
     private boolean useGraal;
     private PropertiesHolder propertiesHolder;
     private Document document;
+    private Object graalDocument;
     private Window window;
+    private Object graalWindow;
 
     public JavaCanvas(String resourcePath, boolean headless) {
         this(resourcePath, headless, false);
@@ -185,39 +187,58 @@ public class JavaCanvas {
 
     private void initializeCommon() {
         try {
-            this.document = new Document();
-            // Set parent scope BEFORE calling init() because init() creates
-            // RhinoFontFaceSet which needs scope
-            if (runtime instanceof RhinoRuntime) {
-                Scriptable scope = ((RhinoRuntime) runtime).getScope();
-                this.document.setParentScope(scope);
-                try {
-                    Scriptable proto = ScriptableObject.getClassPrototype(scope, "Document");
-                    this.document.setPrototype(proto);
-                } catch (Exception e) {
-                    System.err.println("Warning: Could not set Document prototype: " + e.getMessage());
+            if (useGraal) {
+                this.graalDocument = new com.w3canvas.javacanvas.backend.graal.impl.node.GraalDocument();
+                runtime.putProperty("document", this.graalDocument);
+            } else {
+                this.document = new Document();
+                // Set parent scope BEFORE calling init() because init() creates
+                // RhinoFontFaceSet which needs scope
+                if (runtime instanceof RhinoRuntime) {
+                    Scriptable scope = ((RhinoRuntime) runtime).getScope();
+                    this.document.setParentScope(scope);
+                    try {
+                        Scriptable proto = ScriptableObject.getClassPrototype(scope, "Document");
+                        this.document.setPrototype(proto);
+                    } catch (Exception e) {
+                        System.err.println("Warning: Could not set Document prototype: " + e.getMessage());
+                    }
+                }
+                this.document.init(this.windowHost);
+                runtime.putProperty("document", this.document);
+
+                // Store document in RhinoRuntime so it's accessible across Contexts
+                if (runtime instanceof RhinoRuntime) {
+                    ((RhinoRuntime) runtime).setMainThreadDocument(this.document);
                 }
             }
-            this.document.init(this.windowHost);
-            runtime.putProperty("document", this.document);
 
-            // Store document in RhinoRuntime so it's accessible across Contexts
-            if (runtime instanceof RhinoRuntime) {
-                ((RhinoRuntime) runtime).setMainThreadDocument(this.document);
-            }
-
-            this.window = new Window();
-            if (headless || windowHost == null) {
-                this.window.init(800, 600);
+            if (useGraal) {
+                int width = 800;
+                int height = 600;
+                if (!headless && windowHost != null) {
+                    width = windowHost.getWidth();
+                    height = windowHost.getHeight();
+                }
+                com.w3canvas.javacanvas.backend.graal.impl.node.GraalWindow gWindow =
+                        new com.w3canvas.javacanvas.backend.graal.impl.node.GraalWindow(width, height);
+                gWindow.setDocument((com.w3canvas.javacanvas.backend.graal.impl.node.GraalDocument) this.graalDocument);
+                this.graalWindow = gWindow;
+                runtime.putProperty("window", this.graalWindow);
             } else {
-                this.window.init(windowHost.getWidth(), windowHost.getHeight());
-            }
-            this.window.setDocument(document);
-            runtime.putProperty("window", this.window);
+                this.window = new Window();
+                if (headless || windowHost == null) {
+                    this.window.init(800, 600);
+                } else {
+                    this.window.init(windowHost.getWidth(), windowHost.getHeight());
+                }
+                this.window.setDocument(document);
+                runtime.putProperty("window", this.window);
 
-            // Store window in RhinoRuntime so it's accessible across Contexts
-            if (runtime instanceof RhinoRuntime) {
-                ((RhinoRuntime) runtime).setMainThreadWindow(this.window);
+                // Store window in RhinoRuntime so it's accessible across Contexts
+                if (runtime instanceof RhinoRuntime) {
+                    ((RhinoRuntime) runtime).setMainThreadWindow(this.window);
+                }
             }
 
             runtime.putProperty("log", new ScriptLogger());

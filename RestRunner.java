@@ -8,14 +8,14 @@
 //DEPS org.graalvm.polyglot:polyglot:24.1.0
 //DEPS org.graalvm.js:js-language:24.1.0
 //SOURCES src/main/java/**/*.java
-//FILES .=src/main/resources
 
 package com.w3canvas.javacanvas;
 
-import com.w3canvas.javacanvas.Main;
+import com.w3canvas.javacanvas.server.RenderingServer;
+import java.io.IOException;
 
-public class JBangRunner {
-    public static void main(String... args) {
-        Main.main(args);
+public class RestRunner {
+    public static void main(String... args) throws IOException {
+        RenderingServer.main(args);
     }
 }

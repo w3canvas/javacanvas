@@ -10,5 +10,17 @@
   {
     "name": "com.w3canvas.javacanvas.backend.awt.AwtCanvasSurface",
     "allPublicMethods": true
+  },
+  {
+    "name": "com.w3canvas.javacanvas.backend.graal.impl.node.GraalDocument",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.w3canvas.javacanvas.backend.graal.impl.node.GraalWindow",
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.w3canvas.javacanvas.backend.graal.impl.node.GraalHTMLCanvasElement",
+    "allPublicMethods": true
   }
 ]
