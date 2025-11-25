@@ -10,7 +10,8 @@ public class AwtGraphicsBackend implements IGraphicsBackend {
 
     /**
      * Maximum allowed font data size: 10MB (10485760 bytes).
-     * This limit prevents potential memory exhaustion attacks from malicious font files.
+     * This limit prevents potential memory exhaustion attacks from malicious font
+     * files.
      */
     private static final int MAX_FONT_SIZE = 10485760; // 10MB
 
@@ -51,7 +52,8 @@ public class AwtGraphicsBackend implements IGraphicsBackend {
     }
 
     @Override
-    public com.w3canvas.javacanvas.interfaces.IFont createFont(String family, double size, String style, String weight) {
+    public com.w3canvas.javacanvas.interfaces.IFont createFont(String family, double size, String style,
+            String weight) {
         return new AwtFont(family, (float) size, style, weight);
     }
 
@@ -60,20 +62,22 @@ public class AwtGraphicsBackend implements IGraphicsBackend {
      * <p>
      * This method validates the font data before attempting to load it:
      * <ul>
-     *   <li>Ensures fontData is not null or empty</li>
-     *   <li>Ensures fontData does not exceed {@value #MAX_FONT_SIZE} bytes (10MB)</li>
+     * <li>Ensures fontData is not null or empty</li>
+     * <li>Ensures fontData does not exceed {@value #MAX_FONT_SIZE} bytes
+     * (10MB)</li>
      * </ul>
      *
      * @param fontData the binary font data to load
-     * @param size the font size in points
-     * @param style the font style (e.g., "normal", "italic", "oblique")
-     * @param weight the font weight (e.g., "normal", "bold")
+     * @param size     the font size in points
+     * @param style    the font style (e.g., "normal", "italic", "oblique")
+     * @param weight   the font weight (e.g., "normal", "bold")
      * @return a new IFont instance, or null if font creation fails
      * @throws IllegalArgumentException if fontData is null or empty
      * @throws IllegalArgumentException if fontData exceeds the maximum allowed size
      */
     @Override
-    public com.w3canvas.javacanvas.interfaces.IFont createFont(byte[] fontData, float size, String style, String weight) {
+    public com.w3canvas.javacanvas.interfaces.IFont createFont(byte[] fontData, float size, String style,
+            String weight) {
         // Validate font data is not null or empty
         if (fontData == null || fontData.length == 0) {
             throw new IllegalArgumentException("Font data cannot be null or empty");
@@ -82,17 +86,23 @@ public class AwtGraphicsBackend implements IGraphicsBackend {
         // Validate font data size doesn't exceed maximum limit
         if (fontData.length > MAX_FONT_SIZE) {
             throw new IllegalArgumentException(
-                String.format("Font data size (%d bytes) exceeds maximum allowed size (%d bytes / 10MB)",
-                    fontData.length, MAX_FONT_SIZE)
-            );
+                    String.format("Font data size (%d bytes) exceeds maximum allowed size (%d bytes / 10MB)",
+                            fontData.length, MAX_FONT_SIZE));
         }
 
         try {
-            java.awt.Font awtFont = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, new java.io.ByteArrayInputStream(fontData));
-            return new AwtFont(awtFont, (float)size, style, weight);
+            java.awt.Font awtFont = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT,
+                    new java.io.ByteArrayInputStream(fontData));
+            return new AwtFont(awtFont, (float) size, style, weight);
         } catch (Exception e) {
             System.err.println("ERROR: Failed to load AWT font: " + e.getMessage());
             return null;
         }
+    }
+
+    @Override
+    public com.w3canvas.javacanvas.interfaces.IComposite createComposite(
+            com.w3canvas.javacanvas.interfaces.CompositeOperation op, double alpha) {
+        return new AwtComposite(op, alpha);
     }
 }
