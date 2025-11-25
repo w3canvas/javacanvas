@@ -15,6 +15,7 @@
 //DEPS org.mockito:mockito-junit-jupiter:5.18.0
 //DEPS org.hamcrest:hamcrest:2.2
 //DEPS org.nanohttpd:nanohttpd:2.3.1
+//DEPS io.github.humbleui:jwebgpu:0.1.2
 //SOURCES src/main/java/**/*.java
 //SOURCES src/test/java/**/*.java
 

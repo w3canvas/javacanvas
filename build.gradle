@@ -110,6 +110,10 @@ dependencies {
     testImplementation 'org.hamcrest:hamcrest:2.2'
 
     testImplementation 'org.nanohttpd:nanohttpd:2.3.1'
+
+    // jWebGPU (Optional)
+    compileOnly 'io.github.humbleui:jwebgpu:0.1.2'
+    testImplementation 'io.github.humbleui:jwebgpu:0.1.2'
 }
 
 test {

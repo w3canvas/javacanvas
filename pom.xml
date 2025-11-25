@@ -155,6 +155,14 @@
             <version>2.3.1</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- jWebGPU -->
+        <dependency>
+            <groupId>io.github.humbleui</groupId>
+            <artifactId>jwebgpu</artifactId>
+            <version>0.1.2</version>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <profiles>
