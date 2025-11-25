@@ -1,12 +1,12 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS org.openjfx:javafx-controls:17.0.13:${os.detected.jfxname}
-//DEPS org.openjfx:javafx-graphics:17.0.13:${os.detected.jfxname}
-//DEPS org.openjfx:javafx-base:17.0.13:${os.detected.jfxname}
-//DEPS org.openjfx:javafx-media:17.0.13:${os.detected.jfxname}
-//DEPS org.openjfx:javafx-swing:17.0.13:${os.detected.jfxname}
+//DEPS org.openjfx:javafx-controls:21.0.8:${os.detected.jfxname}
+//DEPS org.openjfx:javafx-graphics:21.0.8:${os.detected.jfxname}
+//DEPS org.openjfx:javafx-base:21.0.8:${os.detected.jfxname}
+//DEPS org.openjfx:javafx-media:21.0.8:${os.detected.jfxname}
+//DEPS org.openjfx:javafx-swing:21.0.8:${os.detected.jfxname}
 //DEPS org.mozilla:rhino:1.7.14
 //DEPS org.graalvm.polyglot:polyglot:24.1.0
-//DEPS org.graalvm.js:js-language:24.1.0
+//DEPS org.graalvm.polyglot:js-community:24.1.0@pom
 //SOURCES src/main/java/**/*.java
 //FILES .=src/main/resources
 
