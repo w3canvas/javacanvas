@@ -1,14 +1,15 @@
-// Define a property to check for the legacy build mode, triggered by running gradle with the -Plegacy flag
-def isLegacy = project.hasProperty('legacy')
-
 plugins {
     id 'java'
     id 'application'
-    // Defer plugin application to allow for conditional logic based on the 'legacy' property
     id 'org.openjfx.javafxplugin' version '0.1.0' apply false
     id 'org.graalvm.buildtools.native' version '0.9.28' apply false
-    // id 'jacoco'
 }
+
+// Define property checks for build modes:
+// -Plegacy: Build for JDK 8 with AWT/Rhino only
+// -Pgraalvm: Require GraalVM JDK for native image support
+def isLegacy = project.hasProperty('legacy')
+def useGraalVM = project.hasProperty('graalvm')
 
 // Conditionally apply modern plugins for the default build
 if (!isLegacy) {
@@ -29,9 +30,12 @@ java {
             // Legacy build targets Java 8
             languageVersion = JavaLanguageVersion.of(8)
         } else {
-            // Modern build targets Java 17 with GraalVM
+            // Modern build targets Java 17+
             languageVersion = JavaLanguageVersion.of(17)
-            vendor = JvmVendorSpec.GRAAL_VM
+            // Only require GraalVM vendor if explicitly requested with -Pgraalvm
+            if (useGraalVM) {
+                vendor = JvmVendorSpec.GRAAL_VM
+            }
         }
     }
 }
@@ -69,7 +73,7 @@ sourceSets {
 // Conditionally configure JavaFX for the modern build
 if (!isLegacy) {
     javafx {
-        version = "17.0.13"  // Match Java 17 toolchain
+        version = "21.0.8"
         modules = [ 'javafx.controls', 'javafx.graphics', 'javafx.base', 'javafx.media', 'javafx.swing' ]
     }
 }
@@ -97,7 +101,7 @@ dependencies {
     if (!isLegacy) {
         testImplementation 'org.testfx:testfx-core:4.0.18'
         testImplementation 'org.testfx:testfx-junit5:4.0.18'
-        testRuntimeOnly 'org.testfx:openjfx-monocle:17.0.10'  // Match Java 17
+        testRuntimeOnly 'org.testfx:openjfx-monocle:21.0.2'
     }
 
     testImplementation 'org.mockito:mockito-core:5.18.0'
