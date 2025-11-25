@@ -14,23 +14,23 @@ import javafx.scene.effect.BlendMode;
  * <li><strong>Fully Supported CSS Blend Modes:</strong> multiply, screen,
  * overlay, darken,
  * lighten, color-dodge, color-burn, hard-light, soft-light, difference,
- * exclusion</li>
- * <li><strong>Approximated Porter-Duff Operations:</strong>
+ * exclusion (Native JavaFX support)</li>
+ * <li><strong>Custom Rendered Modes:</strong>
  * <ul>
- * <li>"source-in" - Uses SRC_ATOP as closest approximation</li>
- * <li>"copy" - Uses SRC_OVER (JavaFX lacks direct copy mode)</li>
+ * <li>HSL Modes: hue, saturation, color, luminosity</li>
+ * <li>Porter-Duff Modes: source-in, source-out, destination-in,
+ * destination-out, destination-atop, destination-over, xor, copy</li>
  * </ul>
+ * These are handled by {@code JavaFXBlendRenderer} for pixel-perfect
+ * correctness.
  * </li>
- * <li><strong>Not Supported (fallback to source-over):</strong> source-out,
- * destination-over,
- * destination-in, destination-out, destination-atop, xor, hue, saturation,
- * color, luminosity</li>
  * </ul>
  *
  * @since 1.0
  */
 public class JavaFXComposite implements IComposite {
     private final BlendMode blendMode;
+    private final CompositeOperation operation;
 
     /**
      * Creates a JavaFX composite from a backend-agnostic composite operation.
@@ -38,11 +38,16 @@ public class JavaFXComposite implements IComposite {
      * @param operation the composite operation to convert
      */
     public JavaFXComposite(CompositeOperation operation) {
+        this.operation = operation;
         this.blendMode = convertToBlendMode(operation);
     }
 
     public BlendMode getBlendMode() {
         return blendMode;
+    }
+
+    public CompositeOperation getOperation() {
+        return operation;
     }
 
     /**

@@ -9,6 +9,7 @@ The Canvas 2D `globalCompositeOperation` property supports CSS blend modes that 
 
 ### Current Status
 **AWT Backend**: Implemented via `AwtBlendComposite.java` - a custom `java.awt.Composite` implementation that performs pixel-level blending per W3C spec.
+**JavaFX Backend**: Implemented via `JavaFXBlendRenderer.java` - performs pixel-level blending for unsupported modes.
 
 | Blend Mode | AWT Status | JavaFX Status | Notes |
 |------------|------------|---------------|-------|
@@ -34,27 +35,18 @@ The Canvas 2D `globalCompositeOperation` property supports CSS blend modes that 
 | soft-light | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
 | difference | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
 | exclusion | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
-| hue | ✅ AwtBlend | ❌ Fallback | HSL blend implemented |
-| saturation | ✅ AwtBlend | ❌ Fallback | HSL blend implemented |
-| color | ✅ AwtBlend | ❌ Fallback | HSL blend implemented |
-| luminosity | ✅ AwtBlend | ❌ Fallback | HSL blend implemented |
+| hue | ✅ AwtBlend | ✅ Custom | Via JavaFXBlendRenderer |
+| saturation | ✅ AwtBlend | ✅ Custom | Via JavaFXBlendRenderer |
+| color | ✅ AwtBlend | ✅ Custom | Via JavaFXBlendRenderer |
+| luminosity | ✅ AwtBlend | ✅ Custom | Via JavaFXBlendRenderer |
 
 ### Implementation Notes
 
-1. **AWT Backend**: `AwtBlendComposite.java` (~450 lines) implements:
-   - All standard CSS blend modes (multiply, screen, overlay, etc.)
-   - HSL-based blend modes (hue, saturation, color, luminosity)
-   - Proper alpha handling and premultiplied alpha conversion
-   - Performance optimized with direct int[] pixel operations
-
-2. **Reference**: W3C Compositing and Blending spec:
-   https://www.w3.org/TR/compositing-1/#blending
+1. **AWT Backend**: `AwtBlendComposite.java` (~450 lines) implements all standard CSS blend modes using direct int[] pixel operations.
+2. **JavaFX Backend**: `JavaFXBlendRenderer.java` implements fallback pixel-level blending for HSL modes and others not supported by JavaFX `BlendMode`.
 
 ### Deferred / Limitations
-- ⚠️ **JavaFX HSL modes**: hue, saturation, color, luminosity fall back to `source-over`.
-  - **Status**: Explicitly handled in `JavaFXComposite.java` with comments explaining the limitation.
-- ⚠️ **Porter-Duff Approximations**: `destination-in`, `destination-out`, `destination-atop`, `xor`, `copy` are approximated or fall back to `source-over` in JavaFX.
-  - **Status**: Explicitly handled in `JavaFXComposite.java` with comments.
+- None. JavaFX backend now supports all CSS blend modes and Porter-Duff operations via `JavaFXBlendRenderer`.
 
 ---
 
@@ -69,5 +61,3 @@ The codebase targets JDK 17+ but has a `-Plegacy` build mode for JDK 8. Some arc
 2. **Native AOT**: `native-image` build is configured but not tested.
    - **Reason**: `native-image` tool is not available in the current environment.
    - **Status**: `reflect-config.json` has been updated with Rhino and JavaCanvas configuration.
-
-

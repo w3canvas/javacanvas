@@ -23,7 +23,6 @@ import javafx.scene.shape.CubicCurveTo;
 import javafx.scene.shape.ClosePath;
 import java.awt.geom.PathIterator;
 
-
 public class JavaFXGraphicsContext implements IGraphicsContext {
 
     private final GraphicsContext gc;
@@ -103,7 +102,8 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     @Override
     public IImageData createImageData(int width, int height) {
         int[] data = new int[width * height];
-        return new com.w3canvas.javacanvas.core.ImageData(width, height, new com.w3canvas.javacanvas.core.CanvasPixelArray(data, width, height));
+        return new com.w3canvas.javacanvas.core.ImageData(width, height,
+                new com.w3canvas.javacanvas.core.CanvasPixelArray(data, width, height));
     }
 
     @Override
@@ -112,7 +112,8 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         gc.getCanvas().snapshot(null, snapshot);
         int[] pixels = new int[width * height];
         snapshot.getPixelReader().getPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), pixels, 0, width);
-        return new com.w3canvas.javacanvas.core.ImageData(width, height, new com.w3canvas.javacanvas.core.CanvasPixelArray(pixels, width, height));
+        return new com.w3canvas.javacanvas.core.ImageData(width, height,
+                new com.w3canvas.javacanvas.core.CanvasPixelArray(pixels, width, height));
     }
 
     @Override
@@ -218,11 +219,46 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         return null;
     }
 
+    private IComposite currentComposite;
+
     @Override
     public void setComposite(IComposite comp) {
+        this.currentComposite = comp;
         if (comp instanceof JavaFXComposite) {
             gc.setGlobalBlendMode(((JavaFXComposite) comp).getBlendMode());
         }
+    }
+
+    private boolean isCustomBlendMode() {
+        if (currentComposite instanceof JavaFXComposite) {
+            CompositeOperation op = ((JavaFXComposite) currentComposite).getOperation();
+            switch (op) {
+                // HSL and Separable Blend Modes not supported by JavaFX BlendMode enum
+                case HUE:
+                case SATURATION:
+                case COLOR:
+                case LUMINOSITY:
+                    return true;
+
+                // Porter-Duff Composite Modes not supported by JavaFX BlendMode enum
+                // JavaFX only supports SRC_OVER, SRC_ATOP, ADD (Lighter), MULTIPLY, SCREEN,
+                // OVERLAY, DARKEN, LIGHTEN, COLOR_DODGE, COLOR_BURN, HARD_LIGHT, SOFT_LIGHT,
+                // DIFFERENCE, EXCLUSION
+                case SOURCE_IN:
+                case SOURCE_OUT:
+                case DESTINATION_IN:
+                case DESTINATION_OUT:
+                case DESTINATION_ATOP:
+                case DESTINATION_OVER: // JavaFX lacks DESTINATION_OVER
+                case XOR:
+                case COPY:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -237,16 +273,22 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void setLineCap(String cap) {
-        if ("round".equals(cap)) gc.setLineCap(StrokeLineCap.ROUND);
-        else if ("square".equals(cap)) gc.setLineCap(StrokeLineCap.SQUARE);
-        else gc.setLineCap(StrokeLineCap.BUTT);
+        if ("round".equals(cap))
+            gc.setLineCap(StrokeLineCap.ROUND);
+        else if ("square".equals(cap))
+            gc.setLineCap(StrokeLineCap.SQUARE);
+        else
+            gc.setLineCap(StrokeLineCap.BUTT);
     }
 
     @Override
     public void setLineJoin(String join) {
-        if ("round".equals(join)) gc.setLineJoin(StrokeLineJoin.ROUND);
-        else if ("bevel".equals(join)) gc.setLineJoin(StrokeLineJoin.BEVEL);
-        else gc.setLineJoin(StrokeLineJoin.MITER);
+        if ("round".equals(join))
+            gc.setLineJoin(StrokeLineJoin.ROUND);
+        else if ("bevel".equals(join))
+            gc.setLineJoin(StrokeLineJoin.BEVEL);
+        else
+            gc.setLineJoin(StrokeLineJoin.MITER);
     }
 
     @Override
@@ -352,17 +394,44 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     @Override
     public void fillRectDirect(double x, double y, double w, double h) {
-        // Use JavaFX's native fillRect method which bypasses the path system
-        // This is needed because JavaFX's path system doesn't properly handle
-        // multiple rect() calls within the same path
-        //
-        // WORKAROUND for Path2D.addPath() with multiple rectangles:
-        // When CoreCanvasRenderingContext2D detects a Path2D containing multiple
-        // RECT elements, it calls this method for each rectangle individually.
-        // The fill paint and transform are already set by the caller, so we just
-        // need to draw the rectangle directly without save/restore which would
-        // interfere with the state.
-        gc.fillRect(x, y, w, h);
+        if (isCustomBlendMode()) {
+            // Create a temporary canvas to render the fill
+            javafx.scene.canvas.Canvas tempCanvas = new javafx.scene.canvas.Canvas(w, h);
+            GraphicsContext tempGc = tempCanvas.getGraphicsContext2D();
+
+            // Copy fill state
+            if (this.fillPaint instanceof JavaFXPaint) {
+                tempGc.setFill(((JavaFXPaint) this.fillPaint).getPaint());
+            } else if (this.fillPaint instanceof JavaFXLinearGradient) {
+                tempGc.setFill((Paint) ((JavaFXLinearGradient) this.fillPaint).getPaint());
+            } else if (this.fillPaint instanceof JavaFXRadialGradient) {
+                tempGc.setFill((Paint) ((JavaFXRadialGradient) this.fillPaint).getPaint());
+            } else if (this.fillPaint instanceof JavaFXConicGradient) {
+                tempGc.setFill((Paint) ((JavaFXConicGradient) this.fillPaint).getPaint());
+            } else if (this.fillPaint instanceof JavaFXPattern) {
+                JavaFXPattern pattern = (JavaFXPattern) this.fillPaint;
+                tempGc.setFill(pattern.getPaint(w, h));
+            }
+
+            tempGc.fillRect(0, 0, w, h);
+
+            WritableImage snapshot = new WritableImage((int) w, (int) h);
+            tempCanvas.snapshot(null, snapshot);
+
+            drawCustomBlendImage(snapshot, (int) x, (int) y, (int) w, (int) h);
+        } else {
+            // Use JavaFX's native fillRect method which bypasses the path system
+            // This is needed because JavaFX's path system doesn't properly handle
+            // multiple rect() calls within the same path
+            //
+            // WORKAROUND for Path2D.addPath() with multiple rectangles:
+            // When CoreCanvasRenderingContext2D detects a Path2D containing multiple
+            // RECT elements, it calls this method for each rectangle individually.
+            // The fill paint and transform are already set by the caller, so we just
+            // need to draw the rectangle directly without save/restore which would
+            // interfere with the state.
+            gc.fillRect(x, y, w, h);
+        }
     }
 
     @Override
@@ -378,7 +447,12 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     @Override
     public void drawImage(Object img, int x, int y) {
         if (img instanceof Image) {
-            gc.drawImage((Image) img, x, y);
+            Image image = (Image) img;
+            if (isCustomBlendMode()) {
+                drawCustomBlendImage(image, x, y, (int) image.getWidth(), (int) image.getHeight());
+            } else {
+                gc.drawImage(image, x, y);
+            }
         }
     }
 
@@ -389,14 +463,121 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         }
         WritableImage image = new WritableImage(width, height);
         image.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), pixels, 0, width);
-        gc.drawImage(image, x, y, width, height);
+
+        if (isCustomBlendMode()) {
+            drawCustomBlendImage(image, x, y, width, height);
+        } else {
+            gc.drawImage(image, x, y, width, height);
+        }
     }
 
     @Override
     public void drawImage(Object img, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh) {
         if (img instanceof Image) {
-            gc.drawImage((Image) img, sx, sy, sw, sh, dx, dy, dw, dh);
+            Image image = (Image) img;
+            if (isCustomBlendMode()) {
+                // Crop the source image first
+                WritableImage cropped = new WritableImage(image.getPixelReader(), sx, sy, sw, sh);
+                // Scale if necessary (JavaFXBlendRenderer handles blending, but not scaling
+                // directly)
+                // Actually, we should probably scale the cropped image to dw, dh
+                // But JavaFXBlendRenderer expects source and dest to be same size or handles
+                // it?
+                // JavaFXBlendRenderer.blend takes src and dst.
+                // If we want to draw to dx, dy with size dw, dh.
+                // We need the destination snapshot of size dw, dh.
+                // And the source image should be scaled to dw, dh.
+
+                // For now, let's implement a simple scaling if needed, or just rely on the
+                // renderer
+                // But the renderer blends pixel by pixel. Source and Dest must align.
+
+                // Create a scaled view of the source if needed
+                Image sourceToBlend = cropped;
+                if (sw != dw || sh != dh) {
+                    // Scale source to destination size
+                    // This is expensive but necessary for correctness
+                    // We can use an ImageView to snapshot it scaled?
+                    // Or just sample it.
+                    // For simplicity, let's assume we can use a helper or just resize.
+                    // Let's use a temporary canvas to resize?
+                    // Or just pass the cropped image and let the blend logic handle it?
+                    // JavaFXBlendRenderer currently iterates min width/height.
+
+                    // Let's use a scaled snapshot
+                    javafx.scene.canvas.Canvas tempCanvas = new javafx.scene.canvas.Canvas(dw, dh);
+                    tempCanvas.getGraphicsContext2D().drawImage(cropped, 0, 0, dw, dh);
+                    WritableImage scaled = new WritableImage(dw, dh);
+                    tempCanvas.snapshot(null, scaled);
+                    sourceToBlend = scaled;
+                }
+
+                drawCustomBlendImage(sourceToBlend, dx, dy, dw, dh);
+            } else {
+                gc.drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
+            }
         }
+    }
+
+    private void drawCustomBlendImage(Image src, int x, int y, int w, int h) {
+        // 1. Snapshot the destination area
+        WritableImage dstSnapshot = new WritableImage(w, h);
+        javafx.scene.SnapshotParameters params = new javafx.scene.SnapshotParameters();
+        params.setViewport(new javafx.geometry.Rectangle2D(x, y, w, h));
+        params.setFill(Color.TRANSPARENT); // Important to capture transparency
+        gc.getCanvas().snapshot(params, dstSnapshot);
+
+        // 2. Perform blending
+        CompositeOperation op = ((JavaFXComposite) currentComposite).getOperation();
+        double alpha = gc.getGlobalAlpha();
+        WritableImage blended = JavaFXBlendRenderer.blend(src, dstSnapshot, op, alpha);
+
+        // 3. Clear the destination area and draw the result
+        // We use save/restore to ensure clearRect works in identity transform if
+        // needed,
+        // but here we want to draw at x,y.
+        // If we clearRect, we might clear background that shouldn't be cleared if we
+        // are transformed?
+        // Actually, snapshot takes viewport in scene coordinates or local?
+        // Canvas.snapshot snapshots the node.
+        // If we have transforms, x,y might not map directly to viewport.
+        // This is complicated.
+        // If there are transforms, 'x,y' in drawImage are in user space.
+        // But snapshot viewport is in... local bounds of the node?
+
+        // LIMITATION: Custom blend modes with transforms are very hard to implement
+        // correctly
+        // without full offscreen rendering.
+        // For now, we assume identity transform or simple translation for this
+        // fallback.
+        // Or we can try to map coordinates.
+
+        // Let's just draw the blended image.
+        // If we don't clear, we get double blending.
+        // If we clear, we might clear too much if there's rotation.
+
+        // Strategy: Draw the blended image with SRC_OVER.
+        // Since we blended with the background, the result is (Src OP Dst).
+        // If we draw this over Dst, we get (Src OP Dst) OVER Dst.
+        // If (Src OP Dst) is opaque, it covers Dst.
+        // If it has transparency, it blends again.
+
+        // If we can't clear correctly, we might have artifacts.
+        // But for many blend modes (like multiply), the result is usually opaque if dst
+        // is opaque.
+
+        // Let's try just drawing the result.
+        // If the user wants perfect composition, they should avoid complex transforms
+        // with unsupported blend modes.
+
+        // Actually, we can use setGlobalBlendMode(SRC) if it existed.
+        // Since it doesn't, we are stuck.
+        // But wait, if we use clearRect(x, y, w, h), it respects the current transform.
+        // So if we draw at x,y with width w,h, clearRect(x,y,w,h) should clear exactly
+        // that area.
+
+        gc.clearRect(x, y, w, h);
+        gc.drawImage(blended, x, y);
     }
 
     @Override
@@ -495,8 +676,10 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         gc.arcTo(x1, y1, x2, y2, radius);
 
         // And we add a JavaFX ArcTo path element to our own path object.
-        // The sweep flag is determined by the sign of the cross product of the two vectors.
-        // Positive cross product (left turn) requires sweepFlag=true to select the correct arc center
+        // The sweep flag is determined by the sign of the cross product of the two
+        // vectors.
+        // Positive cross product (left turn) requires sweepFlag=true to select the
+        // correct arc center
         boolean sweepFlag = (dx01 * dy12 - dy01 * dx12) > 0;
         ArcTo arcTo = new ArcTo(radius, radius, 0, t2x, t2y, false, sweepFlag);
         path.getElements().add(arcTo);
@@ -519,7 +702,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         gc.lineTo(x + w, y);
         gc.lineTo(x + w, y + h);
         gc.lineTo(x, y + h);
-        gc.lineTo(x, y);  // Explicitly close by going back to start
+        gc.lineTo(x, y); // Explicitly close by going back to start
         // DON'T call gc.closePath() - it prevents multiple rectangles from working
 
         // Also maintain the separate Path object for getPath() and isPointInPath()
@@ -607,17 +790,18 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     /**
      * Parse roundRect radii parameter according to Canvas 2D spec.
-     * Returns array of 4 corner radii: [top-left, top-right, bottom-right, bottom-left]
+     * Returns array of 4 corner radii: [top-left, top-right, bottom-right,
+     * bottom-left]
      */
     private double[] parseRoundRectRadii(Object radii) {
         if (radii == null) {
-            return new double[]{0, 0, 0, 0};
+            return new double[] { 0, 0, 0, 0 };
         }
 
         // Handle single number
         if (radii instanceof Number) {
             double r = ((Number) radii).doubleValue();
-            return new double[]{r, r, r, r};
+            return new double[] { r, r, r, r };
         }
 
         // Handle arrays (both Java arrays and Rhino NativeArray)
@@ -650,22 +834,22 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
             switch (values.length) {
                 case 1:
                     // All corners
-                    return new double[]{values[0], values[0], values[0], values[0]};
+                    return new double[] { values[0], values[0], values[0], values[0] };
                 case 2:
                     // [top-left & bottom-right, top-right & bottom-left]
-                    return new double[]{values[0], values[1], values[0], values[1]};
+                    return new double[] { values[0], values[1], values[0], values[1] };
                 case 3:
                     // [top-left, top-right & bottom-left, bottom-right]
-                    return new double[]{values[0], values[1], values[2], values[1]};
+                    return new double[] { values[0], values[1], values[2], values[1] };
                 case 4:
                 default:
                     // [top-left, top-right, bottom-right, bottom-left]
-                    return new double[]{values[0], values[1], values[2], values[3]};
+                    return new double[] { values[0], values[1], values[2], values[3] };
             }
         }
 
         // Default: no rounding
-        return new double[]{0, 0, 0, 0};
+        return new double[] { 0, 0, 0, 0 };
     }
 
     @Override
@@ -699,14 +883,17 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
     }
 
     @Override
-    public void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise) {
-        // This is more complex in JavaFX, requires saving state, rotating, and drawing arc
+    public void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle,
+            double endAngle, boolean counterclockwise) {
+        // This is more complex in JavaFX, requires saving state, rotating, and drawing
+        // arc
         gc.save();
         gc.translate(x, y);
         gc.rotate(Math.toDegrees(rotation));
         double length = endAngle - startAngle;
-        if(counterclockwise) {
-            if(length < 0) length += 2 * Math.PI;
+        if (counterclockwise) {
+            if (length < 0)
+                length += 2 * Math.PI;
             length = -(length);
         }
         // Manually calculate the start point of the ellipse arc
@@ -718,7 +905,8 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         path.getElements().add(new javafx.scene.shape.MoveTo(startX, startY));
 
         gc.arc(0, 0, radiusX, radiusY, Math.toDegrees(startAngle), Math.toDegrees(length));
-        path.getElements().add(new javafx.scene.shape.ArcTo(radiusX, radiusY, Math.toDegrees(rotation), x + radiusX * Math.cos(endAngle), y + radiusY * Math.sin(endAngle), false, !counterclockwise));
+        path.getElements().add(new javafx.scene.shape.ArcTo(radiusX, radiusY, Math.toDegrees(rotation),
+                x + radiusX * Math.cos(endAngle), y + radiusY * Math.sin(endAngle), false, !counterclockwise));
         gc.restore();
     }
 
@@ -779,8 +967,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
                 (float) gc.getLineWidth(),
                 cap,
                 join,
-                (float) gc.getMiterLimit()
-        );
+                (float) gc.getMiterLimit());
 
         // 3. Create stroked shape
         java.awt.Shape strokedShape = stroke.createStrokedShape(awtPath);
@@ -863,14 +1050,16 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
                 double extent = Math.toDegrees(angle(ux, uy, vx, vy));
 
                 // Adjust sweep direction based on sweepFlag
-                // SVG/Canvas: sweepFlag=true means clockwise, sweepFlag=false means counter-clockwise
+                // SVG/Canvas: sweepFlag=true means clockwise, sweepFlag=false means
+                // counter-clockwise
                 // AWT Arc2D: positive extent is counter-clockwise, negative extent is clockwise
                 // So for clockwise (sweepFlag=true), we need negative extent
                 if (sweepFlag) {
                     extent = -extent;
                 }
 
-                awtPath.append(new java.awt.geom.Arc2D.Double(cx - radiusX, cy - radiusY, 2 * radiusX, 2 * radiusY, startAngle, extent, java.awt.geom.Arc2D.OPEN), true);
+                awtPath.append(new java.awt.geom.Arc2D.Double(cx - radiusX, cy - radiusY, 2 * radiusX, 2 * radiusY,
+                        startAngle, extent, java.awt.geom.Arc2D.OPEN), true);
 
             } else if (element instanceof ClosePath) {
                 awtPath.closePath();
@@ -906,7 +1095,8 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
                     fxPath.getElements().add(new QuadCurveTo(coords[0], coords[1], coords[2], coords[3]));
                     break;
                 case PathIterator.SEG_CUBICTO:
-                    fxPath.getElements().add(new CubicCurveTo(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]));
+                    fxPath.getElements()
+                            .add(new CubicCurveTo(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]));
                     break;
                 case PathIterator.SEG_CLOSE:
                     fxPath.getElements().add(new ClosePath());
@@ -916,7 +1106,6 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
         }
         return fxPath;
     }
-
 
     @Override
     public IShape getPath() {
@@ -975,7 +1164,7 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
     private void applyShadowEffect() {
         boolean hasShadow = (shadowBlur > 0 || shadowOffsetX != 0 || shadowOffsetY != 0)
-                          && shadowColor != null && !shadowColor.equals("rgba(0, 0, 0, 0)");
+                && shadowColor != null && !shadowColor.equals("rgba(0, 0, 0, 0)");
 
         if (hasShadow) {
             // Set shadow effect on JavaFX GraphicsContext
@@ -1044,8 +1233,8 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
             return;
         }
 
-        java.util.List<com.w3canvas.javacanvas.core.FilterFunction> filters =
-            com.w3canvas.javacanvas.core.CSSFilterParser.parse(filter);
+        java.util.List<com.w3canvas.javacanvas.core.FilterFunction> filters = com.w3canvas.javacanvas.core.CSSFilterParser
+                .parse(filter);
 
         if (filters.isEmpty()) {
             // No valid filters, just apply shadow if active
@@ -1230,25 +1419,31 @@ public class JavaFXGraphicsContext implements IGraphicsContext {
 
         // Draw chars/words
         double currentX = startX;
-        com.sun.javafx.tk.FontMetrics fm = com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().getFontMetrics(gc.getFont());
+        com.sun.javafx.tk.FontMetrics fm = com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader()
+                .getFontMetrics(gc.getFont());
         double spaceWidth = fm.getCharWidth(' ');
 
         if (letterSpacing != 0) {
             for (char c : text.toCharArray()) {
                 String s = String.valueOf(c);
-                if (fill) gc.fillText(s, currentX, y);
-                else gc.strokeText(s, currentX, y);
+                if (fill)
+                    gc.fillText(s, currentX, y);
+                else
+                    gc.strokeText(s, currentX, y);
 
                 currentX += fm.getCharWidth(c) + letterSpacing;
-                if (c == ' ') currentX += wordSpacing;
+                if (c == ' ')
+                    currentX += wordSpacing;
             }
         } else {
             // wordSpacing only
             String[] words = text.split(" ", -1);
             for (int i = 0; i < words.length; i++) {
                 String word = words[i];
-                if (fill) gc.fillText(word, currentX, y);
-                else gc.strokeText(word, currentX, y);
+                if (fill)
+                    gc.fillText(word, currentX, y);
+                else
+                    gc.strokeText(word, currentX, y);
 
                 Text t = new Text(word);
                 t.setFont(gc.getFont());
