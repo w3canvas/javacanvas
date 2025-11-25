@@ -70,24 +70,4 @@ The codebase targets JDK 17+ but has a `-Plegacy` build mode for JDK 8. Some arc
    - **Reason**: `native-image` tool is not available in the current environment.
    - **Status**: `reflect-config.json` has been updated with Rhino and JavaCanvas configuration.
 
----
 
-- None currently identified.
-
----
-
-## Native AOT (GraalVM)
-
-### Status
-Build configuration exists but not tested:
-- `pom.xml` has `native` profile
-- `build.gradle` has `graalvmNative` configuration
-
-### Needs
-- GraalVM JDK installation
-- Reflection configuration for dynamic features
-- Testing of native binary
-
----
-
-- None currently identified.
