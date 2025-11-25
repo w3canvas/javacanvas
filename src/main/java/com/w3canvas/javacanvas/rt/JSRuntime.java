@@ -9,6 +9,8 @@ public interface JSRuntime {
 
     void putProperty(String name, Object value);
 
+    Object getProperty(String name);
+
     void close();
 
     Object getScope(); // This might be tricky as Rhino returns Scriptable and Graal returns

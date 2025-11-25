@@ -20,6 +20,7 @@ public class GraalRuntime implements IGraalRuntime {
 
     /**
      * Create a GraalRuntime with optional worker event loop.
+     * 
      * @param isWorker true if this runtime is for a Worker/SharedWorker context
      */
     public GraalRuntime(boolean isWorker) {
@@ -66,6 +67,15 @@ public class GraalRuntime implements IGraalRuntime {
     }
 
     @Override
+    public Object getProperty(String name) {
+        Value value = context.getBindings("js").getMember(name);
+        if (value == null || value.isNull()) {
+            return null;
+        }
+        return value;
+    }
+
+    @Override
     public void close() {
         context.close();
     }
@@ -78,6 +88,7 @@ public class GraalRuntime implements IGraalRuntime {
     /**
      * Get the event loop for this runtime.
      * The event loop processes messages from MessagePorts and other async tasks.
+     * 
      * @return The EventLoop instance
      */
     public EventLoop getEventLoop() {
@@ -86,6 +97,7 @@ public class GraalRuntime implements IGraalRuntime {
 
     /**
      * Check if this is a worker runtime.
+     * 
      * @return true if this runtime is for a Worker/SharedWorker context
      */
     public boolean isWorker() {
@@ -100,12 +112,12 @@ public class GraalRuntime implements IGraalRuntime {
         Value bindings = context.getBindings("js");
 
         // Create a JavaScript constructor function
-        // GraalJS doesn't directly support 'new' on Java objects, so we create a JS function
-        String constructorCode =
-            "(function(scriptUrl) {" +
-            "  return Java.type('com.w3canvas.javacanvas.backend.graal.worker.GraalSharedWorkerWrapper')" +
-            "    .create(scriptUrl, _runtime);" +
-            "})";
+        // GraalJS doesn't directly support 'new' on Java objects, so we create a JS
+        // function
+        String constructorCode = "(function(scriptUrl) {" +
+                "  return Java.type('com.w3canvas.javacanvas.backend.graal.worker.GraalSharedWorkerWrapper')" +
+                "    .create(scriptUrl, _runtime);" +
+                "})";
 
         // Store runtime reference for the constructor
         bindings.putMember("_runtime", this);

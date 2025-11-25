@@ -15,21 +15,27 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
 /**
  * A simple HTTP server that provides a "Canvas-as-a-Service" API.
  * Accepts JavaScript code via POST /render and returns the rendered PNG image.
+ * Supports sessions via /create-session and X-Session-ID header.
  */
 public class RenderingServer {
 
     private final HttpServer server;
     private final int port;
+    private final Map<String, JavaCanvas> sessions = new ConcurrentHashMap<>();
 
     public RenderingServer(int port) throws IOException {
         this.port = port;
         this.server = HttpServer.create(new InetSocketAddress(port), 0);
         this.server.createContext("/render", new RenderHandler());
+        this.server.createContext("/create-session", new CreateSessionHandler());
         this.server.createContext("/health", t -> {
             String response = "OK";
             t.sendResponseHeaders(200, response.length());
@@ -58,7 +64,48 @@ public class RenderingServer {
         new RenderingServer(port).start();
     }
 
-    static class RenderHandler implements HttpHandler {
+    class CreateSessionHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if (!"POST".equalsIgnoreCase(t.getRequestMethod())) {
+                t.sendResponseHeaders(405, -1);
+                return;
+            }
+
+            String sessionId = UUID.randomUUID().toString();
+            JavaCanvas javaCanvas = new JavaCanvas(".", true);
+            javaCanvas.initializeBackend();
+
+            try {
+                // Create a default canvas
+                HTMLCanvasElement canvas = (HTMLCanvasElement) javaCanvas.getDocument()
+                        .jsFunction_createElement("canvas");
+                canvas.jsSet_width(800);
+                canvas.jsSet_height(600);
+                javaCanvas.getDocument().addElement("canvas", canvas);
+
+                // Expose 'canvas' and 'ctx'
+                javaCanvas.getRuntime().putProperty("canvas", canvas);
+                ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+                javaCanvas.getRuntime().putProperty("ctx", ctx);
+
+                sessions.put(sessionId, javaCanvas);
+            } catch (Exception e) {
+                e.printStackTrace();
+                t.sendResponseHeaders(500, -1);
+                return;
+            }
+
+            String response = "{\"sessionId\": \"" + sessionId + "\"}";
+            t.getResponseHeaders().set("Content-Type", "application/json");
+            t.sendResponseHeaders(200, response.length());
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        }
+    }
+
+    class RenderHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
             if (!"POST".equalsIgnoreCase(t.getRequestMethod())) {
@@ -71,28 +118,37 @@ public class RenderingServer {
                 InputStream is = t.getRequestBody();
                 String script = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
-                // Initialize Canvas environment
-                // Use headless mode
-                JavaCanvas javaCanvas = new JavaCanvas(".", true);
-                javaCanvas.initializeBackend();
+                JavaCanvas javaCanvas;
+                String sessionId = t.getRequestHeaders().getFirst("X-Session-ID");
 
-                // Create a canvas element for the script to use
-                // We provide a default 'canvas' variable of 800x600
-                HTMLCanvasElement canvas = (HTMLCanvasElement) javaCanvas.getDocument()
-                        .jsFunction_createElement("canvas");
-                canvas.jsSet_width(800);
-                canvas.jsSet_height(600);
-                javaCanvas.getDocument().addElement("canvas", canvas);
-
-                // Expose 'canvas' and 'ctx' to the script
-                javaCanvas.getRuntime().putProperty("canvas", canvas);
-                ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
-                javaCanvas.getRuntime().putProperty("ctx", ctx);
+                if (sessionId != null && sessions.containsKey(sessionId)) {
+                    javaCanvas = sessions.get(sessionId);
+                } else {
+                    // Fallback to stateless for backward compatibility
+                    javaCanvas = new JavaCanvas(".", true);
+                    javaCanvas.initializeBackend();
+                    try {
+                        HTMLCanvasElement canvas = (HTMLCanvasElement) javaCanvas.getDocument()
+                                .jsFunction_createElement("canvas");
+                        canvas.jsSet_width(800);
+                        canvas.jsSet_height(600);
+                        javaCanvas.getDocument().addElement("canvas", canvas);
+                        javaCanvas.getRuntime().putProperty("canvas", canvas);
+                        ICanvasRenderingContext2D ctx = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
+                        javaCanvas.getRuntime().putProperty("ctx", ctx);
+                    } catch (Exception e) {
+                        throw new IOException("Failed to create canvas", e);
+                    }
+                }
 
                 // Execute the script
                 javaCanvas.executeCode(script);
 
-                // Extract image
+                // Extract image (assume the first canvas in the document is the target)
+                // In session mode, we use the pre-created canvas.
+                // We need to retrieve it from the runtime or document.
+                HTMLCanvasElement canvas = (HTMLCanvasElement) javaCanvas.getRuntime().getProperty("canvas");
+
                 BufferedImage image = canvas.getImage();
 
                 // Write PNG

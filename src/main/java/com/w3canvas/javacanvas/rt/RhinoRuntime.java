@@ -22,7 +22,8 @@ public class RhinoRuntime implements JSRuntime {
     private Object mainThreadWindow;
 
     // Store the main thread's Context for cross-Context calling
-    // This allows message handlers on different threads to reuse the original Context
+    // This allows message handlers on different threads to reuse the original
+    // Context
     // where document/window/canvas were created, enabling proper method resolution
     private Context mainThreadContext;
 
@@ -32,13 +33,15 @@ public class RhinoRuntime implements JSRuntime {
 
     /**
      * Create a RhinoRuntime with optional worker event loop.
+     * 
      * @param isWorker true if this runtime is for a Worker/SharedWorker context
      */
     public RhinoRuntime(boolean isWorker) {
         this.isWorker = isWorker;
 
         // Check if we should use synchronous mode for tests
-        // This solves Rhino Context thread-locality by keeping all main thread code in same Context
+        // This solves Rhino Context thread-locality by keeping all main thread code in
+        // same Context
         boolean synchronousMode = "true".equalsIgnoreCase(System.getProperty("javacanvas.test.synchronous", "false"));
 
         if (isWorker) {
@@ -227,6 +230,15 @@ public class RhinoRuntime implements JSRuntime {
         defineProperty(name, value);
     }
 
+    @Override
+    public Object getProperty(String name) {
+        Object value = scope.get(name, scope);
+        if (value == org.mozilla.javascript.Scriptable.NOT_FOUND) {
+            return null;
+        }
+        return value;
+    }
+
     public void setSource(String url) {
         this.currentUrl = url;
         defineProperty("documentBase", url);
@@ -266,6 +278,7 @@ public class RhinoRuntime implements JSRuntime {
     /**
      * Get the event loop for this runtime.
      * The event loop processes messages from MessagePorts and other async tasks.
+     * 
      * @return The EventLoop instance
      */
     public EventLoop getEventLoop() {
@@ -274,6 +287,7 @@ public class RhinoRuntime implements JSRuntime {
 
     /**
      * Check if this is a worker runtime.
+     * 
      * @return true if this runtime is for a Worker/SharedWorker context
      */
     public boolean isWorker() {
@@ -283,6 +297,7 @@ public class RhinoRuntime implements JSRuntime {
     /**
      * Set the main thread document object.
      * Only valid for main thread runtimes (not workers).
+     * 
      * @param document The document object
      */
     public void setMainThreadDocument(Object document) {
@@ -294,6 +309,7 @@ public class RhinoRuntime implements JSRuntime {
     /**
      * Set the main thread window object.
      * Only valid for main thread runtimes (not workers).
+     * 
      * @param window The window object
      */
     public void setMainThreadWindow(Object window) {
@@ -307,6 +323,7 @@ public class RhinoRuntime implements JSRuntime {
      * This allows cross-Context calling by reusing the original Context where
      * document/window/canvas were created.
      * Only valid for main thread runtimes (not workers).
+     * 
      * @param context The main thread Context
      */
     public void setMainThreadContext(Context context) {
@@ -318,6 +335,7 @@ public class RhinoRuntime implements JSRuntime {
 
     /**
      * Get the main thread Context.
+     * 
      * @return The stored main thread Context, or null if not set
      */
     public Context getMainThreadContext() {
