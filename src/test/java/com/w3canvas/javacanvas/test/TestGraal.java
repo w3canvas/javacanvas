@@ -13,7 +13,6 @@ import java.awt.image.BufferedImage;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Disabled("GraalJS requires additional classpath configuration - see build.gradle")
 public class TestGraal {
 
     private GraalRuntime runtime;

@@ -277,13 +277,35 @@ ctx.fillRect(10, 10, 100, 100);
 javaCanvas.executeScript("path/to/canvas-script.js");
 ```
 
-## JBang Support (Experimental)
+## JBang Support (Recommended for Windows)
 
-You can run JavaCanvas without installing Gradle or Maven using [JBang](https://www.jbang.dev/).
+You can run JavaCanvas without installing Gradle or Maven using [JBang](https://www.jbang.dev/). This is the **recommended way to run JavaCanvas on Windows**, especially if you encounter path issues with Gradle or don't have Maven installed.
 
-### Running Directly
+### Running the CLI
+Run scripts directly:
 ```bash
 jbang JBangRunner.java examples/hello.js
+```
+
+### Running the REST Server
+Start the "Canvas-as-a-Service" server (RestRunner):
+```bash
+jbang RestRunner.java 8080
+```
+Then you can send JavaScript to it to render images:
+```bash
+curl -X POST --data-binary @examples/render_chart.js http://localhost:8080/render --output chart.png
+```
+*Note: `RestRunner` automatically provides `canvas` and `ctx` variables to your script.*
+
+### Running Tests with JBang
+For a **faster feedback loop** during development (bypassing Gradle configuration time), you can run JUnit tests directly:
+```bash
+# Run all tests
+jbang TestRunner.java
+
+# Run a specific test class
+jbang TestRunner.java TestCanvas
 ```
 
 ### Exporting to JAR
@@ -295,22 +317,24 @@ java -jar JBangRunner.jar examples/hello.js
 
 ### Exporting to Native Image
 Create a standalone native executable (no JVM required):
-```bash
-jbang export native JBangRunner.java
-```
-**Note:** This requires a GraalVM JDK with `native-image` installed. If JBang picks up a standard JDK (like Eclipse Adoptium), the build will fail. You may need to ensure `JAVA_HOME` points to a GraalVM installation or use JBang's `--java` flag to request a specific version if configured.
 
-**Fun Workaround:** You can force JBang to download a JDK that supports native image by specifying a version it doesn't find locally, e.g., `jbang export native --java 21 JBangRunner.java` (if you only have Java 17 installed).
+1. **Install GraalVM:** Ensure you have GraalVM (JDK 21+) installed and `JAVA_HOME` set.
+   - On Linux/Mac: `sdk install java 21.0.2-graalce` (using SDKMAN!)
+   - Or download from [GraalVM website](https://www.graalvm.org/).
 
-### Running Tests with JBang
-For a **faster feedback loop** during development (bypassing Gradle configuration time), you can run JUnit tests directly:
-```bash
-# Run all tests
-jbang TestRunner.java
+2. **Build Native Image:**
+   ```bash
+   jbang export native JBangRunner.java
+   ```
+   This will produce a `JBangRunner` executable in the current directory (or `.bin` on Windows).
 
-# Run a specific test class
-jbang TestRunner.java TestGraal
-```
+3. **Run:**
+   ```bash
+   ./JBangRunner --graal examples/hello.js
+   ```
+   *Note: On Linux, you may need to ensure AWT libraries are discoverable or use Xvfb if running in a headless environment.*
+
+**Note:** This requires a GraalVM JDK with `native-image` installed.
 
 ## Contributing
 
