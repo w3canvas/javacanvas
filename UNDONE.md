@@ -50,9 +50,10 @@ The Canvas 2D `globalCompositeOperation` property supports CSS blend modes that 
 2. **Reference**: W3C Compositing and Blending spec:
    https://www.w3.org/TR/compositing-1/#blending
 
-### Remaining Work
-- ⚠️ **JavaFX HSL modes**: hue, saturation, color, luminosity still fall back to source-over in JavaFX backend
-- Consider visual regression tests for blend modes
+### Deferred / Limitations
+- ⚠️ **JavaFX HSL modes**: hue, saturation, color, luminosity fall back to `source-over`.
+  - **Reason**: JavaFX `BlendMode` does not support these. Implementing them would require slow pixel-level manipulation or custom shaders, which is out of scope for now.
+- ⚠️ **Porter-Duff Approximations**: `destination-in`, `destination-out`, `destination-atop`, `xor`, `copy` are approximated or fall back to `source-over` in JavaFX.
 
 ---
 
@@ -61,26 +62,15 @@ The Canvas 2D `globalCompositeOperation` property supports CSS blend modes that 
 ### Problem
 The codebase targets JDK 17+ but has a `-Plegacy` build mode for JDK 8. Some architectural cleanups remain.
 
-### Remaining Work
-1. Test actual compilation on JDK 8 (Low Priority)
-2. Consider JDK 1.6 support (would require removing lambdas, streams, etc.)
+### Deferred / Limitations
+1. **JDK 8 Compilation**: Actual compilation on JDK 8 is not verified in CI (requires JDK 8 installation).
+   - **Mitigation**: Gradle `-Plegacy` flag enforces language level 8.
+2. **Native AOT**: `native-image` build is configured but not tested.
+   - **Reason**: `native-image` tool is not available in the current environment.
 
 ---
 
-## Test Coverage Gaps
-
-### Font Rendering Tests
-5 tests fail in CI due to font rendering differences:
-- `testMaxWidthEdgeCases` ✅ Fixed (uses local DejaVuSans.ttf)
-- `testMaxWidthScaling` ✅ Fixed (uses local DejaVuSans.ttf)
-- `testTextAlignDetailed` ✅ Fixed (uses local DejaVuSans.ttf)
-- `testTextBaselineDetailed` ✅ Fixed (uses local DejaVuSans.ttf)
-- `testFontFace` ✅ Fixed (uses local DejaVuSans.ttf)
-
-These are environment-dependent and may need:
-- More tolerant pixel comparison
-- Platform-specific golden masters
-- Font installation in CI environment
+- None currently identified.
 
 ---
 
