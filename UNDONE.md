@@ -51,7 +51,7 @@ The Canvas 2D `globalCompositeOperation` property supports CSS blend modes that 
    https://www.w3.org/TR/compositing-1/#blending
 
 ### Remaining Work
-- ⚠️ **Needs Build Verification**: AwtBlendComposite.java was created but build verification was interrupted by network issues
+- ✅ **Needs Build Verification**: AwtBlendComposite.java verified via `-Plegacy` build
 - ⚠️ **JavaFX HSL modes**: hue, saturation, color, luminosity still fall back to source-over in JavaFX backend
 - Consider visual regression tests for blend modes
 
@@ -69,8 +69,8 @@ The codebase targets JDK 17+ but has a `-Plegacy` build mode for JDK 8. Some arc
 ### Current Status
 - ✅ `CompositeFactory.java` - Refactored to be backend-agnostic
 - ✅ `CanvasRenderingContext2D.java` (Rhino) - Removed unused JavaFX imports
-- ⚠️ Build tested with Maven, needs Gradle verification
-- ❓ JDK 8 actual compilation not tested
+- ✅ Build tested with Gradle `-Plegacy`
+- ❓ JDK 8 actual compilation not tested (but Gradle enforces language level)
 
 ### Remaining Work
 1. Test actual compilation on JDK 8
