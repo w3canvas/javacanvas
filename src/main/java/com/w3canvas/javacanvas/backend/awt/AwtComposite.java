@@ -7,25 +7,19 @@ import java.awt.Composite;
 
 /**
  * AWT implementation of IComposite.
- * Converts backend-agnostic CompositeOperation enum to AWT AlphaComposite.
+ * Converts backend-agnostic CompositeOperation enum to AWT Composite implementations.
  *
- * <p><strong>AWT Backend Limitations:</strong>
+ * <p><strong>Supported Operations:</strong>
  * <ul>
- *   <li><strong>Fully Supported Porter-Duff Operations:</strong> source-over, source-in,
+ *   <li><strong>Porter-Duff Operations (via AlphaComposite):</strong> source-over, source-in,
  *       source-out, source-atop, destination-over, destination-in, destination-out,
  *       destination-atop, copy, xor</li>
- *   <li><strong>Approximated:</strong>
- *     <ul>
- *       <li>"lighter" - Mapped to SRC_OVER instead of true additive blending.
- *           A proper implementation would require custom Composite for pixel-level addition.</li>
- *     </ul>
- *   </li>
- *   <li><strong>Not Supported (fallback to source-over):</strong> All CSS blend modes including
- *       multiply, screen, overlay, darken, lighten, color-dodge, color-burn, hard-light,
- *       soft-light, difference, exclusion, hue, saturation, color, and luminosity.
- *       These require custom {@link java.awt.Composite} implementations with pixel-level blending.</li>
+ *   <li><strong>CSS Blend Modes (via AwtBlendComposite):</strong> multiply, screen, overlay,
+ *       darken, lighten, color-dodge, color-burn, hard-light, soft-light, difference,
+ *       exclusion, hue, saturation, color, luminosity, and lighter (additive blending)</li>
  * </ul>
  *
+ * @see AwtBlendComposite
  * @since 1.0
  */
 public class AwtComposite implements IComposite {
@@ -46,18 +40,45 @@ public class AwtComposite implements IComposite {
     }
 
     /**
-     * Converts a backend-agnostic CompositeOperation to AWT AlphaComposite.
+     * Converts a backend-agnostic CompositeOperation to AWT Composite.
+     * Uses AlphaComposite for Porter-Duff operations and AwtBlendComposite for CSS blend modes.
      *
      * @param operation the operation to convert
      * @param alpha the global alpha value
      * @return the corresponding AWT Composite
      */
     private static Composite convertToAlphaComposite(CompositeOperation operation, double alpha) {
+        // CSS blend modes use custom AwtBlendComposite
+        switch (operation) {
+            case MULTIPLY:
+            case SCREEN:
+            case OVERLAY:
+            case DARKEN:
+            case LIGHTEN:
+            case COLOR_DODGE:
+            case COLOR_BURN:
+            case HARD_LIGHT:
+            case SOFT_LIGHT:
+            case DIFFERENCE:
+            case EXCLUSION:
+            case HUE:
+            case SATURATION:
+            case COLOR:
+            case LUMINOSITY:
+            case LIGHTER:
+                // Use custom blend composite for CSS blend modes
+                return new AwtBlendComposite(operation, (float) alpha);
+
+            default:
+                // Porter-Duff operations use AlphaComposite
+                break;
+        }
+
+        // Porter-Duff composite operations
         int rule;
         boolean useAlpha = true;
 
         switch (operation) {
-            // Porter-Duff composite operations
             case SOURCE_OVER:
                 rule = AlphaComposite.SRC_OVER;
                 break;
@@ -82,39 +103,12 @@ public class AwtComposite implements IComposite {
             case DESTINATION_ATOP:
                 rule = AlphaComposite.DST_ATOP;
                 break;
-            case LIGHTER:
-                // "lighter" is like additive blending - closest AWT equivalent
-                rule = AlphaComposite.SRC_OVER;
-                // TODO: Implement custom composite for true additive blending
-                break;
             case COPY:
                 rule = AlphaComposite.SRC;
                 useAlpha = false; // Copy ignores alpha
                 break;
             case XOR:
                 rule = AlphaComposite.XOR;
-                break;
-
-            // CSS blend modes - AWT doesn't support these natively
-            // These would require custom Composite implementations
-            case MULTIPLY:
-            case SCREEN:
-            case OVERLAY:
-            case DARKEN:
-            case LIGHTEN:
-            case COLOR_DODGE:
-            case COLOR_BURN:
-            case HARD_LIGHT:
-            case SOFT_LIGHT:
-            case DIFFERENCE:
-            case EXCLUSION:
-            case HUE:
-            case SATURATION:
-            case COLOR:
-            case LUMINOSITY:
-                // Fall back to SRC_OVER for unsupported blend modes
-                // TODO: Implement custom Composite for CSS blend modes
-                rule = AlphaComposite.SRC_OVER;
                 break;
 
             default:

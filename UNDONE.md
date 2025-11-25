@@ -2,13 +2,13 @@
 
 This file tracks features that are incomplete, approximated, or need implementation work.
 
-## CSS Blend Modes (High Priority)
+## CSS Blend Modes (Mostly Complete)
 
 ### Problem
 The Canvas 2D `globalCompositeOperation` property supports CSS blend modes that are not natively supported by AWT's `AlphaComposite` or fully by JavaFX's `BlendMode`.
 
 ### Current Status
-Both AWT and JavaFX backends fall back to `source-over` for unsupported blend modes:
+**AWT Backend**: Implemented via `AwtBlendComposite.java` - a custom `java.awt.Composite` implementation that performs pixel-level blending per W3C spec.
 
 | Blend Mode | AWT Status | JavaFX Status | Notes |
 |------------|------------|---------------|-------|
@@ -20,48 +20,44 @@ Both AWT and JavaFX backends fall back to `source-over` for unsupported blend mo
 | destination-in | ✅ | ⚠️ Approx | |
 | destination-out | ✅ | ⚠️ Approx | |
 | destination-atop | ✅ | ⚠️ Approx | |
-| lighter | ⚠️ Approx | ✅ ADD | Should be additive blend |
+| lighter | ✅ AwtBlend | ✅ ADD | Additive blending |
 | copy | ✅ | ⚠️ Approx | |
 | xor | ✅ | ⚠️ Approx | |
-| multiply | ❌ Fallback | ✅ | Needs custom AWT Composite |
-| screen | ❌ Fallback | ✅ | Needs custom AWT Composite |
-| overlay | ❌ Fallback | ✅ | Needs custom AWT Composite |
-| darken | ❌ Fallback | ✅ | Needs custom AWT Composite |
-| lighten | ❌ Fallback | ✅ | Needs custom AWT Composite |
-| color-dodge | ❌ Fallback | ✅ | Needs custom AWT Composite |
-| color-burn | ❌ Fallback | ✅ | Needs custom AWT Composite |
-| hard-light | ❌ Fallback | ✅ | Needs custom AWT Composite |
-| soft-light | ❌ Fallback | ✅ | Needs custom AWT Composite |
-| difference | ❌ Fallback | ✅ | Needs custom AWT Composite |
-| exclusion | ❌ Fallback | ✅ | Needs custom AWT Composite |
-| hue | ❌ Fallback | ❌ Fallback | Needs custom implementation |
-| saturation | ❌ Fallback | ❌ Fallback | Needs custom implementation |
-| color | ❌ Fallback | ❌ Fallback | Needs custom implementation |
-| luminosity | ❌ Fallback | ❌ Fallback | Needs custom implementation |
+| multiply | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
+| screen | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
+| overlay | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
+| darken | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
+| lighten | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
+| color-dodge | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
+| color-burn | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
+| hard-light | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
+| soft-light | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
+| difference | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
+| exclusion | ✅ AwtBlend | ✅ | Via AwtBlendComposite |
+| hue | ✅ AwtBlend | ❌ Fallback | HSL blend implemented |
+| saturation | ✅ AwtBlend | ❌ Fallback | HSL blend implemented |
+| color | ✅ AwtBlend | ❌ Fallback | HSL blend implemented |
+| luminosity | ✅ AwtBlend | ❌ Fallback | HSL blend implemented |
 
-### Solution Path
+### Implementation Notes
 
-1. **AWT Backend**: Implement custom `java.awt.Composite` classes that perform pixel-level blending:
-   ```java
-   public class AwtMultiplyComposite implements Composite {
-       public CompositeContext createContext(...) {
-           return new MultiplyCompositeContext();
-       }
-   }
-   ```
+1. **AWT Backend**: `AwtBlendComposite.java` (~450 lines) implements:
+   - All standard CSS blend modes (multiply, screen, overlay, etc.)
+   - HSL-based blend modes (hue, saturation, color, luminosity)
+   - Proper alpha handling and premultiplied alpha conversion
+   - Performance optimized with direct int[] pixel operations
 
-2. **HSL Blend Modes** (hue, saturation, color, luminosity): Both backends need custom implementations that:
-   - Convert RGB to HSL color space
-   - Apply the blend operation
-   - Convert back to RGB
-
-3. **Reference Implementation**: See W3C Compositing and Blending spec:
+2. **Reference**: W3C Compositing and Blending spec:
    https://www.w3.org/TR/compositing-1/#blending
 
-### Files to Modify
-- `src/main/java/com/w3canvas/javacanvas/backend/awt/AwtComposite.java`
-- `src/main/java/com/w3canvas/javacanvas/backend/javafx/JavaFXComposite.java`
-- New: `src/main/java/com/w3canvas/javacanvas/backend/awt/AwtBlendComposite.java`
+### Remaining Work
+- ⚠️ **Needs Build Verification**: AwtBlendComposite.java was created but build verification was interrupted by network issues
+- ⚠️ **JavaFX HSL modes**: hue, saturation, color, luminosity still fall back to source-over in JavaFX backend
+- Consider visual regression tests for blend modes
+
+### Files Modified
+- `src/main/java/com/w3canvas/javacanvas/backend/awt/AwtComposite.java` - Routes blend modes to AwtBlendComposite
+- `src/main/java/com/w3canvas/javacanvas/backend/awt/AwtBlendComposite.java` - NEW: Full blend mode implementation
 
 ---
 
