@@ -1,10 +1,15 @@
-package com.w3canvas.javacanvas.rt;
+package com.w3canvas.javacanvas.backend.graal;
 
+import com.w3canvas.javacanvas.rt.IGraalRuntime;
+import com.w3canvas.javacanvas.rt.JSRuntime;
+import com.w3canvas.javacanvas.rt.MainThreadEventLoop;
+import com.w3canvas.javacanvas.rt.WorkerThreadEventLoop;
+import com.w3canvas.javacanvas.rt.EventLoop;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 
-public class GraalRuntime implements JSRuntime {
+public class GraalRuntime implements IGraalRuntime {
     private Context context;
     private final EventLoop eventLoop;
     private final boolean isWorker;

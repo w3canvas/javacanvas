@@ -172,7 +172,11 @@ public class JavaCanvas {
         }
 
         if (useGraal) {
-            runtime = new GraalRuntime();
+            try {
+                runtime = (JSRuntime) Class.forName("com.w3canvas.javacanvas.backend.graal.GraalRuntime").getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException("GraalJS not available", e);
+            }
             initializeCommon();
         } else {
             runtime = new RhinoRuntime();
@@ -188,7 +192,7 @@ public class JavaCanvas {
     private void initializeCommon() {
         try {
             if (useGraal) {
-                this.graalDocument = new com.w3canvas.javacanvas.backend.graal.impl.node.GraalDocument();
+                this.graalDocument = Class.forName("com.w3canvas.javacanvas.backend.graal.impl.node.GraalDocument").getDeclaredConstructor().newInstance();
                 runtime.putProperty("document", this.graalDocument);
             } else {
                 this.document = new Document();
@@ -220,9 +224,9 @@ public class JavaCanvas {
                     width = windowHost.getWidth();
                     height = windowHost.getHeight();
                 }
-                com.w3canvas.javacanvas.backend.graal.impl.node.GraalWindow gWindow =
-                        new com.w3canvas.javacanvas.backend.graal.impl.node.GraalWindow(width, height);
-                gWindow.setDocument((com.w3canvas.javacanvas.backend.graal.impl.node.GraalDocument) this.graalDocument);
+                Class<?> graalWindowClass = Class.forName("com.w3canvas.javacanvas.backend.graal.impl.node.GraalWindow");
+                Object gWindow = graalWindowClass.getDeclaredConstructor(int.class, int.class).newInstance(width, height);
+                gWindow.getClass().getMethod("setDocument", Class.forName("com.w3canvas.javacanvas.backend.graal.impl.node.GraalDocument")).invoke(gWindow, this.graalDocument);
                 this.graalWindow = gWindow;
                 runtime.putProperty("window", this.graalWindow);
             } else {
