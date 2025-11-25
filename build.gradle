@@ -1,9 +1,20 @@
 plugins {
     id 'java'
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.1.0'
-    id 'org.graalvm.buildtools.native' version '0.9.28'
-    // id 'jacoco'
+    id 'org.openjfx.javafxplugin' version '0.1.0' apply false
+    id 'org.graalvm.buildtools.native' version '0.9.28' apply false
+}
+
+// Define property checks for build modes:
+// -Plegacy: Build for JDK 8 with AWT/Rhino only
+// -Pgraalvm: Require GraalVM JDK for native image support
+def isLegacy = project.hasProperty('legacy')
+def useGraalVM = project.hasProperty('graalvm')
+
+// Conditionally apply modern plugins for the default build
+if (!isLegacy) {
+    apply plugin: 'org.openjfx.javafxplugin'
+    apply plugin: 'org.graalvm.buildtools.native'
 }
 
 group = 'com.w3canvas'
@@ -15,14 +26,56 @@ repositories {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-        vendor = JvmVendorSpec.GRAAL_VM
+        if (isLegacy) {
+            // Legacy build targets Java 8
+            languageVersion = JavaLanguageVersion.of(8)
+        } else {
+            // Modern build targets Java 17+
+            languageVersion = JavaLanguageVersion.of(17)
+            // Only require GraalVM vendor if explicitly requested with -Pgraalvm
+            if (useGraalVM) {
+                vendor = JvmVendorSpec.GRAAL_VM
+            }
+        }
     }
 }
 
-javafx {
-    version = "17.0.13"  // Match Java 17 toolchain
-    modules = [ 'javafx.controls', 'javafx.graphics', 'javafx.base', 'javafx.media', 'javafx.swing' ]
+sourceSets {
+    main {
+        if (isLegacy) {
+            java {
+                exclude 'com/w3canvas/javacanvas/backend/javafx/**'
+                exclude 'com/w3canvas/javacanvas/backend/graal/**'
+            }
+        }
+    }
+    test {
+        if (isLegacy) {
+            java {
+                exclude '**/TestJavaFX.java'
+                exclude '**/TestJavaFXFont.java'
+                exclude '**/TestModernText.java'
+                exclude '**/TestWorker.java'
+                exclude '**/TestSharedWorker.java'
+                exclude '**/TestImageBitmap.java'
+                exclude '**/TestFontLoading.java'
+                exclude '**/TestRhino.java'
+                exclude '**/TestCanvas2D.java'
+                exclude '**/PureJavaFXFontTest.java'
+                exclude '**/TestGraal.java'
+                exclude '**/TestGraalWorker.java'
+                exclude '**/TestRenderingServer.java'
+            }
+        }
+    }
+}
+
+// Conditionally configure JavaFX for the modern build
+if (!isLegacy) {
+    javafx {
+        version = "21.0.8"
+        modules = [ 'javafx.controls', 'javafx.graphics', 'javafx.base', 'javafx.media', 'javafx.swing' ]
+    }
 }
 
 application {
@@ -30,20 +83,26 @@ application {
 }
 
 dependencies {
-    // Rhino
+    // Rhino is used in both modern and legacy builds
     implementation 'org.mozilla:rhino:1.7.14'
 
-    // GraalJS - using community edition with JS language support
-    implementation 'org.graalvm.polyglot:polyglot:24.1.0'
-    implementation 'org.graalvm.polyglot:js-community:24.1.0'
+    // Conditionally include modern dependencies
+    if (!isLegacy) {
+        // GraalJS - using community edition with JS language support
+        implementation 'org.graalvm.polyglot:polyglot:24.1.0'
+        implementation 'org.graalvm.polyglot:js-community:24.1.0'
+    }
 
-    // Testing
+    // Common testing dependencies
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 
-    testImplementation 'org.testfx:testfx-core:4.0.18'
-    testImplementation 'org.testfx:testfx-junit5:4.0.18'
-    testRuntimeOnly 'org.testfx:openjfx-monocle:17.0.10'  // Match Java 17
+    // Conditionally include JavaFX testing dependencies
+    if (!isLegacy) {
+        testImplementation 'org.testfx:testfx-core:4.0.18'
+        testImplementation 'org.testfx:testfx-junit5:4.0.18'
+        testRuntimeOnly 'org.testfx:openjfx-monocle:21.0.2'
+    }
 
     testImplementation 'org.mockito:mockito-core:5.18.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.18.0'
@@ -56,30 +115,37 @@ dependencies {
 test {
     useJUnitPlatform()
 
-    // Headless testing configuration (matches pom.xml)
+    // Common test configuration
     systemProperty 'java.awt.headless', 'true'
-    systemProperty 'testfx.robot', 'glass'
-    systemProperty 'testfx.headless', 'true'
-    systemProperty 'prism.order', 'sw'
-    systemProperty 'prism.text', 't2k'
-    // Additional Prism settings for consistent headless rendering
-    systemProperty 'prism.allowhidpi', 'false'
-    systemProperty 'prism.subpixeltext', 'false'
-    systemProperty 'prism.lcdtext', 'false'
-    systemProperty 'prism.fontsmoothing', 'false'
-    systemProperty 'prism.forceGPU', 'false'
-    systemProperty 'prism.vsync', 'false'
+
+    // Conditionally add modern testing configuration
+    if (!isLegacy) {
+        systemProperty 'testfx.robot', 'glass'
+        systemProperty 'testfx.headless', 'true'
+        systemProperty 'prism.order', 'sw'
+        systemProperty 'prism.text', 't2k'
+        // Additional Prism settings for consistent headless rendering
+        systemProperty 'prism.allowhidpi', 'false'
+        systemProperty 'prism.subpixeltext', 'false'
+        systemProperty 'prism.lcdtext', 'false'
+        systemProperty 'prism.fontsmoothing', 'false'
+        systemProperty 'prism.forceGPU', 'false'
+        systemProperty 'prism.vsync', 'false'
+    }
 }
 
-graalvmNative {
-    binaries {
-        main {
-            imageName = 'javacanvas'
-            mainClass = 'com.w3canvas.javacanvas.Main'
-            buildArgs.add('--no-fallback')
-            buildArgs.add('--allow-incomplete-classpath')
-            buildArgs.add('--initialize-at-build-time=com.w3canvas.javacanvas')
-            buildArgs.add('-H:+ReportExceptionStackTraces')
+// Conditionally configure GraalVM Native Image for the modern build
+if (!isLegacy) {
+    graalvmNative {
+        binaries {
+            main {
+                imageName = 'javacanvas'
+                mainClass = 'com.w3canvas.javacanvas.Main'
+                buildArgs.add('--no-fallback')
+                buildArgs.add('--allow-incomplete-classpath')
+                buildArgs.add('--initialize-at-build-time=com.w3canvas.javacanvas')
+                buildArgs.add('-H:+ReportExceptionStackTraces')
+            }
         }
     }
 }

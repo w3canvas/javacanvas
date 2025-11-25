@@ -12,8 +12,6 @@ import com.w3canvas.javacanvas.backend.rhino.impl.gradient.RhinoCanvasGradient;
 import com.w3canvas.javacanvas.backend.rhino.impl.node.RhinoCanvasPattern;
 import com.w3canvas.javacanvas.interfaces.ICanvasGradient;
 import com.w3canvas.javacanvas.interfaces.IPath2D;
-import javafx.scene.image.PixelFormat;
-import javafx.scene.image.WritableImage;
 import com.w3canvas.javacanvas.interfaces.ICanvasPattern;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
 import com.w3canvas.javacanvas.interfaces.ICanvasSurface;

@@ -3,7 +3,7 @@ package com.w3canvas.javacanvas.test;
 import com.w3canvas.javacanvas.backend.awt.AwtCanvasSurface;
 import com.w3canvas.javacanvas.backend.awt.AwtGraphicsBackend;
 import com.w3canvas.javacanvas.core.CoreCanvasRenderingContext2D;
-import com.w3canvas.javacanvas.rt.GraalRuntime;
+import com.w3canvas.javacanvas.backend.graal.GraalRuntime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;

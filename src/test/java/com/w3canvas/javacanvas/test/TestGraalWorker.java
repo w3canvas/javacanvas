@@ -1,7 +1,7 @@
 package com.w3canvas.javacanvas.test;
 
 import com.w3canvas.javacanvas.backend.graal.worker.GraalWorker;
-import com.w3canvas.javacanvas.rt.GraalRuntime;
+import com.w3canvas.javacanvas.backend.graal.GraalRuntime;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.*;
 
