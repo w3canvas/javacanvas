@@ -8,18 +8,23 @@ import javafx.scene.effect.BlendMode;
  * JavaFX implementation of IComposite.
  * Converts backend-agnostic CompositeOperation enum to JavaFX BlendMode.
  *
- * <p><strong>JavaFX Backend Blend Mode Support:</strong>
+ * <p>
+ * <strong>JavaFX Backend Blend Mode Support:</strong>
  * <ul>
- *   <li><strong>Fully Supported CSS Blend Modes:</strong> multiply, screen, overlay, darken,
- *       lighten, color-dodge, color-burn, hard-light, soft-light, difference, exclusion</li>
- *   <li><strong>Approximated Porter-Duff Operations:</strong>
- *     <ul>
- *       <li>"source-in" - Uses SRC_ATOP as closest approximation</li>
- *       <li>"copy" - Uses SRC_OVER (JavaFX lacks direct copy mode)</li>
- *     </ul>
- *   </li>
- *   <li><strong>Not Supported (fallback to source-over):</strong> source-out, destination-over,
- *       destination-in, destination-out, destination-atop, xor, hue, saturation, color, luminosity</li>
+ * <li><strong>Fully Supported CSS Blend Modes:</strong> multiply, screen,
+ * overlay, darken,
+ * lighten, color-dodge, color-burn, hard-light, soft-light, difference,
+ * exclusion</li>
+ * <li><strong>Approximated Porter-Duff Operations:</strong>
+ * <ul>
+ * <li>"source-in" - Uses SRC_ATOP as closest approximation</li>
+ * <li>"copy" - Uses SRC_OVER (JavaFX lacks direct copy mode)</li>
+ * </ul>
+ * </li>
+ * <li><strong>Not Supported (fallback to source-over):</strong> source-out,
+ * destination-over,
+ * destination-in, destination-out, destination-atop, xor, hue, saturation,
+ * color, luminosity</li>
  * </ul>
  *
  * @since 1.0
@@ -53,31 +58,42 @@ public class JavaFXComposite implements IComposite {
                 return BlendMode.SRC_OVER;
             case SOURCE_IN:
                 // JavaFX doesn't have exact SRC_IN, use SRC_ATOP as approximation
+                // SRC_IN: The source is copied only where it overlaps the destination.
+                // SRC_ATOP: The source is copied only where it overlaps the destination.
                 return BlendMode.SRC_ATOP;
             case SOURCE_OUT:
                 // Not directly supported, fallback to SRC_OVER
+                // SRC_OUT: The source is copied only where it does not overlap the destination.
                 return BlendMode.SRC_OVER;
             case SOURCE_ATOP:
                 return BlendMode.SRC_ATOP;
             case DESTINATION_OVER:
                 // Not directly supported, fallback to SRC_OVER
+                // DESTINATION_OVER: The destination is copied over the source.
                 return BlendMode.SRC_OVER;
             case DESTINATION_IN:
                 // Not directly supported, fallback to SRC_OVER
+                // DESTINATION_IN: The destination is copied only where it overlaps the source.
                 return BlendMode.SRC_OVER;
             case DESTINATION_OUT:
                 // Not directly supported, fallback to SRC_OVER
+                // DESTINATION_OUT: The destination is copied only where it does not overlap the
+                // source.
                 return BlendMode.SRC_OVER;
             case DESTINATION_ATOP:
                 // Not directly supported, fallback to SRC_OVER
+                // DESTINATION_ATOP: The destination is copied only where it overlaps the
+                // source.
                 return BlendMode.SRC_OVER;
             case LIGHTER:
                 return BlendMode.ADD;
             case COPY:
                 // JavaFX doesn't have a direct copy mode, SRC_OVER is closest
+                // COPY: The source is copied to the destination.
                 return BlendMode.SRC_OVER;
             case XOR:
                 // Not directly supported, fallback to SRC_OVER
+                // XOR: The source and destination are combined using an exclusive OR.
                 return BlendMode.SRC_OVER;
 
             // CSS blend modes - JavaFX has excellent support
@@ -103,17 +119,18 @@ public class JavaFXComposite implements IComposite {
                 return BlendMode.DIFFERENCE;
             case EXCLUSION:
                 return BlendMode.EXCLUSION;
+
+            // HSL Blend Modes - Not supported in JavaFX BlendMode enum
+            // These require pixel-level manipulation which is not efficient with standard
+            // JavaFX nodes.
+            // We fallback to SRC_OVER to ensure content is at least visible.
             case HUE:
-                // Not directly supported in JavaFX
                 return BlendMode.SRC_OVER;
             case SATURATION:
-                // Not directly supported in JavaFX
                 return BlendMode.SRC_OVER;
             case COLOR:
-                // Not directly supported in JavaFX
                 return BlendMode.SRC_OVER;
             case LUMINOSITY:
-                // Not directly supported in JavaFX
                 return BlendMode.SRC_OVER;
 
             default:

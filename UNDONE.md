@@ -52,8 +52,9 @@ The Canvas 2D `globalCompositeOperation` property supports CSS blend modes that 
 
 ### Deferred / Limitations
 - ⚠️ **JavaFX HSL modes**: hue, saturation, color, luminosity fall back to `source-over`.
-  - **Reason**: JavaFX `BlendMode` does not support these. Implementing them would require slow pixel-level manipulation or custom shaders, which is out of scope for now.
+  - **Status**: Explicitly handled in `JavaFXComposite.java` with comments explaining the limitation.
 - ⚠️ **Porter-Duff Approximations**: `destination-in`, `destination-out`, `destination-atop`, `xor`, `copy` are approximated or fall back to `source-over` in JavaFX.
+  - **Status**: Explicitly handled in `JavaFXComposite.java` with comments.
 
 ---
 
@@ -67,6 +68,7 @@ The codebase targets JDK 17+ but has a `-Plegacy` build mode for JDK 8. Some arc
    - **Mitigation**: Gradle `-Plegacy` flag enforces language level 8.
 2. **Native AOT**: `native-image` build is configured but not tested.
    - **Reason**: `native-image` tool is not available in the current environment.
+   - **Status**: `reflect-config.json` has been updated with Rhino and JavaCanvas configuration.
 
 ---
 

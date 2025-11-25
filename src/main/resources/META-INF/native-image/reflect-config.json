@@ -22,5 +22,36 @@
   {
     "name": "com.w3canvas.javacanvas.backend.graal.impl.node.GraalHTMLCanvasElement",
     "allPublicMethods": true
+  },
+  {
+    "name": "org.mozilla.javascript.Context",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  },
+  {
+    "name": "org.mozilla.javascript.Scriptable",
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "org.mozilla.javascript.Function",
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.w3canvas.javacanvas.rt.JavaCanvas",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.w3canvas.javacanvas.backend.javafx.JavaFXGraphicsBackend",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true
   }
 ]
