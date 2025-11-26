@@ -1,0 +1,14 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.example</groupId>
+  <artifactId>dep-analysis</artifactId>
+  <version>1.0</version>
+  <dependencies>
+    <dependency>
+      <groupId>com.github.xpenatan.jWebGPU</groupId>
+      <artifactId>webgpu-desktop</artifactId>
+      <version>0.1.12</version>
+      <type>pom</type>
+    </dependency>
+  </dependencies>
+</project>

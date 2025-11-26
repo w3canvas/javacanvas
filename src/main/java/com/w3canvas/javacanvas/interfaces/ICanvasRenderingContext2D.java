@@ -5,15 +5,21 @@ import org.mozilla.javascript.Scriptable;
 /**
  * The main Canvas 2D rendering context API.
  *
- * <p>This interface corresponds to the HTML5 Canvas 2D rendering context
- * ({@code CanvasRenderingContext2D}), providing methods for drawing shapes, text, images,
+ * <p>
+ * This interface corresponds to the HTML5 Canvas 2D rendering context
+ * ({@code CanvasRenderingContext2D}), providing methods for drawing shapes,
+ * text, images,
  * and applying various styles and transformations.
  *
- * <p>The Canvas 2D API maintains a drawing state stack (via {@link #save()} and {@link #restore()})
+ * <p>
+ * The Canvas 2D API maintains a drawing state stack (via {@link #save()} and
+ * {@link #restore()})
  * and allows compositing, clipping, and pixel manipulation operations.
  *
- * <p>For more information, see the
- * <a href="https://html.spec.whatwg.org/multipage/canvas.html">HTML5 Canvas specification</a>.
+ * <p>
+ * For more information, see the
+ * <a href="https://html.spec.whatwg.org/multipage/canvas.html">HTML5 Canvas
+ * specification</a>.
  *
  * @see IGraphicsContext
  * @see ICanvasSurface
@@ -30,7 +36,8 @@ public interface ICanvasRenderingContext2D {
     /**
      * Saves the current drawing state onto a stack.
      *
-     * <p>The saved state includes: transformation matrix, clipping region,
+     * <p>
+     * The saved state includes: transformation matrix, clipping region,
      * and all drawing properties (fill style, stroke style, line width, etc.).
      *
      * @see #restore()
@@ -40,7 +47,8 @@ public interface ICanvasRenderingContext2D {
     /**
      * Restores the most recently saved drawing state from the stack.
      *
-     * <p>If the state stack is empty, this method does nothing.
+     * <p>
+     * If the state stack is empty, this method does nothing.
      *
      * @see #save()
      */
@@ -78,8 +86,8 @@ public interface ICanvasRenderingContext2D {
      * @param m12 the vertical skewing component
      * @param m21 the horizontal skewing component
      * @param m22 the vertical scaling component
-     * @param dx the horizontal translation component
-     * @param dy the vertical translation component
+     * @param dx  the horizontal translation component
+     * @param dy  the vertical translation component
      */
     void transform(double m11, double m12, double m21, double m22, double dx, double dy);
 
@@ -90,8 +98,8 @@ public interface ICanvasRenderingContext2D {
      * @param m12 the vertical skewing component
      * @param m21 the horizontal skewing component
      * @param m22 the vertical scaling component
-     * @param dx the horizontal translation component
-     * @param dy the vertical translation component
+     * @param dx  the horizontal translation component
+     * @param dy  the vertical translation component
      */
     void setTransform(double m11, double m12, double m21, double m22, double dx, double dy);
 
@@ -119,7 +127,8 @@ public interface ICanvasRenderingContext2D {
     /**
      * Sets the global alpha (opacity) value.
      *
-     * @param globalAlpha the alpha value (0.0 = fully transparent, 1.0 = fully opaque)
+     * @param globalAlpha the alpha value (0.0 = fully transparent, 1.0 = fully
+     *                    opaque)
      */
     void setGlobalAlpha(double globalAlpha);
 
@@ -133,7 +142,8 @@ public interface ICanvasRenderingContext2D {
     /**
      * Sets the global composite operation (blending mode).
      *
-     * @param op the operation: "source-over", "destination-over", "copy", "lighter", etc.
+     * @param op the operation: "source-over", "destination-over", "copy",
+     *           "lighter", etc.
      */
     void setGlobalCompositeOperation(String op);
 
@@ -197,8 +207,8 @@ public interface ICanvasRenderingContext2D {
      * Creates a conic gradient.
      *
      * @param startAngle the start angle in radians
-     * @param x the x-coordinate of the center
-     * @param y the y-coordinate of the center
+     * @param x          the x-coordinate of the center
+     * @param y          the y-coordinate of the center
      * @return a conic gradient object
      */
     ICanvasGradient createConicGradient(double startAngle, double x, double y);
@@ -206,8 +216,9 @@ public interface ICanvasRenderingContext2D {
     /**
      * Creates a pattern from an image.
      *
-     * @param image the image to use
-     * @param repetition the repetition mode: "repeat", "repeat-x", "repeat-y", or "no-repeat"
+     * @param image      the image to use
+     * @param repetition the repetition mode: "repeat", "repeat-x", "repeat-y", or
+     *                   "no-repeat"
      * @return a pattern object
      */
     ICanvasPattern createPattern(Object image, String repetition);
@@ -451,8 +462,8 @@ public interface ICanvasRenderingContext2D {
      *
      * @param cpx the x-coordinate of the control point
      * @param cpy the y-coordinate of the control point
-     * @param x the x-coordinate of the end point
-     * @param y the y-coordinate of the end point
+     * @param x   the x-coordinate of the end point
+     * @param y   the y-coordinate of the end point
      */
     void quadraticCurveTo(double cpx, double cpy, double x, double y);
 
@@ -463,18 +474,18 @@ public interface ICanvasRenderingContext2D {
      * @param cp1y the y-coordinate of the first control point
      * @param cp2x the x-coordinate of the second control point
      * @param cp2y the y-coordinate of the second control point
-     * @param x the x-coordinate of the end point
-     * @param y the y-coordinate of the end point
+     * @param x    the x-coordinate of the end point
+     * @param y    the y-coordinate of the end point
      */
     void bezierCurveTo(double cp1x, double cp1y, double cp2x, double cp2y, double x, double y);
 
     /**
      * Adds an arc to the path.
      *
-     * @param x1 the x-coordinate of the first control point
-     * @param y1 the y-coordinate of the first control point
-     * @param x2 the x-coordinate of the second control point
-     * @param y2 the y-coordinate of the second control point
+     * @param x1     the x-coordinate of the first control point
+     * @param y1     the y-coordinate of the first control point
+     * @param x2     the x-coordinate of the second control point
+     * @param y2     the y-coordinate of the second control point
      * @param radius the arc radius
      */
     void arcTo(double x1, double y1, double x2, double y2, double radius);
@@ -492,10 +503,10 @@ public interface ICanvasRenderingContext2D {
     /**
      * Adds a rounded rectangle to the path.
      *
-     * @param x the x-coordinate
-     * @param y the y-coordinate
-     * @param w the width
-     * @param h the height
+     * @param x     the x-coordinate
+     * @param y     the y-coordinate
+     * @param w     the width
+     * @param h     the height
      * @param radii corner radii (number, array, or DOMPointInit-like object)
      */
     void roundRect(double x, double y, double w, double h, Object radii);
@@ -503,11 +514,11 @@ public interface ICanvasRenderingContext2D {
     /**
      * Adds a circular arc to the path.
      *
-     * @param x the x-coordinate of the center
-     * @param y the y-coordinate of the center
-     * @param radius the radius
-     * @param startAngle the start angle in radians
-     * @param endAngle the end angle in radians
+     * @param x                the x-coordinate of the center
+     * @param y                the y-coordinate of the center
+     * @param radius           the radius
+     * @param startAngle       the start angle in radians
+     * @param endAngle         the end angle in radians
      * @param counterclockwise true for counterclockwise
      */
     void arc(double x, double y, double radius, double startAngle, double endAngle, boolean counterclockwise);
@@ -515,16 +526,17 @@ public interface ICanvasRenderingContext2D {
     /**
      * Adds an elliptical arc to the path.
      *
-     * @param x the x-coordinate of the center
-     * @param y the y-coordinate of the center
-     * @param radiusX the horizontal radius
-     * @param radiusY the vertical radius
-     * @param rotation the rotation angle in radians
-     * @param startAngle the start angle in radians
-     * @param endAngle the end angle in radians
+     * @param x                the x-coordinate of the center
+     * @param y                the y-coordinate of the center
+     * @param radiusX          the horizontal radius
+     * @param radiusY          the vertical radius
+     * @param rotation         the rotation angle in radians
+     * @param startAngle       the start angle in radians
+     * @param endAngle         the end angle in radians
      * @param counterclockwise true for counterclockwise
      */
-    void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise);
+    void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle,
+            double endAngle, boolean counterclockwise);
 
     // Fill and stroke
 
@@ -550,7 +562,7 @@ public interface ICanvasRenderingContext2D {
     /**
      * Fills a Path2D object with the specified fill rule.
      *
-     * @param path the path to fill
+     * @param path     the path to fill
      * @param fillRule the fill rule: "nonzero" or "evenodd"
      */
     void fill(IPath2D path, String fillRule);
@@ -589,7 +601,7 @@ public interface ICanvasRenderingContext2D {
     /**
      * Creates a clipping region from a Path2D object with a fill rule.
      *
-     * @param path the path to use for clipping
+     * @param path     the path to use for clipping
      * @param fillRule the fill rule: "nonzero" or "evenodd"
      */
     void clip(IPath2D path, String fillRule);
@@ -607,8 +619,8 @@ public interface ICanvasRenderingContext2D {
      * Tests if a point is inside a Path2D object.
      *
      * @param path the path to test
-     * @param x the x-coordinate
-     * @param y the y-coordinate
+     * @param x    the x-coordinate
+     * @param y    the y-coordinate
      * @return true if the point is inside the path
      */
     boolean isPointInPath(IPath2D path, double x, double y);
@@ -626,8 +638,8 @@ public interface ICanvasRenderingContext2D {
      * Tests if a point is on the stroke of a Path2D object.
      *
      * @param path the path to test
-     * @param x the x-coordinate
-     * @param y the y-coordinate
+     * @param x    the x-coordinate
+     * @param y    the y-coordinate
      * @return true if the point is on the stroke
      */
     boolean isPointInStroke(IPath2D path, double x, double y);
@@ -638,18 +650,18 @@ public interface ICanvasRenderingContext2D {
      * Draws an image at the specified position.
      *
      * @param image the image to draw
-     * @param dx the x-coordinate
-     * @param dy the y-coordinate
+     * @param dx    the x-coordinate
+     * @param dy    the y-coordinate
      */
     void drawImage(Object image, double dx, double dy);
 
     /**
      * Draws an image scaled to the specified size.
      *
-     * @param image the image to draw
-     * @param dx the x-coordinate
-     * @param dy the y-coordinate
-     * @param dWidth the width to draw
+     * @param image   the image to draw
+     * @param dx      the x-coordinate
+     * @param dy      the y-coordinate
+     * @param dWidth  the width to draw
      * @param dHeight the height to draw
      */
     void drawImage(Object image, double dx, double dy, double dWidth, double dHeight);
@@ -657,17 +669,18 @@ public interface ICanvasRenderingContext2D {
     /**
      * Draws a portion of an image.
      *
-     * @param image the image to draw
-     * @param sx the source x-coordinate
-     * @param sy the source y-coordinate
-     * @param sWidth the source width
+     * @param image   the image to draw
+     * @param sx      the source x-coordinate
+     * @param sy      the source y-coordinate
+     * @param sWidth  the source width
      * @param sHeight the source height
-     * @param dx the destination x-coordinate
-     * @param dy the destination y-coordinate
-     * @param dWidth the destination width
+     * @param dx      the destination x-coordinate
+     * @param dy      the destination y-coordinate
+     * @param dWidth  the destination width
      * @param dHeight the destination height
      */
-    void drawImage(Object image, double sx, double sy, double sWidth, double sHeight, double dx, double dy, double dWidth, double dHeight);
+    void drawImage(Object image, double sx, double sy, double sWidth, double sHeight, double dx, double dy,
+            double dWidth, double dHeight);
 
     // Text
 
@@ -717,7 +730,8 @@ public interface ICanvasRenderingContext2D {
     /**
      * Sets the text baseline.
      *
-     * @param textBaseline the baseline: "top", "hanging", "middle", "alphabetic", "ideographic", or "bottom"
+     * @param textBaseline the baseline: "top", "hanging", "middle", "alphabetic",
+     *                     "ideographic", or "bottom"
      */
     void setTextBaseline(String textBaseline);
 
@@ -766,20 +780,22 @@ public interface ICanvasRenderingContext2D {
     /**
      * Fills text at the specified position.
      *
-     * @param text the text to render
-     * @param x the x-coordinate
-     * @param y the y-coordinate
-     * @param maxWidth the maximum width (optional, use Double.MAX_VALUE for no limit)
+     * @param text     the text to render
+     * @param x        the x-coordinate
+     * @param y        the y-coordinate
+     * @param maxWidth the maximum width (optional, use Double.MAX_VALUE for no
+     *                 limit)
      */
     void fillText(String text, double x, double y, double maxWidth);
 
     /**
      * Strokes text at the specified position.
      *
-     * @param text the text to render
-     * @param x the x-coordinate
-     * @param y the y-coordinate
-     * @param maxWidth the maximum width (optional, use Double.MAX_VALUE for no limit)
+     * @param text     the text to render
+     * @param x        the x-coordinate
+     * @param y        the y-coordinate
+     * @param maxWidth the maximum width (optional, use Double.MAX_VALUE for no
+     *                 limit)
      */
     void strokeText(String text, double x, double y, double maxWidth);
 
@@ -788,7 +804,7 @@ public interface ICanvasRenderingContext2D {
     /**
      * Creates a new ImageData object with the specified dimensions.
      *
-     * @param width the width in pixels
+     * @param width  the width in pixels
      * @param height the height in pixels
      * @return a new ImageData object with transparent black pixels
      */
@@ -797,9 +813,9 @@ public interface ICanvasRenderingContext2D {
     /**
      * Gets pixel data from a rectangular area.
      *
-     * @param x the x-coordinate
-     * @param y the y-coordinate
-     * @param width the width
+     * @param x      the x-coordinate
+     * @param y      the y-coordinate
+     * @param width  the width
      * @param height the height
      * @return an ImageData object containing the pixel data
      */
@@ -808,12 +824,12 @@ public interface ICanvasRenderingContext2D {
     /**
      * Writes pixel data to a rectangular area.
      *
-     * @param imagedata the image data to write
-     * @param dx the destination x-coordinate
-     * @param dy the destination y-coordinate
-     * @param dirtyX the x-coordinate of the dirty rectangle (within imagedata)
-     * @param dirtyY the y-coordinate of the dirty rectangle
-     * @param dirtyWidth the width of the dirty rectangle
+     * @param imagedata   the image data to write
+     * @param dx          the destination x-coordinate
+     * @param dy          the destination y-coordinate
+     * @param dirtyX      the x-coordinate of the dirty rectangle (within imagedata)
+     * @param dirtyY      the y-coordinate of the dirty rectangle
+     * @param dirtyWidth  the width of the dirty rectangle
      * @param dirtyHeight the height of the dirty rectangle
      */
     void putImageData(IImageData imagedata, int dx, int dy, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight);
@@ -846,14 +862,16 @@ public interface ICanvasRenderingContext2D {
     /**
      * Sets CSS filter effects.
      *
-     * @param filter the filter string (e.g., "blur(5px)", "grayscale(50%)"), or "none"
+     * @param filter the filter string (e.g., "blur(5px)", "grayscale(50%)"), or
+     *               "none"
      */
     void setFilter(String filter);
 
     /**
      * Resets the rendering context to its default state.
      *
-     * <p>This clears the canvas, resets all properties to their defaults,
+     * <p>
+     * This clears the canvas, resets all properties to their defaults,
      * and clears the state stack.
      */
     void reset();
@@ -870,8 +888,15 @@ public interface ICanvasRenderingContext2D {
     /**
      * Draws a focus ring around a path if the element has focus.
      *
-     * @param path the path to draw the focus ring around
+     * @param path    the path to draw the focus ring around
      * @param element the element to check for focus
      */
     void drawFocusIfNeeded(IPath2D path, Object element);
+
+    /**
+     * Submits a batch of commands to be executed.
+     *
+     * @param commands the array of commands (integers and arguments)
+     */
+    void submit(Object[] commands);
 }

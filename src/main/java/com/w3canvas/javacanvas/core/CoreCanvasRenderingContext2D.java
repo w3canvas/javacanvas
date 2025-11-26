@@ -12,21 +12,33 @@ import com.w3canvas.javacanvas.core.Path2D;
 /**
  * Backend-agnostic implementation of the Canvas 2D rendering context.
  *
- * <p>This class provides the core implementation of {@link ICanvasRenderingContext2D},
- * delegating actual rendering operations to a backend-specific {@link IGraphicsContext}.
- * It maintains the rendering state (fill/stroke styles, line properties, text properties,
- * shadows, filters, etc.) and manages the state stack for save/restore operations.
+ * <p>
+ * This class provides the core implementation of
+ * {@link ICanvasRenderingContext2D},
+ * delegating actual rendering operations to a backend-specific
+ * {@link IGraphicsContext}.
+ * It maintains the rendering state (fill/stroke styles, line properties, text
+ * properties,
+ * shadows, filters, etc.) and manages the state stack for save/restore
+ * operations.
  *
- * <p>The separation between this class and the backend allows JavaCanvas to support
- * multiple rendering backends (AWT, JavaFX, etc.) while providing a consistent API.
+ * <p>
+ * The separation between this class and the backend allows JavaCanvas to
+ * support
+ * multiple rendering backends (AWT, JavaFX, etc.) while providing a consistent
+ * API.
  *
- * <p>Key responsibilities:
+ * <p>
+ * Key responsibilities:
  * <ul>
- *   <li>Maintaining drawing state (styles, compositing, line properties, etc.)</li>
- *   <li>Managing the state stack via {@link #save()} and {@link #restore()}</li>
- *   <li>Delegating low-level rendering to the backend-specific graphics context</li>
- *   <li>Handling Path2D objects for reusable paths</li>
- *   <li>Applying global state (alpha, composite operations, filters) before drawing</li>
+ * <li>Maintaining drawing state (styles, compositing, line properties,
+ * etc.)</li>
+ * <li>Managing the state stack via {@link #save()} and {@link #restore()}</li>
+ * <li>Delegating low-level rendering to the backend-specific graphics
+ * context</li>
+ * <li>Handling Path2D objects for reusable paths</li>
+ * <li>Applying global state (alpha, composite operations, filters) before
+ * drawing</li>
  * </ul>
  *
  * @see ICanvasRenderingContext2D
@@ -75,7 +87,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         this.backend = backend;
         this.surface = backend.createCanvasSurface(width, height);
         this.gc = surface.getGraphicsContext();
-        // Initialize state without calling surface.reset() to avoid disposing the graphics context
+        // Initialize state without calling surface.reset() to avoid disposing the
+        // graphics context
         initializeState();
     }
 
@@ -85,7 +98,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     }
 
     /**
-     * Initialize the rendering context state without resetting the graphics surface.
+     * Initialize the rendering context state without resetting the graphics
+     * surface.
      * Used during construction to avoid disposing the graphics context.
      */
     private void initializeState() {
@@ -128,8 +142,10 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     @Override
     public void reset() {
         surface.reset();
-        // CRITICAL: After surface.reset() creates a new Graphics2D, we must update our reference
-        // Otherwise, all drawing operations will use the old Graphics2D and won't appear in the image
+        // CRITICAL: After surface.reset() creates a new Graphics2D, we must update our
+        // reference
+        // Otherwise, all drawing operations will use the old Graphics2D and won't
+        // appear in the image
         this.gc = surface.getGraphicsContext();
 
         // Initialize state using the same logic as constructor
@@ -452,18 +468,20 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     }
 
     @Override
-    public void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise) {
+    public void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle,
+            double endAngle, boolean counterclockwise) {
         if (radiusX < 0) {
             throw new IllegalArgumentException("radiusX must be non-negative, got: " + radiusX);
         }
         if (radiusY < 0) {
             throw new IllegalArgumentException("radiusY must be non-negative, got: " + radiusY);
         }
-        gc.ellipse(x,y,radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
+        gc.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
     }
 
     private void applyCurrentState() {
-        IComposite composite = CompositeFactory.createComposite(this.globalCompositeOperation, this.globalAlpha, this.backend);
+        IComposite composite = CompositeFactory.createComposite(this.globalCompositeOperation, this.globalAlpha,
+                this.backend);
         if (composite != null) {
             gc.setComposite(composite);
         }
@@ -533,8 +551,10 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             gc.setFillRule(fillRule);
         }
 
-        // WORKAROUND: JavaFX's GraphicsContext doesn't properly handle multiple rect() calls
-        // in the same path. Detect if the path contains multiple RECT elements and fill them
+        // WORKAROUND: JavaFX's GraphicsContext doesn't properly handle multiple rect()
+        // calls
+        // in the same path. Detect if the path contains multiple RECT elements and fill
+        // them
         // individually using fillRect() instead.
         java.util.List<IPath2D.PathElement> elements = path.getElements();
         if (elements != null && elements.size() > 0) {
@@ -545,7 +565,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
                 if (element.getType() == IPath2D.PathElement.Type.RECT) {
                     rectCount++;
                 } else if (element.getType() != IPath2D.PathElement.Type.MOVE_TO &&
-                          element.getType() != IPath2D.PathElement.Type.CLOSE_PATH) {
+                        element.getType() != IPath2D.PathElement.Type.CLOSE_PATH) {
                     allRects = false;
                     break;
                 }
@@ -554,7 +574,8 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
             // WORKAROUND: If we have multiple rectangles, use fillRectDirect
             // to bypass JavaFX's path rendering limitation. JavaFX's GraphicsContext
             // doesn't properly render multiple rect() calls within the same path.
-            // By using fillRectDirect, we render each rectangle separately which works correctly.
+            // By using fillRectDirect, we render each rectangle separately which works
+            // correctly.
             if (allRects && rectCount > 1) {
                 for (IPath2D.PathElement element : elements) {
                     if (element.getType() == IPath2D.PathElement.Type.RECT) {
@@ -805,10 +826,12 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     }
 
     @Override
-    public void drawImage(Object image, double sx, double sy, double sWidth, double sHeight, double dx, double dy, double dWidth, double dHeight) {
+    public void drawImage(Object image, double sx, double sy, double sWidth, double sHeight, double dx, double dy,
+            double dWidth, double dHeight) {
         Object nativeImage = getNativeImage(image);
         if (nativeImage != null) {
-            gc.drawImage(nativeImage, (int) sx, (int) sy, (int) sWidth, (int) sHeight, (int) dx, (int) dy, (int) dWidth, (int) dHeight);
+            gc.drawImage(nativeImage, (int) sx, (int) sy, (int) sWidth, (int) sHeight, (int) dx, (int) dy, (int) dWidth,
+                    (int) dHeight);
         }
     }
 
@@ -883,8 +906,11 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     /**
      * Gets the text direction setting.
      *
-     * <p><strong>Implementation Status:</strong> This property is implemented in the AWT backend
-     * using TextLayout for bidirectional text support. The JavaFX backend currently stores the
+     * <p>
+     * <strong>Implementation Status:</strong> This property is implemented in the
+     * AWT backend
+     * using TextLayout for bidirectional text support. The JavaFX backend currently
+     * stores the
      * value but does not affect rendering.
      *
      * @return Current direction setting: "ltr", "rtl", or "inherit"
@@ -897,16 +923,20 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     /**
      * Sets the text direction for rendering.
      *
-     * <p><strong>Implementation Status:</strong> This property is implemented in the AWT backend.
+     * <p>
+     * <strong>Implementation Status:</strong> This property is implemented in the
+     * AWT backend.
      *
-     * <p><strong>Valid Values:</strong>
+     * <p>
+     * <strong>Valid Values:</strong>
      * <ul>
-     *   <li>"ltr" - Left-to-right text direction</li>
-     *   <li>"rtl" - Right-to-left text direction</li>
-     *   <li>"inherit" - Inherit from canvas element's CSS direction (default)</li>
+     * <li>"ltr" - Left-to-right text direction</li>
+     * <li>"rtl" - Right-to-left text direction</li>
+     * <li>"inherit" - Inherit from canvas element's CSS direction (default)</li>
      * </ul>
      *
-     * @param direction The text direction ("ltr", "rtl", or "inherit"). Invalid values are ignored.
+     * @param direction The text direction ("ltr", "rtl", or "inherit"). Invalid
+     *                  values are ignored.
      */
     @Override
     public void setDirection(String direction) {
@@ -920,8 +950,11 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     /**
      * Gets the letter spacing for text rendering.
      *
-     * <p><strong>Implementation Status:</strong> This property is implemented in the AWT backend
-     * using TextAttributes. The JavaFX backend currently stores the value but does not affect rendering.
+     * <p>
+     * <strong>Implementation Status:</strong> This property is implemented in the
+     * AWT backend
+     * using TextAttributes. The JavaFX backend currently stores the value but does
+     * not affect rendering.
      *
      * @return Current letter spacing value in pixels (default: 0.0)
      */
@@ -933,12 +966,16 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     /**
      * Sets the letter spacing (tracking) for text rendering.
      *
-     * <p><strong>Implementation Status:</strong> This property is implemented in the AWT backend.
+     * <p>
+     * <strong>Implementation Status:</strong> This property is implemented in the
+     * AWT backend.
      *
-     * <p>This property adds the specified spacing between each character,
+     * <p>
+     * This property adds the specified spacing between each character,
      * similar to CSS letter-spacing property.
      *
-     * @param spacing Additional spacing between characters in pixels. Can be negative.
+     * @param spacing Additional spacing between characters in pixels. Can be
+     *                negative.
      */
     @Override
     public void setLetterSpacing(double spacing) {
@@ -949,7 +986,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     /**
      * Gets the word spacing for text rendering.
      *
-     * <p><strong>Implementation Status:</strong> This property is stored but not currently implemented
+     * <p>
+     * <strong>Implementation Status:</strong> This property is stored but not
+     * currently implemented
      * in either backend (AWT/JavaFX).
      *
      * @return Current word spacing value in pixels (default: 0.0)
@@ -962,7 +1001,9 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
     /**
      * Sets the word spacing for text rendering.
      *
-     * <p><strong>Implementation Status:</strong> This property is stored but not currently implemented
+     * <p>
+     * <strong>Implementation Status:</strong> This property is stored but not
+     * currently implemented
      * in either backend.
      *
      * @param spacing Additional spacing between words in pixels. Can be negative.
@@ -1025,16 +1066,17 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
         if (x >= canvasWidth || y >= canvasHeight || x + width <= 0 || y + height <= 0) {
             throw new IllegalArgumentException(
-                "The requested region (x=" + x + ", y=" + y + ", width=" + width + ", height=" + height +
-                ") is completely outside the canvas bounds (width=" + canvasWidth + ", height=" + canvasHeight + ")"
-            );
+                    "The requested region (x=" + x + ", y=" + y + ", width=" + width + ", height=" + height +
+                            ") is completely outside the canvas bounds (width=" + canvasWidth + ", height="
+                            + canvasHeight + ")");
         }
 
         return gc.getImageData(x, y, width, height);
     }
 
     @Override
-    public void putImageData(IImageData imagedata, int dx, int dy, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
+    public void putImageData(IImageData imagedata, int dx, int dy, int dirtyX, int dirtyY, int dirtyWidth,
+            int dirtyHeight) {
         ICanvasPixelArray pixelArray;
         if (imagedata instanceof com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) {
             pixelArray = ((com.w3canvas.javacanvas.backend.rhino.impl.node.ImageData) imagedata).getData();
@@ -1080,7 +1122,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
             // Set focus ring style (typically a dashed line in system accent color)
             gc.setLineWidth(2.0);
-            gc.setLineDash(new double[]{2, 2});
+            gc.setLineDash(new double[] { 2, 2 });
             gc.setStrokePaint(ColorParser.parse("#0078D4", backend)); // System accent color approximation
 
             // Stroke the current path
@@ -1100,7 +1142,7 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
 
             // Set focus ring style
             gc.setLineWidth(2.0);
-            gc.setLineDash(new double[]{2, 2});
+            gc.setLineDash(new double[] { 2, 2 });
             gc.setStrokePaint(ColorParser.parse("#0078D4", backend)); // System accent color approximation
 
             // Stroke the specified path
@@ -1127,6 +1169,195 @@ public class CoreCanvasRenderingContext2D implements ICanvasRenderingContext2D {
         }
         // Default: assume not focused
         return false;
+    }
+
+    @Override
+    public void submit(Object[] commands) {
+        int i = 0;
+        while (i < commands.length) {
+            Object cmdObj = commands[i++];
+            if (!(cmdObj instanceof Number))
+                continue;
+            int cmd = ((Number) cmdObj).intValue();
+
+            switch (cmd) {
+                case 1: // SET_FILL_STYLE
+                    setFillStyle(commands[i++]);
+                    break;
+                case 2: // SET_STROKE_STYLE
+                    setStrokeStyle(commands[i++]);
+                    break;
+                case 3: // SET_LINE_WIDTH
+                    setLineWidth(((Number) commands[i++]).doubleValue());
+                    break;
+                case 4: // SET_LINE_CAP
+                    setLineCap((String) commands[i++]);
+                    break;
+                case 5: // SET_LINE_JOIN
+                    setLineJoin((String) commands[i++]);
+                    break;
+                case 6: // SET_MITER_LIMIT
+                    setMiterLimit(((Number) commands[i++]).doubleValue());
+                    break;
+                case 7: // SET_GLOBAL_ALPHA
+                    setGlobalAlpha(((Number) commands[i++]).doubleValue());
+                    break;
+                case 8: // SET_GLOBAL_COMPOSITE_OPERATION
+                    setGlobalCompositeOperation((String) commands[i++]);
+                    break;
+                case 9: // SET_FONT
+                    setFont((String) commands[i++]);
+                    break;
+                case 10: // SET_TEXT_ALIGN
+                    setTextAlign((String) commands[i++]);
+                    break;
+                case 11: // SET_TEXT_BASELINE
+                    setTextBaseline((String) commands[i++]);
+                    break;
+                case 12: // SET_SHADOW_BLUR
+                    setShadowBlur(((Number) commands[i++]).doubleValue());
+                    break;
+                case 13: // SET_SHADOW_COLOR
+                    setShadowColor((String) commands[i++]);
+                    break;
+                case 14: // SET_SHADOW_OFFSET_X
+                    setShadowOffsetX(((Number) commands[i++]).doubleValue());
+                    break;
+                case 15: // SET_SHADOW_OFFSET_Y
+                    setShadowOffsetY(((Number) commands[i++]).doubleValue());
+                    break;
+                case 16: // FILL_RECT
+                    fillRect(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 17: // STROKE_RECT
+                    strokeRect(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 18: // CLEAR_RECT
+                    clearRect(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 19: // BEGIN_PATH
+                    beginPath();
+                    break;
+                case 20: // CLOSE_PATH
+                    closePath();
+                    break;
+                case 21: // MOVE_TO
+                    moveTo(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 22: // LINE_TO
+                    lineTo(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 23: // QUADRATIC_CURVE_TO
+                    quadraticCurveTo(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 24: // BEZIER_CURVE_TO
+                    bezierCurveTo(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 25: // ARC
+                    arc(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            (Boolean) commands[i++]);
+                    break;
+                case 26: // ARC_TO
+                    arcTo(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 27: // RECT
+                    rect(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 28: // FILL
+                    fill((String) commands[i++]);
+                    break;
+                case 29: // STROKE
+                    stroke();
+                    break;
+                case 30: // CLIP
+                    clip((String) commands[i++]);
+                    break;
+                case 31: // SAVE
+                    save();
+                    break;
+                case 32: // RESTORE
+                    restore();
+                    break;
+                case 33: // SCALE
+                    scale(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 34: // ROTATE
+                    rotate(((Number) commands[i++]).doubleValue());
+                    break;
+                case 35: // TRANSLATE
+                    translate(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 36: // TRANSFORM
+                    transform(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 37: // SET_TRANSFORM
+                    setTransform(
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue(),
+                            ((Number) commands[i++]).doubleValue());
+                    break;
+                case 38: // RESET_TRANSFORM
+                    resetTransform();
+                    break;
+                // TODO: DRAW_IMAGE, FILL_TEXT, STROKE_TEXT
+                default:
+                    System.err.println("Unknown command ID: " + cmd);
+                    break;
+            }
+        }
     }
 
     private static class ContextState {

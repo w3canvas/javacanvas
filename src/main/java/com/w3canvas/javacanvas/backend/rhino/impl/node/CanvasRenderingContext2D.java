@@ -157,7 +157,8 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
             ICanvasRenderingContext2D context = (ICanvasRenderingContext2D) canvas.jsFunction_getContext("2d");
             int width = canvas.getWidth();
             int height = canvas.getHeight();
-            // This is a bit of a hack. We should probably have a more direct way to get the image from the canvas.
+            // This is a bit of a hack. We should probably have a more direct way to get the
+            // image from the canvas.
             Object nativeImage = context.getSurface().getNativeImage();
             return core.createPattern(nativeImage, repetition);
         } else if (image instanceof Image) {
@@ -359,7 +360,8 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     @Override
-    public void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise) {
+    public void ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle,
+            double endAngle, boolean counterclockwise) {
         core.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
     }
 
@@ -462,7 +464,8 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     @Override
-    public void drawImage(Object image, double sx, double sy, double sWidth, double sHeight, double dx, double dy, double dWidth, double dHeight) {
+    public void drawImage(Object image, double sx, double sy, double sWidth, double sHeight, double dx, double dy,
+            double dWidth, double dHeight) {
         core.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
         canvas.dirty();
     }
@@ -556,7 +559,8 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
     }
 
     @Override
-    public void putImageData(IImageData imagedata, int dx, int dy, int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight) {
+    public void putImageData(IImageData imagedata, int dx, int dy, int dirtyX, int dirtyY, int dirtyWidth,
+            int dirtyHeight) {
         core.putImageData(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
     }
 
@@ -582,7 +586,7 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
 
     @Override
     public void reset() {
-	    core.reset();
+        core.reset();
     }
 
     // Rhino-specific methods below
@@ -671,28 +675,33 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
 
     public RhinoCanvasGradient jsFunction_createLinearGradient(Double x0, Double y0, Double x1, Double y1) {
         ICanvasGradient backendGradient = createLinearGradient(x0, y0, x1, y1);
-        RhinoCanvasGradient rhinoGradient = (RhinoCanvasGradient) Context.getCurrentContext().newObject(getParentScope(), "RhinoCanvasGradient");
+        RhinoCanvasGradient rhinoGradient = (RhinoCanvasGradient) Context.getCurrentContext()
+                .newObject(getParentScope(), "RhinoCanvasGradient");
         rhinoGradient.init(backendGradient);
         return rhinoGradient;
     }
 
-    public RhinoCanvasGradient jsFunction_createRadialGradient(Double x0, Double y0, Double r0, Double x1, Double y1, Double r1) {
+    public RhinoCanvasGradient jsFunction_createRadialGradient(Double x0, Double y0, Double r0, Double x1, Double y1,
+            Double r1) {
         ICanvasGradient backendGradient = createRadialGradient(x0, y0, r0, x1, y1, r1);
-        RhinoCanvasGradient rhinoGradient = (RhinoCanvasGradient) Context.getCurrentContext().newObject(getParentScope(), "RhinoCanvasGradient");
+        RhinoCanvasGradient rhinoGradient = (RhinoCanvasGradient) Context.getCurrentContext()
+                .newObject(getParentScope(), "RhinoCanvasGradient");
         rhinoGradient.init(backendGradient);
         return rhinoGradient;
     }
 
     public RhinoCanvasGradient jsFunction_createConicGradient(Double startAngle, Double x, Double y) {
         ICanvasGradient backendGradient = createConicGradient(startAngle, x, y);
-        RhinoCanvasGradient rhinoGradient = (RhinoCanvasGradient) Context.getCurrentContext().newObject(getParentScope(), "RhinoCanvasGradient");
+        RhinoCanvasGradient rhinoGradient = (RhinoCanvasGradient) Context.getCurrentContext()
+                .newObject(getParentScope(), "RhinoCanvasGradient");
         rhinoGradient.init(backendGradient);
         return rhinoGradient;
     }
 
     public RhinoCanvasPattern jsFunction_createPattern(Image image, String repetition) {
         ICanvasPattern backendPattern = createPattern(image, repetition);
-        RhinoCanvasPattern rhinoPattern = (RhinoCanvasPattern) Context.getCurrentContext().newObject(getParentScope(), "RhinoCanvasPattern");
+        RhinoCanvasPattern rhinoPattern = (RhinoCanvasPattern) Context.getCurrentContext().newObject(getParentScope(),
+                "RhinoCanvasPattern");
         rhinoPattern.init(backendPattern);
         return rhinoPattern;
     }
@@ -806,11 +815,13 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         roundRect(x, y, w, h, radii);
     }
 
-    public void jsFunction_arc(Double x, Double y, Double radius, Double startAngle, Double endAngle, boolean counterclockwise) {
+    public void jsFunction_arc(Double x, Double y, Double radius, Double startAngle, Double endAngle,
+            boolean counterclockwise) {
         arc(x, y, radius, startAngle, endAngle, counterclockwise);
     }
 
-    public void jsFunction_ellipse(double x, double y, double radiusX, double radiusY, double rotation, double startAngle, double endAngle, boolean counterclockwise) {
+    public void jsFunction_ellipse(double x, double y, double radiusX, double radiusY, double rotation,
+            double startAngle, double endAngle, boolean counterclockwise) {
         ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
     }
 
@@ -823,7 +834,7 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         } else if (pathArg instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
             fill((com.w3canvas.javacanvas.interfaces.IPath2D) pathArg);
         } else {
-            fill();  // Fallback to current path
+            fill(); // Fallback to current path
         }
     }
 
@@ -836,7 +847,7 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         } else if (pathArg instanceof com.w3canvas.javacanvas.interfaces.IPath2D) {
             stroke((com.w3canvas.javacanvas.interfaces.IPath2D) pathArg);
         } else {
-            stroke();  // Fallback to current path
+            stroke(); // Fallback to current path
         }
     }
 
@@ -872,14 +883,16 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         return isPointInStroke(x, y);
     }
 
-    // Handle all drawImage signatures: (image, dx, dy), (image, dx, dy, dw, dh), (image, sx, sy, sw, sh, dx, dy, dw, dh)
-    public void jsFunction_drawImage(Object img, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8) {
+    // Handle all drawImage signatures: (image, dx, dy), (image, dx, dy, dw, dh),
+    // (image, sx, sy, sw, sh, dx, dy, dw, dh)
+    public void jsFunction_drawImage(Object img, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5,
+            Object arg6, Object arg7, Object arg8) {
         // Unwrap the image
         Object image = unwrapImage(img);
 
         // Count how many arguments are not undefined/null
         int argCount = 0;
-        Object[] args = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8};
+        Object[] args = { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 };
         for (Object arg : args) {
             if (arg != null && arg != Context.getUndefinedValue() && arg != Scriptable.NOT_FOUND) {
                 argCount++;
@@ -1068,7 +1081,8 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         return rhinoImageData;
     }
 
-    public void jsFunction_putImageData(ImageData imagedata, int dx, int dy, Object dirtyX, Object dirtyY, Object dirtyWidth, Object dirtyHeight) {
+    public void jsFunction_putImageData(ImageData imagedata, int dx, int dy, Object dirtyX, Object dirtyY,
+            Object dirtyWidth, Object dirtyHeight) {
         int dX = (dirtyX instanceof Number) ? ((Number) dirtyX).intValue() : 0;
         int dY = (dirtyY instanceof Number) ? ((Number) dirtyY).intValue() : 0;
         int dWidth = (dirtyWidth instanceof Number) ? ((Number) dirtyWidth).intValue() : imagedata.getWidth();
@@ -1101,14 +1115,16 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
         return this.canvas;
     }
 
-    // Font kerning property (read-only, always "auto" - Java handles kerning automatically)
+    // Font kerning property (read-only, always "auto" - Java handles kerning
+    // automatically)
     public String jsGet_fontKerning() {
         return "auto";
     }
 
     // Focus management
     public void jsFunction_drawFocusIfNeeded(Object pathOrElement, Object element) {
-        // If element is undefined (JavaScript called with one arg), first arg is the element
+        // If element is undefined (JavaScript called with one arg), first arg is the
+        // element
         if (element == null || element == org.mozilla.javascript.Undefined.instance) {
             core.drawFocusIfNeeded(pathOrElement);
         }
@@ -1121,5 +1137,18 @@ public class CanvasRenderingContext2D extends ProjectScriptableObject implements
             // First argument is the element (two args but first is not a path)
             core.drawFocusIfNeeded(pathOrElement);
         }
+    }
+
+    @Override
+    public void submit(Object[] commands) {
+        core.submit(commands);
+    }
+
+    public void jsFunction_submit(NativeArray commands) {
+        Object[] cmds = new Object[(int) commands.getLength()];
+        for (int i = 0; i < cmds.length; i++) {
+            cmds[i] = commands.get(i, commands);
+        }
+        submit(cmds);
     }
 }
