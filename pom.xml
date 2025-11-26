@@ -158,12 +158,24 @@
 
         <!-- jWebGPU -->
         <dependency>
-            <groupId>io.github.humbleui</groupId>
-            <artifactId>jwebgpu</artifactId>
-            <version>0.1.2</version>
-            <optional>true</optional>
+            <groupId>com.github.xpenatan.jWebGPU</groupId>
+            <artifactId>webgpu-core</artifactId>
+            <version>0.1.12</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.xpenatan.jWebGPU</groupId>
+            <artifactId>webgpu-desktop</artifactId>
+            <version>0.1.12</version>
+            <classifier>windows_64_wgpu</classifier>
         </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>sonatype-releases</id>
+            <url>https://oss.sonatype.org/content/repositories/releases/</url>
+        </repository>
+    </repositories>
 
     <profiles>
         <profile>
