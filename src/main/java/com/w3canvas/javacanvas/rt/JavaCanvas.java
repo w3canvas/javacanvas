@@ -173,7 +173,8 @@ public class JavaCanvas {
 
         if (useGraal) {
             try {
-                runtime = (JSRuntime) Class.forName("com.w3canvas.javacanvas.backend.graal.GraalRuntime").getDeclaredConstructor().newInstance();
+                runtime = (JSRuntime) Class.forName("com.w3canvas.javacanvas.backend.graal.GraalRuntime")
+                        .getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw new RuntimeException("GraalJS not available", e);
             }
@@ -192,7 +193,8 @@ public class JavaCanvas {
     private void initializeCommon() {
         try {
             if (useGraal) {
-                this.graalDocument = Class.forName("com.w3canvas.javacanvas.backend.graal.impl.node.GraalDocument").getDeclaredConstructor().newInstance();
+                this.graalDocument = Class.forName("com.w3canvas.javacanvas.backend.graal.impl.node.GraalDocument")
+                        .getDeclaredConstructor().newInstance();
                 runtime.putProperty("document", this.graalDocument);
             } else {
                 this.document = new Document();
@@ -224,9 +226,14 @@ public class JavaCanvas {
                     width = windowHost.getWidth();
                     height = windowHost.getHeight();
                 }
-                Class<?> graalWindowClass = Class.forName("com.w3canvas.javacanvas.backend.graal.impl.node.GraalWindow");
-                Object gWindow = graalWindowClass.getDeclaredConstructor(int.class, int.class).newInstance(width, height);
-                gWindow.getClass().getMethod("setDocument", Class.forName("com.w3canvas.javacanvas.backend.graal.impl.node.GraalDocument")).invoke(gWindow, this.graalDocument);
+                Class<?> graalWindowClass = Class
+                        .forName("com.w3canvas.javacanvas.backend.graal.impl.node.GraalWindow");
+                Object gWindow = graalWindowClass.getDeclaredConstructor(int.class, int.class).newInstance(width,
+                        height);
+                gWindow.getClass()
+                        .getMethod("setDocument",
+                                Class.forName("com.w3canvas.javacanvas.backend.graal.impl.node.GraalDocument"))
+                        .invoke(gWindow, this.graalDocument);
                 this.graalWindow = gWindow;
                 runtime.putProperty("window", this.graalWindow);
             } else {
@@ -247,6 +254,7 @@ public class JavaCanvas {
 
             runtime.putProperty("log", new ScriptLogger());
             runtime.putProperty("console", new ScriptLogger());
+            runtime.injectWebGPU();
 
             if (runtime instanceof RhinoRuntime) {
                 ((RhinoRuntime) runtime).setSource(basePath);
