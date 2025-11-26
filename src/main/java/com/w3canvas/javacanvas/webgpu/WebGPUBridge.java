@@ -57,6 +57,8 @@ public class WebGPUBridge {
         }
     }
 
+    private WGPUQueue currentQueue;
+
     public CompletableFuture<Adapter> requestAdapter() {
         System.out.println("[WebGPUBridge] requestAdapter called");
         CompletableFuture<Adapter> future = new CompletableFuture<>();
@@ -74,7 +76,7 @@ public class WebGPUBridge {
             public void onCallback(WGPURequestAdapterStatus status, WGPUAdapter adapter, String message) {
                 if (status == WGPURequestAdapterStatus.Success) {
                     System.out.println("[WebGPUBridge] Adapter obtained: " + adapter);
-                    future.complete(new Adapter(adapter));
+                    future.complete(new Adapter(WebGPUBridge.this, adapter));
                 } else {
                     System.err.println("[WebGPUBridge] Failed to get adapter: " + message);
                     future.completeExceptionally(new RuntimeException("Failed to get adapter: " + message));
@@ -86,9 +88,11 @@ public class WebGPUBridge {
     }
 
     public static class Adapter {
+        private final WebGPUBridge bridge;
         private final WGPUAdapter adapter;
 
-        public Adapter(WGPUAdapter adapter) {
+        public Adapter(WebGPUBridge bridge, WGPUAdapter adapter) {
+            this.bridge = bridge;
             this.adapter = adapter;
         }
 
@@ -103,6 +107,7 @@ public class WebGPUBridge {
                 public void onCallback(WGPURequestDeviceStatus status, WGPUDevice device, String message) {
                     if (status == WGPURequestDeviceStatus.Success) {
                         System.out.println("[WebGPUBridge] Device obtained: " + device);
+                        bridge.currentQueue = device.getQueue();
                         future.complete(new Device(device));
                     } else {
                         System.err.println("[WebGPUBridge] Failed to get device: " + message);
@@ -138,8 +143,47 @@ public class WebGPUBridge {
     }
 
     public void submit(int[] commands) {
+        if (currentQueue == null) {
+            System.err.println("[WebGPUBridge] Error: Queue not initialized");
+            return;
+        }
+
         System.out
                 .println("[WebGPUBridge] submit called with " + (commands != null ? commands.length : 0) + " commands");
-        // TODO: Implement command decoding and execution
+
+        if (commands == null || commands.length == 0)
+            return;
+
+        // Simple Command Decoder
+        int i = 0;
+        WGPUCommandEncoder encoder = null;
+        WGPURenderPassEncoder passEncoder = null;
+
+        while (i < commands.length) {
+            int cmd = commands[i++];
+            switch (cmd) {
+                case 1: // BEGIN_RENDER_PASS
+                    System.out.println("  CMD: BEGIN_RENDER_PASS");
+                    // TODO: Create real encoder/pass
+                    break;
+                case 2: // END_RENDER_PASS
+                    System.out.println("  CMD: END_RENDER_PASS");
+                    break;
+                case 3: // SET_PIPELINE
+                    System.out.println("  CMD: SET_PIPELINE");
+                    break;
+                case 4: // DRAW
+                    int vertexCount = commands[i++];
+                    int instanceCount = commands[i++];
+                    int firstVertex = commands[i++];
+                    int firstInstance = commands[i++];
+                    System.out.println("  CMD: DRAW " + vertexCount + ", " + instanceCount + ", " + firstVertex + ", "
+                            + firstInstance);
+                    break;
+                default:
+                    System.err.println("  Unknown command: " + cmd);
+                    break;
+            }
+        }
     }
 }
