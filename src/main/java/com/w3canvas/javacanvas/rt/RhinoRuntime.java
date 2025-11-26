@@ -366,25 +366,16 @@ public class RhinoRuntime implements JSRuntime {
     @Override
     public void injectWebGPU() {
         try {
-            // Ensure navigator exists
-            Object navigator = scope.get("navigator", scope);
-            if (navigator == Scriptable.NOT_FOUND) {
-                navigator = new org.mozilla.javascript.NativeObject();
-                scope.put("navigator", scope, navigator);
-            }
-
             // Create WebGPU bridge
             com.w3canvas.javacanvas.webgpu.WebGPUBridge bridge = new com.w3canvas.javacanvas.webgpu.WebGPUBridge();
 
             // In Rhino, we can wrap POJOs directly
             Object wrappedBridge = Context.javaToJS(bridge, scope);
 
-            // Add gpu property to navigator
-            if (navigator instanceof Scriptable) {
-                ((Scriptable) navigator).put("gpu", (Scriptable) navigator, wrappedBridge);
-            }
+            // Add __native_webgpu property to global scope
+            scope.put("__native_webgpu", scope, wrappedBridge);
 
-            System.out.println("[JavaCanvas] WebGPU injected into navigator.gpu");
+            System.out.println("[JavaCanvas] WebGPU injected as __native_webgpu");
         } catch (Exception e) {
             e.printStackTrace();
         }

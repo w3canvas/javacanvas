@@ -136,4 +136,10 @@ public class WebGPUBridge {
             this.queue = queue;
         }
     }
+
+    public void submit(int[] commands) {
+        System.out
+                .println("[WebGPUBridge] submit called with " + (commands != null ? commands.length : 0) + " commands");
+        // TODO: Implement command decoding and execution
+    }
 }
