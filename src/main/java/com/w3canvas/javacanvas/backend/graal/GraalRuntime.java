@@ -126,4 +126,9 @@ public class GraalRuntime implements IGraalRuntime {
         Value constructor = context.eval("js", constructorCode);
         bindings.putMember("SharedWorker", constructor);
     }
+
+    @Override
+    public void injectWebGPU() {
+        // TODO: Implement WebGPU for Graal
+    }
 }

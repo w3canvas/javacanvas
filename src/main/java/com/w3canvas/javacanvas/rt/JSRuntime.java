@@ -13,6 +13,8 @@ public interface JSRuntime {
 
     void close();
 
+    void injectWebGPU();
+
     Object getScope(); // This might be tricky as Rhino returns Scriptable and Graal returns
                        // Context/Bindings
 }
