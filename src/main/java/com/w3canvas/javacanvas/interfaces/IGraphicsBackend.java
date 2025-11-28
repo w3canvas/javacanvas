@@ -43,4 +43,12 @@ public interface IGraphicsBackend {
      * @return a new IComposite instance
      */
     IComposite createComposite(CompositeOperation op, double alpha);
+
+    /**
+     * Creates a paint from a CSS color string.
+     *
+     * @param color the CSS color string (e.g., "red", "#ff0000", "rgba(0,0,0,0.5)")
+     * @return a new IPaint instance
+     */
+    IPaint createPaint(String color);
 }

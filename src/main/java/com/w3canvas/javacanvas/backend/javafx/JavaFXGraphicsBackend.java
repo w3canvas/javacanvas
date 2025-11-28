@@ -5,6 +5,7 @@ import com.w3canvas.javacanvas.interfaces.ICanvasPattern;
 import com.w3canvas.javacanvas.interfaces.ICanvasSurface;
 import com.w3canvas.javacanvas.interfaces.IFont;
 import com.w3canvas.javacanvas.interfaces.IGraphicsBackend;
+import com.w3canvas.javacanvas.interfaces.IPaint;
 
 public class JavaFXGraphicsBackend implements IGraphicsBackend {
 
@@ -96,5 +97,16 @@ public class JavaFXGraphicsBackend implements IGraphicsBackend {
     public com.w3canvas.javacanvas.interfaces.IComposite createComposite(
             com.w3canvas.javacanvas.interfaces.CompositeOperation op, double alpha) {
         return new JavaFXComposite(op);
+    }
+
+    @Override
+    public IPaint createPaint(String color) {
+        javafx.scene.paint.Color fxColor;
+        try {
+            fxColor = javafx.scene.paint.Color.web(color);
+        } catch (Exception e) {
+            fxColor = javafx.scene.paint.Color.BLACK;
+        }
+        return new JavaFXPaint(fxColor);
     }
 }

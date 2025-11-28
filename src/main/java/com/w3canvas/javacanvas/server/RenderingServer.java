@@ -116,7 +116,14 @@ public class RenderingServer {
             try {
                 // Read script from body
                 InputStream is = t.getRequestBody();
-                String script = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                int nRead;
+                byte[] data = new byte[1024];
+                while ((nRead = is.read(data, 0, data.length)) != -1) {
+                    buffer.write(data, 0, nRead);
+                }
+                buffer.flush();
+                String script = new String(buffer.toByteArray(), StandardCharsets.UTF_8);
 
                 JavaCanvas javaCanvas;
                 String sessionId = t.getRequestHeaders().getFirst("X-Session-ID");

@@ -16,7 +16,21 @@ public class WebGPUBridge {
         if (nativeLoaded)
             return;
         try {
-            String libName = "jWebGPU64.dll";
+            String osName = System.getProperty("os.name").toLowerCase();
+            String libName;
+            String suffix;
+
+            if (osName.contains("win")) {
+                libName = "jWebGPU64.dll";
+                suffix = ".dll";
+            } else if (osName.contains("mac")) {
+                libName = "libjWebGPU64.dylib";
+                suffix = ".dylib";
+            } else {
+                libName = "libjWebGPU64.so";
+                suffix = ".so";
+            }
+
             String resourcePath = "/native/wgpu/" + libName;
 
             System.out.println("[WebGPUBridge] Looking for resource: " + resourcePath);
@@ -26,7 +40,7 @@ public class WebGPUBridge {
                 return;
             }
 
-            File tempLib = File.createTempFile("jWebGPU64", ".dll");
+            File tempLib = File.createTempFile("jWebGPU64", suffix);
             tempLib.deleteOnExit();
 
             try (OutputStream os = new FileOutputStream(tempLib)) {
@@ -41,7 +55,8 @@ public class WebGPUBridge {
             System.load(tempLib.getAbsolutePath());
             System.out.println("[WebGPUBridge] Native library loaded successfully.");
             nativeLoaded = true;
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            System.err.println("[WebGPUBridge] Failed to load native library: " + e.getMessage());
             e.printStackTrace();
         }
     }

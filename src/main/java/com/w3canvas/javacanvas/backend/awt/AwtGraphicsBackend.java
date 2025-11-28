@@ -5,6 +5,8 @@ import com.w3canvas.javacanvas.interfaces.ICanvasPattern;
 import com.w3canvas.javacanvas.interfaces.ICanvasSurface;
 import com.w3canvas.javacanvas.interfaces.IGraphicsBackend;
 import com.w3canvas.javacanvas.interfaces.ITextMetrics;
+import com.w3canvas.javacanvas.interfaces.IPaint;
+import com.w3canvas.css.CSSParser;
 
 public class AwtGraphicsBackend implements IGraphicsBackend {
 
@@ -104,5 +106,11 @@ public class AwtGraphicsBackend implements IGraphicsBackend {
     public com.w3canvas.javacanvas.interfaces.IComposite createComposite(
             com.w3canvas.javacanvas.interfaces.CompositeOperation op, double alpha) {
         return new AwtComposite(op, alpha);
+    }
+
+    @Override
+    public IPaint createPaint(String color) {
+        java.awt.Color awtColor = CSSParser.parseColor(color);
+        return new AwtPaint(awtColor);
     }
 }

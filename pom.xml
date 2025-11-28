@@ -11,9 +11,19 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <javafx.version>21.0.8</javafx.version>
+        <!-- Default platform -->
+        <javafx.platform>linux</javafx.platform>
     </properties>
 
     <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.7.0</version>
+            </extension>
+        </extensions>
         <sourceDirectory>src/main/java</sourceDirectory>
         <testSourceDirectory>src/test/java</testSourceDirectory>
         <testResources>
@@ -43,81 +53,17 @@
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
-            <!-- JaCoCo moved to 'coverage' profile to avoid resolution issues -->
         </plugins>
     </build>
 
     <dependencies>
-        <!-- JavaFX -->
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-controls</artifactId>
-            <version>21.0.8</version>
-            <classifier>linux</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-graphics</artifactId>
-            <version>21.0.8</version>
-            <classifier>linux</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-base</artifactId>
-            <version>21.0.8</version>
-            <classifier>linux</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-media</artifactId>
-            <version>21.0.8</version>
-            <classifier>linux</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-swing</artifactId>
-            <version>21.0.8</version>
-            <classifier>linux</classifier>
-        </dependency>
+        <!-- Common Dependencies -->
 
         <!-- Rhino -->
         <dependency>
             <groupId>org.mozilla</groupId>
             <artifactId>rhino</artifactId>
             <version>1.7.14</version>
-        </dependency>
-
-        <!-- GraalJS - using polyglot API with community JS support -->
-        <dependency>
-            <groupId>org.graalvm.polyglot</groupId>
-            <artifactId>polyglot</artifactId>
-            <version>24.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.polyglot</groupId>
-            <artifactId>js-community</artifactId>
-            <version>24.1.0</version>
-            <type>pom</type>
-        </dependency>
-
-        <!-- TestFX -->
-        <dependency>
-            <groupId>org.testfx</groupId>
-            <artifactId>openjfx-monocle</artifactId>
-            <version>21.0.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testfx</groupId>
-            <artifactId>testfx-core</artifactId>
-            <version>4.0.18</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testfx</groupId>
-            <artifactId>testfx-junit5</artifactId>
-            <version>4.0.18</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- JUnit 5 -->
@@ -156,17 +102,25 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- jWebGPU -->
+        <!-- jWebGPU Core (Platform Independent) -->
         <dependency>
             <groupId>com.github.xpenatan.jWebGPU</groupId>
             <artifactId>webgpu-core</artifactId>
             <version>0.1.12</version>
         </dependency>
+
+        <!-- TestFX Core (Common) -->
         <dependency>
-            <groupId>com.github.xpenatan.jWebGPU</groupId>
-            <artifactId>webgpu-desktop</artifactId>
-            <version>0.1.12</version>
-            <classifier>windows_64_wgpu</classifier>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-core</artifactId>
+            <version>4.0.18</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit5</artifactId>
+            <version>4.0.18</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -178,6 +132,176 @@
     </repositories>
 
     <profiles>
+        <!-- Modern Dependencies (Active by default unless legacy is requested) -->
+        <profile>
+            <id>modern-dependencies</id>
+            <activation>
+                <property>
+                    <name>!legacy</name>
+                </property>
+            </activation>
+            <dependencies>
+                <!-- JavaFX -->
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-controls</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>${javafx.platform}</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-graphics</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>${javafx.platform}</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-base</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>${javafx.platform}</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-media</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>${javafx.platform}</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-swing</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>${javafx.platform}</classifier>
+                </dependency>
+
+                <!-- GraalJS -->
+                <dependency>
+                    <groupId>org.graalvm.polyglot</groupId>
+                    <artifactId>polyglot</artifactId>
+                    <version>24.1.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.graalvm.polyglot</groupId>
+                    <artifactId>js-community</artifactId>
+                    <version>24.1.0</version>
+                    <type>pom</type>
+                </dependency>
+
+                <!-- TestFX Monocle -->
+                <dependency>
+                    <groupId>org.testfx</groupId>
+                    <artifactId>openjfx-monocle</artifactId>
+                    <version>21.0.2</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <!-- Legacy Profile -->
+        <profile>
+            <id>legacy</id>
+            <activation>
+                <property>
+                    <name>legacy</name>
+                </property>
+            </activation>
+            <properties>
+                <maven.compiler.source>1.8</maven.compiler.source>
+                <maven.compiler.target>1.8</maven.compiler.target>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.1</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>com/w3canvas/javacanvas/backend/javafx/**</exclude>
+                                <exclude>com/w3canvas/javacanvas/backend/graal/**</exclude>
+                            </excludes>
+                            <testExcludes>
+                                <exclude>**/TestJavaFX.java</exclude>
+                                <exclude>**/TestJavaFXFont.java</exclude>
+                                <exclude>**/TestModernText.java</exclude>
+                                <exclude>**/TestWorker.java</exclude>
+                                <exclude>**/TestSharedWorker.java</exclude>
+                                <exclude>**/TestImageBitmap.java</exclude>
+                                <exclude>**/TestFontLoading.java</exclude>
+                                <exclude>**/TestRhino.java</exclude>
+                                <exclude>**/TestCanvas2D.java</exclude>
+                                <exclude>**/PureJavaFXFontTest.java</exclude>
+                                <exclude>**/TestGraal.java</exclude>
+                                <exclude>**/TestGraalWorker.java</exclude>
+                                <exclude>**/TestRenderingServer.java</exclude>
+                            </testExcludes>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/TestJavaFX.java</exclude>
+                                <exclude>**/TestJavaFXFont.java</exclude>
+                                <exclude>**/TestModernText.java</exclude>
+                                <exclude>**/TestWorker.java</exclude>
+                                <exclude>**/TestSharedWorker.java</exclude>
+                                <exclude>**/TestImageBitmap.java</exclude>
+                                <exclude>**/TestFontLoading.java</exclude>
+                                <exclude>**/TestRhino.java</exclude>
+                                <exclude>**/TestCanvas2D.java</exclude>
+                                <exclude>**/PureJavaFXFontTest.java</exclude>
+                                <exclude>**/TestGraal.java</exclude>
+                                <exclude>**/TestGraalWorker.java</exclude>
+                                <exclude>**/TestRenderingServer.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <name>linux</name>
+                </os>
+            </activation>
+            <properties>
+                <javafx.platform>linux</javafx.platform>
+            </properties>
+        </profile>
+        <profile>
+            <id>mac</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <javafx.platform>mac</javafx.platform>
+            </properties>
+        </profile>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <javafx.platform>win</javafx.platform>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.github.xpenatan.jWebGPU</groupId>
+                    <artifactId>webgpu-desktop</artifactId>
+                    <version>0.1.12</version>
+                    <classifier>windows_64_wgpu</classifier>
+                </dependency>
+            </dependencies>
+        </profile>
         <profile>
             <id>coverage</id>
             <build>

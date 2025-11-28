@@ -285,10 +285,15 @@ public class JavaCanvas {
     }
 
     protected void readContent(StringBuffer sb) throws FileNotFoundException, IOException {
-        // Legacy method, keeping as is
+        // Legacy method, updated to use relative path
+        java.io.File testFile = new java.io.File("src/js/development/test.js");
+        if (!testFile.exists()) {
+             System.err.println("Warning: test.js not found at " + testFile.getAbsolutePath());
+             return;
+        }
+
         int i = 1;
-        BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(
-                "E:/dev/prj/JavaCanvas/trunk/src/js/development/test.js")));
+        BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(testFile)));
 
         while (true) {
             String line = r.readLine();

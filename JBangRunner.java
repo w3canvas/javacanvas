@@ -7,7 +7,7 @@
 //DEPS org.mozilla:rhino:1.7.14
 //DEPS org.graalvm.polyglot:polyglot:24.1.0
 //DEPS org.graalvm.polyglot:js-community:24.1.0@pom
-//DEPS io.github.humbleui:jwebgpu:0.1.2
+//DEPS com.github.xpenatan.jWebGPU:webgpu-core:0.1.12
 //SOURCES src/main/java/**/*.java
 //FILES .=src/main/resources
 

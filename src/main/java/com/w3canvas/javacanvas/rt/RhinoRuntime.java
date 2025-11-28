@@ -376,8 +376,8 @@ public class RhinoRuntime implements JSRuntime {
             scope.put("__native_webgpu", scope, wrappedBridge);
 
             System.out.println("[JavaCanvas] WebGPU injected as __native_webgpu");
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            System.err.println("[JavaCanvas] Warning: Failed to inject WebGPU: " + e.getMessage());
         }
     }
 }

@@ -53,5 +53,10 @@
     "name": "com.w3canvas.javacanvas.backend.javafx.JavaFXGraphicsBackend",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true
+  },
+  {
+    "name": "com.w3canvas.javacanvas.backend.graal.GraalRuntime",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true
   }
 ]

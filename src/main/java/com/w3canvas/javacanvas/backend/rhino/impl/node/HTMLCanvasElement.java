@@ -28,7 +28,6 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 import com.w3canvas.javacanvas.backend.awt.AwtGraphicsBackend;
-import com.w3canvas.javacanvas.backend.javafx.JavaFXGraphicsBackend;
 import com.w3canvas.javacanvas.core.CoreCanvasRenderingContext2D;
 import com.w3canvas.javacanvas.core.dom.CoreHTMLCanvasElement;
 import com.w3canvas.javacanvas.interfaces.ICanvasRenderingContext2D;
@@ -121,7 +120,12 @@ public class HTMLCanvasElement extends Image implements IObserver, ICanvas {
 			String backendName = System.getProperty("w3canvas.backend", "awt");
 			IGraphicsBackend backend;
 			if ("javafx".equalsIgnoreCase(backendName)) {
-				backend = new JavaFXGraphicsBackend();
+                try {
+                    backend = (IGraphicsBackend) Class.forName("com.w3canvas.javacanvas.backend.javafx.JavaFXGraphicsBackend").getDeclaredConstructor().newInstance();
+                } catch (Exception e) {
+                    System.err.println("Warning: JavaFX backend not available, falling back to AWT. Error: " + e.getMessage());
+                    backend = new AwtGraphicsBackend();
+                }
 			} else {
 				backend = new AwtGraphicsBackend();
 			}
