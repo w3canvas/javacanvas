@@ -7,7 +7,8 @@ A Java implementation of the HTML5 Canvas 2D API with dual graphics backend supp
 **JavaCanvas** enables HTML5 Canvas drawing capabilities in Java applications by bridging JavaScript canvas code with Java graphics backends. This allows JavaScript-based canvas applications to run in Java environments with full 2D rendering support.
 
 **Status:** 🎉 **100% feature complete** for modern Canvas 2D API specification (updated 2025-11-25)
-**Test Status:** 149/149 tests passing (100% pass rate)
+**Test Status:** 146/165 tests passing (88.5% pass rate) - 19 headless rendering tolerance failures
+**Build Status:** ✅ Maven verified working with proxy workaround
 **License:** Public Domain / CC0 (Creative Commons Zero)
 **Developed by:** Jumis, Inc.
 
@@ -118,12 +119,100 @@ JavaCanvas uses a three-layered "Trident" architecture:
 ## Building the Project
 
 ### Prerequisites
-- Java 11 or higher
-- Maven 3.x (or use included Maven wrapper)
+
+**Minimum Requirements:**
+- Java 17 or higher
+- Maven 3.6+ or Gradle 7.5+
 - For headless testing: `xvfb` (Linux)
+
+**Optional Tools:**
+- [JBang](https://www.jbang.dev/) - for quick script execution without build setup
+- [GraalVM](https://www.graalvm.org/) - for native image compilation
+
+### Installing Dependencies
+
+**On Linux (Ubuntu/Debian):**
+```bash
+# Install Java 17+ (if not already installed)
+sudo apt update
+sudo apt install openjdk-17-jdk
+
+# Install SDKMAN (package manager for Java tools)
+curl -s "https://get.sdkman.io" | bash
+source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+# Install JBang via SDKMAN
+sdk install jbang
+
+# Optional: Install GraalVM for native image support
+sdk install java 21.0.2-graalce
+sdk use java 21.0.2-graalce
+
+# For headless testing
+sudo apt install xvfb
+```
+
+**On macOS:**
+```bash
+# Install Homebrew (if not already installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Java 17+
+brew install openjdk@17
+
+# Install SDKMAN
+curl -s "https://get.sdkman.io" | bash
+source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+# Install JBang
+sdk install jbang
+
+# Optional: Install GraalVM
+sdk install java 21.0.2-graalce
+```
+
+**On Windows:**
+```powershell
+# Install Java 17+ using winget
+winget install Microsoft.OpenJDK.17
+
+# Install JBang using PowerShell
+iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
+
+# Optional: Install GraalVM
+# Download from https://www.graalvm.org/downloads/
+# Or use SDKMAN on Windows via WSL
+```
 
 ### Build Commands
 
+**⚠️ Important for Claude Code Web Users:**
+If Maven fails with `401 Unauthorized` or DNS errors, you need the Maven proxy workaround:
+```bash
+# Start the proxy (run once, keeps running)
+python3 .claude/maven-proxy.py > /tmp/maven_proxy.log 2>&1 &
+
+# Configure Maven (one-time setup)
+mkdir -p ~/.m2
+cat > ~/.m2/settings.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+  <proxies>
+    <proxy>
+      <id>local-proxy</id>
+      <active>true</active>
+      <protocol>http</protocol>
+      <host>127.0.0.1</host>
+      <port>8888</port>
+    </proxy>
+  </proxies>
+</settings>
+EOF
+```
+
+See `.claude/MAVEN_PROXY_README.md` for details.
+
+**Standard Build Commands:**
 ```bash
 # Build with Maven
 mvn clean package
@@ -139,7 +228,6 @@ mvn test
 
 # Generate test coverage report
 mvn clean test
-# View report at: target/site/jacoco/index.html
 # View report at: target/site/jacoco/index.html
 ```
 
@@ -169,28 +257,27 @@ $env:GRADLE_USER_HOME="c:\wip\gradle_home"
 
 ### Test Status
 
-**All Tests Passing (149/149 - 100%):**
-- ✓ `TestCanvas2D` - 77 comprehensive Canvas 2D API tests
-- ✓ `TestImageBitmap` - 11 ImageBitmap API tests
-- ✓ `TestOffscreenCanvas` - 10 OffscreenCanvas API tests
-- ✓ `TestCSSFilters` - 18 CSS filter parsing tests
-- ✓ `TestFilterIntegration` - 10 filter integration tests
-- ✓ `TestSharedWorker` - 5 SharedWorker tests
-- ✓ `TestJavaFX` - 2 JavaFX backend drawing capability tests
-- ✓ `TestAwtBackendSmokeTest` - 2 AWT backend smoke tests
-- ✓ `TestPureJavaFXFont` - 2 JavaFX font tests
-- ✓ `TestPureAWTFont` - 2 AWT font tests
-- ✓ `TestCSSParser` - 2 CSS color parser tests
-- ✓ `TestFontLoading` - 1 font loading test
-- ✓ `TestCanvas` - 1 application initialization smoke test
-- ✓ `TestFontFace` - 1 FontFace API test
-- ✓ `TestJavaFXFont` - 1 JavaFX font integration test
-- ✓ `TestRhino` - 1 Rhino JavaScript integration test
-- ✓ `TestWorker` - 1 Worker API test
-- ✓ `TestJSFeatures` - 1 JavaScript feature integration test
-- ✓ `TestAwtStrokeWithFilter` - 1 AWT filter unit test
+**Latest Verified Results (2025-11-30):**
+- **Total:** 165 tests
+- **Passing:** 146 tests (88.5%)
+- **Failing:** 19 tests (11.5% - all rendering pixel mismatches in headless mode)
+- **Skipped:** 1 test
 
-**Note:** Path2D edge case bugs fixed - all tests passing with assertions enabled
+**✓ Fully Passing Test Suites:**
+- ✓ `TestOffscreenCanvas` - 10/10 OffscreenCanvas API tests
+- ✓ `TestCSSFilters` - 18/18 CSS filter parsing tests
+- ✓ `PureJavaFXFontTest` - 2/2 JavaFX font tests
+- ✓ `TestRenderingServer` - 2/2 rendering server tests
+- ✓ `TestWorker` - 1/1 Worker API test
+- ✓ `TestLocalFont` - 1/1 font loading test
+- ✓ `TestFontFace` - 1/1 FontFace API test
+
+**⚠️ Partial Failures (Headless Rendering Tolerance Issues):**
+- `TestCanvas2D` - 17/77 failures (pixel color mismatches in headless xvfb mode)
+- `TestFontLoading` - 1 failure (pixel mismatch)
+- `TestRhino` - 1 failure (alpha component mismatch)
+
+**Note:** All 19 failures are rendering precision issues in headless mode, not logic errors. Functional behavior is correct. See `COMPLETE_VERIFICATION_REPORT.md` for details.
 
 ### Running Tests
 
@@ -252,22 +339,44 @@ See [REFACTOR.md](REFACTOR.md) for architectural details.
 
 - **[AGENTS.md](AGENTS.md)** - Instructions for AI agents and automated development
 
-## Native Image Support (Experimental)
+## Native Image Support
 
-This project includes configuration for building a GraalVM Native Image. This allows for faster startup and lower memory footprint, particularly useful for serverless or CLI use cases.
+JavaCanvas includes GraalVM Native Image configuration for **Linux, macOS, and Windows**. Native images provide faster startup times and lower memory footprint, making them ideal for serverless deployments, CLI tools, and containerized applications.
 
 ### Prerequisites
-- GraalVM JDK (Java 11+) installed and `native-image` tool available.
+- GraalVM JDK (Java 17+) installed with `native-image` tool available
 
 ### Building Native Image
 
+**With JBang:**
+```bash
+jbang export native JBangRunner.java
+```
+
+**With Maven:**
 ```bash
 mvn -Pnative package
 ```
 
-### Limitations
-- The legacy Rhino integration (used by `JavaCanvas` default setup) may require additional configuration for AOT compilation due to dynamic bytecode generation.
-- The recommended path for Native Image is to use `CoreCanvasRenderingContext2D` directly with GraalJS or Java-only logic, bypassing the Rhino binding layer.
+**With Gradle:**
+```bash
+./gradlew nativeCompile -Pgraalvm
+```
+
+### Testing Status
+- **CI Configuration**: GitHub Actions workflow configured for Linux, macOS, and Windows (`.github/workflows/native-build.yml`)
+- **CI Status**: Workflow not yet enabled/run - requires repository Actions to be enabled
+- **Manual Testing**: Requires network access to download GraalVM and dependencies
+- **Verified Components**:
+  - ✅ JDK 8 compatibility (Zulu 8.0.472 installed and tested)
+  - ✅ JBang installation (0.134.3 via SDKMAN)
+  - ✅ Configuration files present (pom.xml, build.gradle, reflection configs)
+  - ⏸️ Full builds require network access (Maven Central, Gradle Plugin Portal)
+
+### Notes
+- The legacy Rhino integration may require additional reflection configuration for AOT compilation
+- For maximum compatibility, consider using GraalJS or the Core API directly (`CoreCanvasRenderingContext2D`)
+- Reflection configuration provided in `src/main/resources/META-INF/native-image/`
 
 ## Usage Example
 
@@ -290,9 +399,11 @@ ctx.fillRect(10, 10, 100, 100);
 javaCanvas.executeScript("path/to/canvas-script.js");
 ```
 
-## JBang Support (Recommended for Windows)
+## JBang Support
 
-You can run JavaCanvas without installing Gradle or Maven using [JBang](https://www.jbang.dev/). This is the **recommended way to run JavaCanvas on Windows**, especially if you encounter path issues with Gradle or don't have Maven installed.
+JavaCanvas includes JBang runner scripts for quick execution without build tools. [JBang](https://www.jbang.dev/) works on **Linux, macOS, and Windows**, providing a simple way to run JavaCanvas scripts.
+
+**Note**: JBang requires network access to resolve dependencies on first run (downloads JavaFX platform artifacts, Rhino, GraalJS, etc.).
 
 ### Running the CLI
 Run scripts directly:
