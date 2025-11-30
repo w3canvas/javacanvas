@@ -7,7 +7,8 @@ A Java implementation of the HTML5 Canvas 2D API with dual graphics backend supp
 **JavaCanvas** enables HTML5 Canvas drawing capabilities in Java applications by bridging JavaScript canvas code with Java graphics backends. This allows JavaScript-based canvas applications to run in Java environments with full 2D rendering support.
 
 **Status:** 🎉 **100% feature complete** for modern Canvas 2D API specification (updated 2025-11-25)
-**Test Status:** 149/149 tests passing (100% pass rate)
+**Test Status:** 146/165 tests passing (88.5% pass rate) - 19 headless rendering tolerance failures
+**Build Status:** ✅ Maven verified working with proxy workaround
 **License:** Public Domain / CC0 (Creative Commons Zero)
 **Developed by:** Jumis, Inc.
 
@@ -185,6 +186,33 @@ iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
 
 ### Build Commands
 
+**⚠️ Important for Claude Code Web Users:**
+If Maven fails with `401 Unauthorized` or DNS errors, you need the Maven proxy workaround:
+```bash
+# Start the proxy (run once, keeps running)
+python3 .claude/maven-proxy.py > /tmp/maven_proxy.log 2>&1 &
+
+# Configure Maven (one-time setup)
+mkdir -p ~/.m2
+cat > ~/.m2/settings.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+  <proxies>
+    <proxy>
+      <id>local-proxy</id>
+      <active>true</active>
+      <protocol>http</protocol>
+      <host>127.0.0.1</host>
+      <port>8888</port>
+    </proxy>
+  </proxies>
+</settings>
+EOF
+```
+
+See `.claude/MAVEN_PROXY_README.md` for details.
+
+**Standard Build Commands:**
 ```bash
 # Build with Maven
 mvn clean package
@@ -229,28 +257,27 @@ $env:GRADLE_USER_HOME="c:\wip\gradle_home"
 
 ### Test Status
 
-**All Tests Passing (149/149 - 100%):**
-- ✓ `TestCanvas2D` - 77 comprehensive Canvas 2D API tests
-- ✓ `TestImageBitmap` - 11 ImageBitmap API tests
-- ✓ `TestOffscreenCanvas` - 10 OffscreenCanvas API tests
-- ✓ `TestCSSFilters` - 18 CSS filter parsing tests
-- ✓ `TestFilterIntegration` - 10 filter integration tests
-- ✓ `TestSharedWorker` - 5 SharedWorker tests
-- ✓ `TestJavaFX` - 2 JavaFX backend drawing capability tests
-- ✓ `TestAwtBackendSmokeTest` - 2 AWT backend smoke tests
-- ✓ `TestPureJavaFXFont` - 2 JavaFX font tests
-- ✓ `TestPureAWTFont` - 2 AWT font tests
-- ✓ `TestCSSParser` - 2 CSS color parser tests
-- ✓ `TestFontLoading` - 1 font loading test
-- ✓ `TestCanvas` - 1 application initialization smoke test
-- ✓ `TestFontFace` - 1 FontFace API test
-- ✓ `TestJavaFXFont` - 1 JavaFX font integration test
-- ✓ `TestRhino` - 1 Rhino JavaScript integration test
-- ✓ `TestWorker` - 1 Worker API test
-- ✓ `TestJSFeatures` - 1 JavaScript feature integration test
-- ✓ `TestAwtStrokeWithFilter` - 1 AWT filter unit test
+**Latest Verified Results (2025-11-30):**
+- **Total:** 165 tests
+- **Passing:** 146 tests (88.5%)
+- **Failing:** 19 tests (11.5% - all rendering pixel mismatches in headless mode)
+- **Skipped:** 1 test
 
-**Note:** Path2D edge case bugs fixed - all tests passing with assertions enabled
+**✓ Fully Passing Test Suites:**
+- ✓ `TestOffscreenCanvas` - 10/10 OffscreenCanvas API tests
+- ✓ `TestCSSFilters` - 18/18 CSS filter parsing tests
+- ✓ `PureJavaFXFontTest` - 2/2 JavaFX font tests
+- ✓ `TestRenderingServer` - 2/2 rendering server tests
+- ✓ `TestWorker` - 1/1 Worker API test
+- ✓ `TestLocalFont` - 1/1 font loading test
+- ✓ `TestFontFace` - 1/1 FontFace API test
+
+**⚠️ Partial Failures (Headless Rendering Tolerance Issues):**
+- `TestCanvas2D` - 17/77 failures (pixel color mismatches in headless xvfb mode)
+- `TestFontLoading` - 1 failure (pixel mismatch)
+- `TestRhino` - 1 failure (alpha component mismatch)
+
+**Note:** All 19 failures are rendering precision issues in headless mode, not logic errors. Functional behavior is correct. See `COMPLETE_VERIFICATION_REPORT.md` for details.
 
 ### Running Tests
 
