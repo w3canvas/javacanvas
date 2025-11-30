@@ -314,14 +314,14 @@ See [REFACTOR.md](REFACTOR.md) for architectural details.
 
 ## Native Image Support
 
-JavaCanvas fully supports GraalVM Native Image compilation on **Linux, macOS, and Windows**. This provides faster startup times and lower memory footprint, making it ideal for serverless deployments, CLI tools, and containerized applications.
+JavaCanvas includes GraalVM Native Image configuration for **Linux, macOS, and Windows**. Native images provide faster startup times and lower memory footprint, making them ideal for serverless deployments, CLI tools, and containerized applications.
 
 ### Prerequisites
 - GraalVM JDK (Java 17+) installed with `native-image` tool available
 
 ### Building Native Image
 
-**With JBang (Recommended):**
+**With JBang:**
 ```bash
 jbang export native JBangRunner.java
 ```
@@ -336,10 +336,20 @@ mvn -Pnative package
 ./gradlew nativeCompile -Pgraalvm
 ```
 
+### Testing Status
+- **CI Configuration**: GitHub Actions workflow configured for Linux, macOS, and Windows (`.github/workflows/native-build.yml`)
+- **CI Status**: Workflow not yet enabled/run - requires repository Actions to be enabled
+- **Manual Testing**: Requires network access to download GraalVM and dependencies
+- **Verified Components**:
+  - ✅ JDK 8 compatibility (Zulu 8.0.472 installed and tested)
+  - ✅ JBang installation (0.134.3 via SDKMAN)
+  - ✅ Configuration files present (pom.xml, build.gradle, reflection configs)
+  - ⏸️ Full builds require network access (Maven Central, Gradle Plugin Portal)
+
 ### Notes
-- Native images are built and tested in CI on all three major platforms
 - The legacy Rhino integration may require additional reflection configuration for AOT compilation
 - For maximum compatibility, consider using GraalJS or the Core API directly (`CoreCanvasRenderingContext2D`)
+- Reflection configuration provided in `src/main/resources/META-INF/native-image/`
 
 ## Usage Example
 
@@ -364,7 +374,9 @@ javaCanvas.executeScript("path/to/canvas-script.js");
 
 ## JBang Support
 
-You can run JavaCanvas without installing Gradle or Maven using [JBang](https://www.jbang.dev/). JBang works on **Linux, macOS, and Windows**, providing a simple way to run JavaCanvas scripts without complex build setup.
+JavaCanvas includes JBang runner scripts for quick execution without build tools. [JBang](https://www.jbang.dev/) works on **Linux, macOS, and Windows**, providing a simple way to run JavaCanvas scripts.
+
+**Note**: JBang requires network access to resolve dependencies on first run (downloads JavaFX platform artifacts, Rhino, GraalJS, etc.).
 
 ### Running the CLI
 Run scripts directly:
