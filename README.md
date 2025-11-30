@@ -118,9 +118,70 @@ JavaCanvas uses a three-layered "Trident" architecture:
 ## Building the Project
 
 ### Prerequisites
-- Java 11 or higher
-- Maven 3.x (or use included Maven wrapper)
+
+**Minimum Requirements:**
+- Java 17 or higher
+- Maven 3.6+ or Gradle 7.5+
 - For headless testing: `xvfb` (Linux)
+
+**Optional Tools:**
+- [JBang](https://www.jbang.dev/) - for quick script execution without build setup
+- [GraalVM](https://www.graalvm.org/) - for native image compilation
+
+### Installing Dependencies
+
+**On Linux (Ubuntu/Debian):**
+```bash
+# Install Java 17+ (if not already installed)
+sudo apt update
+sudo apt install openjdk-17-jdk
+
+# Install SDKMAN (package manager for Java tools)
+curl -s "https://get.sdkman.io" | bash
+source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+# Install JBang via SDKMAN
+sdk install jbang
+
+# Optional: Install GraalVM for native image support
+sdk install java 21.0.2-graalce
+sdk use java 21.0.2-graalce
+
+# For headless testing
+sudo apt install xvfb
+```
+
+**On macOS:**
+```bash
+# Install Homebrew (if not already installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Java 17+
+brew install openjdk@17
+
+# Install SDKMAN
+curl -s "https://get.sdkman.io" | bash
+source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+# Install JBang
+sdk install jbang
+
+# Optional: Install GraalVM
+sdk install java 21.0.2-graalce
+```
+
+**On Windows:**
+```powershell
+# Install Java 17+ using winget
+winget install Microsoft.OpenJDK.17
+
+# Install JBang using PowerShell
+iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
+
+# Optional: Install GraalVM
+# Download from https://www.graalvm.org/downloads/
+# Or use SDKMAN on Windows via WSL
+```
 
 ### Build Commands
 
@@ -139,7 +200,6 @@ mvn test
 
 # Generate test coverage report
 mvn clean test
-# View report at: target/site/jacoco/index.html
 # View report at: target/site/jacoco/index.html
 ```
 
